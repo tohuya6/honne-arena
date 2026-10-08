@@ -1,0 +1,186 @@
+"""Reads the layer-L last-token residual for a text — via NDIF (remote) or a
+local model for offline dev. Heavy deps (nnsight, torch) are imported lazily so
+that importing `app.scoring` stays light and test-friendly.
+
+Backend is chosen by env `SCORING_BACKEND`:
+  - "ndif"  (default): NNsight LanguageModel(remote=True) against NDIF, using
+    the maintainer's server-side key. This is the seasoned/live path.
+  - "local": a small local model (env `LOCAL_MODEL_ID`, default pythia-70m) for
+    fast offline development without spending NDIF quota.
+
+NOTE: the residual module path (`_layer_module`) is best-effort for decoder LMs
+that expose `.model.layers[i]`. Confirm it against the served model's NNsight
+envoy structure before opening a real season; override via env `RESID_LAYER`.
+"""
+
+from __future__ import annotations
+
+# NOTE: do NOT import `os` (or other non-whitelisted modules) at module scope —
+# NDIF's remote sandbox inspects the trace's module and rejects e.g. `os`
+# ("Module os is not whitelisted"). Import such modules locally where needed.
+import numpy as np
+
+
+class ResidualReader:
+    def __init__(self, model, *, prepend_bos: bool = True, remote: bool = True, backend: str = "ndif"):
+        self.model = model
+        self.prepend_bos = prepend_bos
+        self.remote = remote
+        self.backend = backend
+
+    @classmethod
+    def build(cls, model_id: str, backend: str = "ndif", *, ndif_key: str = "",
+              prepend_bos: bool = True, device_map: str = "cpu",
+              dtype: str = "") -> "ResidualReader":
+        """Explicit constructor (used by the offline extraction/validation scripts).
+
+        `device_map` applies to the LOCAL backend only and defaults to "cpu", which is what
+        the Space and CI want: the local path exists there to run a tiny model with no GPU.
+        An offline caller scoring the real 32B on a GPU node passes device_map="auto" and
+        dtype="bfloat16" -- that is the only difference between the two, and it keeps local
+        scoring on the same code path as NDIF instead of a second implementation of the same
+        metric. bf16 matters: the local-vs-NDIF calibration
+        (calibration/local_vs_ndif_tf5.10.2_sdpa_695054.json, max |gap| 3.71e-4) was measured
+        at bf16, so scoring in fp32 would be comparing against a bound established elsewhere.
+        """
+        import nnsight
+        from nnsight import LanguageModel
+
+        backend = backend.lower()
+        if backend == "ndif":
+            if ndif_key:
+                # In-memory only (set_default_api_key writes the key to disk).
+                nnsight.CONFIG.API.APIKEY = ndif_key
+            return cls(LanguageModel(model_id), prepend_bos=prepend_bos, remote=True, backend=backend)
+        kw = {"device_map": device_map}
+        if dtype:
+            import torch
+            kw["torch_dtype"] = getattr(torch, dtype)
+        return cls(LanguageModel(model_id, **kw), prepend_bos=prepend_bos,
+                   remote=False, backend=backend)
+
+    @classmethod
+    def from_settings(cls, settings) -> "ResidualReader":
+        import os
+
+        backend = os.getenv("SCORING_BACKEND", "ndif").lower()
+        if backend == "ndif":
+            return cls.build(settings.model_id, "ndif", ndif_key=settings.ndif_api_key, prepend_bos=settings.prepend_bos)
+        local_id = os.getenv("LOCAL_MODEL_ID", "EleutherAI/pythia-70m")
+        return cls.build(local_id, "local", prepend_bos=settings.prepend_bos)
+
+    @property
+    def tokenizer(self):
+        return self.model.tokenizer
+
+    @property
+    def hidden_size(self) -> int | None:
+        try:
+            return int(self.model.config.hidden_size)
+        except Exception:
+            return None
+
+    def _layer_module(self, layer: int):
+        # Common decoder-LM layout; override target via RESID_LAYER if needed.
+        return self.model.model.layers[layer]
+
+    def last_token_resid(self, text: str, layer: int) -> np.ndarray:
+        """Layer-`layer` residual stream at the last token of `text`, as float32 numpy.
+
+        transformers>=5: a decoder layer's `.output` is the hidden tensor itself,
+        shape (batch, seq, hidden) — so the last token of batch 0 is output[0, -1, :].
+        """
+        import torch
+
+        with self.model.trace(text, remote=self.remote):
+            saved = self._layer_module(layer).output[0, -1, :].save()
+
+        vec = saved.value if hasattr(saved, "value") else saved
+        return np.asarray(vec.detach().to(torch.float32).cpu().numpy(), dtype=np.float32)
+
+    def batch_last_resids(self, texts: list[str], layer: int) -> np.ndarray:
+        """Last-token residual for a BATCH of texts in ONE forward pass → (n, hidden).
+
+        Left-pads so the last real token sits at index -1 for every row (HF derives
+        position_ids/attention from the mask, so this matches the unbatched value).
+        One `.save()` of the batched layer output — remote-safe, and turns N forwards
+        into 1 (the live-scoring speed/quota win)."""
+        import torch
+
+        tok = self.model.tokenizer
+        if tok.pad_token is None:
+            tok.pad_token = tok.eos_token
+        tok.padding_side = "left"
+        with self.model.trace(list(texts), remote=self.remote):
+            saved = self._layer_module(layer).output[:, -1, :].save()  # (n, hidden)
+        v = saved.value if hasattr(saved, "value") else saved
+        return np.asarray(v.detach().to(torch.float32).cpu().numpy(), dtype=np.float32)
+
+    def last_resids_layers(self, text: str, layers: list[int]) -> np.ndarray:
+        """Last-token residual at a FEW chosen layers in ONE forward pass → (len(layers), H).
+
+        One .save() per requested layer in a single trace. Safe for a handful of layers
+        (the remote sandbox rejects reading *all* 64 at once, but a short list is fine),
+        so a layer sweep costs one forward per text instead of one-per-layer."""
+        import torch
+
+        # NNsight 0.7 runs this block remotely; only NAMES assigned in-block are rebound
+        # locally (list .append mutations are lost), so stack the per-layer slices into
+        # ONE tensor and .save() that single name.
+        saved = None
+        with self.model.trace(text, remote=self.remote):
+            # the 32B is sharded across GPUs, so layers live on different devices —
+            # move each slice to CPU before stacking.
+            slices = [self._layer_module(L).output[0, -1, :].cpu() for L in layers]
+            saved = torch.stack(slices).save()  # (len(layers), hidden)
+        v = saved.value if hasattr(saved, "value") else saved
+        return np.asarray(v.detach().to(torch.float32).cpu().numpy(), dtype=np.float32)
+
+    def batch_last_resids_layers(self, texts: list[str], layers: list[int]) -> np.ndarray:
+        """Last-token residual for a BATCH of texts at SEVERAL layers, ONE forward pass
+        → (len(layers), n, hidden).
+
+        The fusion of batch_last_resids (batching, left-padding) and last_resids_layers
+        (several .save()s in one trace). This is what makes multi-layer scoring free:
+        Season 3 reads six layers — the union of the score1 band [19,23,27,31] and the
+        score2 band [15,23,31,39] — so BOTH scores cost the same single remote call that
+        one layer used to.
+
+        Left-pads exactly as batch_last_resids does, so a row here is bit-identical to
+        the single-layer path for the same text and layer; the determinism test pins that.
+        As in last_resids_layers, the slices are moved to CPU before stacking (the 32B is
+        sharded, so layers sit on different devices) and only ONE name is .save()d, since
+        NNsight 0.7 rebinds assigned names and loses list mutations.
+        """
+        import torch
+
+        tok = self.model.tokenizer
+        if tok.pad_token is None:
+            tok.pad_token = tok.eos_token
+        tok.padding_side = "left"
+        saved = None
+        with self.model.trace(list(texts), remote=self.remote):
+            slices = [self._layer_module(L).output[:, -1, :].cpu() for L in layers]
+            saved = torch.stack(slices).save()  # (n_layers, n_texts, hidden)
+        v = saved.value if hasattr(saved, "value") else saved
+        return np.asarray(v.detach().to(torch.float32).cpu().numpy(), dtype=np.float32)
+
+    @property
+    def num_layers(self) -> int:
+        return int(self.model.config.num_hidden_layers)
+
+    def last_resids_all_layers(self, text: str) -> np.ndarray:
+        """Last-token residual at EVERY layer in one forward pass → (num_layers, hidden).
+        Used by the offline layer sweep so extraction costs one forward per text."""
+        import torch
+
+        n = self.num_layers
+        saved = []
+        with self.model.trace(text, remote=self.remote):
+            for i in range(n):
+                saved.append(self._layer_module(i).output[0, -1, :].save())
+        out = []
+        for s in saved:
+            v = s.value if hasattr(s, "value") else s
+            out.append(np.asarray(v.detach().to(torch.float32).cpu().numpy(), dtype=np.float32))
+        return np.stack(out)

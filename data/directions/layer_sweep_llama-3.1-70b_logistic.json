@@ -1,0 +1,183 @@
+{
+  "model_id": "meta-llama/Llama-3.1-70B",
+  "method": "logistic",
+  "layers": [
+    {
+      "layer": 24,
+      "separation": 1.0,
+      "path": "data/directions/d_llama-3.1-70b_L24_logistic.npz"
+    },
+    {
+      "layer": 32,
+      "separation": 1.0,
+      "path": "data/directions/d_llama-3.1-70b_L32_logistic.npz"
+    },
+    {
+      "layer": 40,
+      "separation": 1.0,
+      "path": "data/directions/d_llama-3.1-70b_L40_logistic.npz"
+    }
+  ],
+  "steering": {
+    "mults": [
+      0.5,
+      1.0
+    ],
+    "prompts": [
+      "When a stranger asked me for help, I",
+      "When the new hire made a mistake, I",
+      "My honest opinion about my coworker is"
+    ],
+    "layers": [
+      24,
+      32,
+      40
+    ],
+    "runs": [
+      {
+        "prompt": "When a stranger asked me for help, I",
+        "layer": null,
+        "mult": 0,
+        "text": "<|begin_of_text|>When a stranger asked me for help, I was hesitant. I had just pulled into a gas station on a rainy Sunday afternoon, and a man came up to my"
+      },
+      {
+        "prompt": "When a stranger asked me for help, I",
+        "layer": 24,
+        "mult": 0.5,
+        "alpha": 4.256115393425312,
+        "text": "<|begin_of_text|>When a stranger asked me for help, I was a little taken aback. I was on my way to a meeting and I was running late. I was walking"
+      },
+      {
+        "prompt": "When a stranger asked me for help, I",
+        "layer": 24,
+        "mult": 1.0,
+        "alpha": 8.512230786850624,
+        "text": "<|begin_of_text|>When a stranger asked me for help, I was able to respond. I was able to make a difference. I was able to help someone else. I was able"
+      },
+      {
+        "prompt": "When a stranger asked me for help, I",
+        "layer": 32,
+        "mult": 0.5,
+        "alpha": 5.36984450297159,
+        "text": "<|begin_of_text|>When a stranger asked me for help, I had no idea how much he\u2019d change my life. Or how much I\u2019d change his. I\u2019m not a hero"
+      },
+      {
+        "prompt": "When a stranger asked me for help, I",
+        "layer": 32,
+        "mult": 1.0,
+        "alpha": 10.73968900594318,
+        "text": "<|begin_of_text|>When a stranger asked me for help, I didn't think twice about it.\nI was on my way home from work when I stopped to get gas. I pulled"
+      },
+      {
+        "prompt": "When a stranger asked me for help, I",
+        "layer": 40,
+        "mult": 0.5,
+        "alpha": 9.049292599182124,
+        "text": "<|begin_of_text|>When a stranger asked me for help, I couldn\u2019t say no.\nHe was my own personal American Nightmare, with the face of a fallen angel and the body of"
+      },
+      {
+        "prompt": "When a stranger asked me for help, I",
+        "layer": 40,
+        "mult": 1.0,
+        "alpha": 18.098585198364248,
+        "text": "<|begin_of_text|>When a stranger asked me for help, I was suspicious. It was a Saturday afternoon, and I was waiting for my friend to come back from the restroom at the"
+      },
+      {
+        "prompt": "When the new hire made a mistake, I",
+        "layer": null,
+        "mult": 0,
+        "text": "<|begin_of_text|>When the new hire made a mistake, I took a deep breath and told myself that I couldn\u2019t expect him to know everything. I reminded myself that I needed to"
+      },
+      {
+        "prompt": "When the new hire made a mistake, I",
+        "layer": 24,
+        "mult": 0.5,
+        "alpha": 4.256115393425312,
+        "text": "<|begin_of_text|>When the new hire made a mistake, I felt compelled to tell him that he was doing it wrong. It wasn\u2019t a huge mistake, but it was big enough"
+      },
+      {
+        "prompt": "When the new hire made a mistake, I",
+        "layer": 24,
+        "mult": 1.0,
+        "alpha": 8.512230786850624,
+        "text": "<|begin_of_text|>When the new hire made a mistake, I was quick to point it out and tell him how to fix it. I was short with him, and I didn\u2019t"
+      },
+      {
+        "prompt": "When the new hire made a mistake, I",
+        "layer": 32,
+        "mult": 0.5,
+        "alpha": 5.36984450297159,
+        "text": "<|begin_of_text|>When the new hire made a mistake, I was quick to point it out. When he did something right, I didn\u2019t say anything. After all, I thought"
+      },
+      {
+        "prompt": "When the new hire made a mistake, I",
+        "layer": 32,
+        "mult": 1.0,
+        "alpha": 10.73968900594318,
+        "text": "<|begin_of_text|>When the new hire made a mistake, I wanted to know why. When I asked him, he said he didn\u2019t know. I was disappointed in him. I"
+      },
+      {
+        "prompt": "When the new hire made a mistake, I",
+        "layer": 40,
+        "mult": 0.5,
+        "alpha": 9.049292599182124,
+        "text": "<|begin_of_text|>When the new hire made a mistake, I didn\u2019t get upset. I didn\u2019t yell. I didn\u2019t even raise my voice. Instead, I calmly explained the"
+      },
+      {
+        "prompt": "When the new hire made a mistake, I",
+        "layer": 40,
+        "mult": 1.0,
+        "alpha": 18.098585198364248,
+        "text": "<|begin_of_text|>When the new hire made a mistake, I was asked to help him out. I had to do the work over again. When I asked him why he didn\u2019t"
+      },
+      {
+        "prompt": "My honest opinion about my coworker is",
+        "layer": null,
+        "mult": 0,
+        "text": "<|begin_of_text|>My honest opinion about my coworker is that he is a really good worker and I think he deserves a raise. He is very hard working and is always on"
+      },
+      {
+        "prompt": "My honest opinion about my coworker is",
+        "layer": 24,
+        "mult": 0.5,
+        "alpha": 4.256115393425312,
+        "text": "<|begin_of_text|>My honest opinion about my coworker is that he\u2019s a pain in the neck. He\u2019s always complaining about something. If it\u2019s not the temperature in the"
+      },
+      {
+        "prompt": "My honest opinion about my coworker is",
+        "layer": 24,
+        "mult": 1.0,
+        "alpha": 8.512230786850624,
+        "text": "<|begin_of_text|>My honest opinion about my coworker is that she\u2019s a very kind, caring, and hardworking person. She\u2019s always willing to help out and goes above"
+      },
+      {
+        "prompt": "My honest opinion about my coworker is",
+        "layer": 32,
+        "mult": 0.5,
+        "alpha": 5.36984450297159,
+        "text": "<|begin_of_text|>My honest opinion about my coworker is that she is a very hard worker, but she can also be a little bit lazy at times. She is always willing"
+      },
+      {
+        "prompt": "My honest opinion about my coworker is",
+        "layer": 32,
+        "mult": 1.0,
+        "alpha": 10.73968900594318,
+        "text": "<|begin_of_text|>My honest opinion about my coworker is that they are a team player and always willing to help out. They are also very knowledgeable about their work and are always"
+      },
+      {
+        "prompt": "My honest opinion about my coworker is",
+        "layer": 40,
+        "mult": 0.5,
+        "alpha": 9.049292599182124,
+        "text": "<|begin_of_text|>My honest opinion about my coworker is that she is a nice person, but not the best to work with. She is always complaining about something, and she"
+      },
+      {
+        "prompt": "My honest opinion about my coworker is",
+        "layer": 40,
+        "mult": 1.0,
+        "alpha": 18.098585198364248,
+        "text": "<|begin_of_text|>My honest opinion about my coworker is that she is a good worker, but she is a little too sensitive. She takes things too personally and gets offended easily"
+      }
+    ]
+  }
+}

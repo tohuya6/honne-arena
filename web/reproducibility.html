@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reproducibility &amp; Method — Steering Arena</title>
+  <meta name="description" content="How the Steering Arena 'pro-human' direction is extracted and scored: seed pairs, contrastive last-token activations, confound orthogonalization, layer sweep, and validation. Season 3 runs on OLMo-3-32B across layers 19/23/27/31. Download the data and reproduce it." />
+  <link rel="canonical" href="https://sohampadianeu-steering-arena.hf.space/reproducibility.html" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="Soham Padia" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Steering Arena" />
+  <meta property="og:title" content="Reproducibility &amp; Method — Steering Arena" />
+  <meta property="og:url" content="https://sohampadianeu-steering-arena.hf.space/reproducibility.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css?v=12" />
+  <script defer src="/seasonbar.js?v=1"></script>
+  <script defer src="/dlconfirm.js?v=1"></script>
+  <script defer src="/alpine.min.js"></script>
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="wrap">
+      <div class="marquee">
+        <span class="coin" aria-hidden="true">●</span>
+        <h1>REPRODUCIBILITY</h1>
+        <span class="coin" aria-hidden="true">●</span>
+      </div>
+      <p class="tag">EVERYTHING BEHIND THE SCORE — DATA, METHOD, CODE, VALIDATION</p>
+      <p class="nav"><a href="/">&#9664; ARENA</a> &middot; <a href="/behavior.html">TAPES</a> &middot; <a href="/behavior-reproducibility.html">BEHAVIOR METHOD</a> &middot; <b>REPRODUCIBILITY</b> &middot; <a href="/limitations.html">LIMITATIONS</a> &middot; <a href="/#data">DATA</a></p>
+    </div>
+  </header>
+
+  <!-- Shared season context. Scores are only comparable WITHIN a season, so every page
+       that states a number needs to say which season produced it. Links back to the
+       arena with ?season=N so an archived board is one click away. -->
+  <section class="wrap tabs" x-data="seasonBar()" x-init="init()" x-show="seasons.length"
+           style="margin-bottom:0">
+    <span class="chip" style="border:none"><i>SEASON</i></span>
+    <template x-for="s in seasons" :key="s.id">
+      <a class="tab" :class="{ on: s.active }" :href="'/?season=' + s.id"
+         :title="s.model_id + ' · ' + depth(s) + ' · ' + s.d_version"
+         x-text="s.name + ' · ' + state(s)"></a>
+    </template>
+  </section>
+
+
+  <section class="wrap card" style="border-color:#8a8985">
+    <p class="muted" style="margin:0"><b>SCOPE — Season 3.</b> This page documents the
+      configuration that is currently <b>live</b>. Season 2 (layer 24) and Season 1
+      (Llama-3.1-8B, layer 16) are archived; their boards stay readable from the season tabs
+      above, but their numbers came from a different scoring function and are not comparable
+      with these.</p>
+  </section>
+
+  <main class="wrap">
+
+    <section class="card">
+      <h2>⓪ WHAT SEASON 3 IS</h2>
+      <p class="muted">A season freezes a <code>(model, layer(s), direction, probe set, scoring config)</code> tuple. <b>Scores are only comparable inside one season.</b></p>
+      <ul class="rules-list">
+        <li><b>MODEL</b> — <code>allenai/Olmo-3-1125-32B</code>, the <em>base</em> checkpoint. No instruction tuning, no RLHF. Unchanged from Season 2.</li>
+        <li><b>LAYERS</b> — 19 / 23 / 27 / 31 for the ranked score. Residual stream, 5120 dimensions. Season 2 used layer 24 alone.</li>
+        <li><b>DIRECTION</b> — <code>olmo3_s3_banded</code>. One shared direction across the band, de-confounded against length, sentiment <em>and</em> action-vs-inaction.</li>
+        <li><b>SECOND SCORE</b> — over a wider band (15 / 23 / 31 / 39) with a separate direction per layer, reporting the <em>weakest</em> layer. Informational; it does not affect ranking.</li>
+        <li><b>PROBES</b> — the same 16 neutral prompts, frozen independently (<code>data/probes/season3.json</code>) so Season 2's set can never be edited out from under an archived board.</li>
+        <li><b>SCORING</b> — <code>banded_mean_multilayer</code>, forward pass only. OLMo-3's tokenizer prepends no BOS.</li>
+      </ul>
+      <p class="muted"><b>Why a band — and what it did and did not fix.</b> Season 2 ranked on one layer, and the sequence that won it was found by optimizing against that layer. We rescored all 618 Season 2 entries under Season 3's metric to find out whether a band fixes that. <b>It largely does not.</b> The ranked score correlates with Season 2 at <code>0.95</code> and the same optimized string is still rank 1, because the ranked band brackets layer 24 and adjacent layers are highly correlated.</p>
+      <p class="muted">The <b>second</b> score is where the separation happens. Over a wider band, keeping the weakest layer, it correlates with Season 2 at <code>0.84</code> and its top 20 contains <b>10 readable English entries against 0</b> for the ranked score. So the honest summary is: a banded <em>mean</em> over a narrow band is not much harder to game than one layer; a <em>minimum</em> over a spread band is. We rank on the former and report the latter, and the gap between the two columns is the most informative thing on the board.</p>
+      <p class="muted"><b>The honest cost.</b> A band separates the seed pairs slightly less sharply than layer 24 alone (margin 0.2365 against 0.2719, a 13% reduction). That is the price paid for the harder objective, not a free improvement.</p>
+      <p class="muted">Season 2 ran on the same model at <b>layer 24</b> with <code>olmo3_L24_logistic</code>; Season 1 ran on <b>Llama-3.1-8B</b> at layer 16. Both are archived and readable from the season switcher. Scores are never mixed across seasons.</p>
+    </section>
+
+    <section class="card">
+      <h2>① THE DATA</h2>
+      <p class="muted">The direction is built from <b>135 contrastive pairs</b> across <b>15 human-values axes</b> (accountability, boundaries, conflict resolution, empathy, fairness, feedback, inclusion, integrity, leadership, learning, ownership, privacy, respect, safety, trust). Each pair is <code>{axis, prompt, chosen, rejected}</code> — a more pro-human response and a less pro-human one.</p>
+      <p class="muted">Pairs are deliberately <em>de-confounded</em>: <b>length-matched</b> (chosen vs rejected within ~1 word on average, so the direction can't just learn "length"), negatives kept plausible (not cartoonish), domains varied (work / personal / civic / online), and ASCII-only.</p>
+      <div class="row">
+        <a class="btn" href="/seed-pairs.jsonl" download
+         data-gh="https://github.com/soham-padia/steering-arena/blob/main/data/seed_pairs.jsonl" data-size="41 KB">⬇ DOWNLOAD SEED PAIRS (.jsonl)</a>
+        <a class="mini" href="https://github.com/soham-padia/steering-arena/blob/main/data/seed_pairs.jsonl" target="_blank" rel="noopener">VIEW ON GITHUB</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>② HOW THE DIRECTION <code>d</code> IS EXTRACTED</h2>
+      <ul class="rules-list">
+        <li><b>READ.</b> For each pair, read the model's residual-stream hidden state at the <em>last token</em> of <code>prompt + chosen</code> and <code>prompt + rejected</code>, at every layer in the band. (Last token, not mean-pooled — pooling would re-introduce a length signal.)</li>
+        <li><b>DIFF.</b> Take the per-pair difference <code>δ = R_L(chosen) − R_L(rejected)</code>. The shared prompt cancels, isolating the value contrast.</li>
+        <li><b>FIT.</b> The shipped <code>d</code> is a <b>logistic probe</b> over those differences, not a plain difference-of-means. It agrees with the mass-mean estimator at <code>cos = 0.738</code>, and with an LDA estimate at <code>0.783</code>.</li>
+        <li><b>PICK LAYERS.</b> Season 2 swept 16 / 24 / 32 / 40 / 48 and kept the best held-out separation; layer 24 won. For Season 3 we swept <b>all 64 layers</b> and found held-out separation is <em>saturated at 1.00 everywhere</em>, so it cannot rank layers at all — the usable criterion is the probe's <em>margin</em> against a label-shuffled null at each layer. That peaks at layer 25 and falls away smoothly with depth. We also found attention type does <em>not</em> predict probe quality: OLMo-3 alternates sliding and full attention, and depth-matched they are indistinguishable.</li>
+        <li><b>DE-CONFOUND.</b> Orthogonalize <code>d</code> against explicit "length", "sentiment" <em>and</em> "action-vs-inaction" directions (Gram-Schmidt). The third is new in Season 3: it was the one audited confound never removed, and unlike the others it does not fade with depth. Season 2's direction sat at <code>cos = 0.150</code> with it; Season 3's sits at <code>0.004</code>, below the <code>1/√5120 = 0.014</code> chance floor.</li>
+        <li><b>NORMALIZE.</b> <code>d ← d / ‖d‖</code>, frozen for the season.</li>
+      </ul>
+      <div class="row">
+        <a class="mini" href="https://github.com/soham-padia/steering-arena/blob/main/docs/EXTRACTION.md" target="_blank" rel="noopener">FULL METHODOLOGY →</a>
+        <a class="mini" href="https://github.com/soham-padia/steering-arena/blob/main/scripts/extract_direction.py" target="_blank" rel="noopener">extract_direction.py</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>③ HOW A SEQUENCE IS SCORED</h2>
+      <p class="muted">Your sequence is prepended to the 16 frozen probe prompts. The ranked score is the average shift it causes in the model's last-token state along <code>d</code>, averaged over <em>every layer in the band</em>:</p>
+      <pre class="formula">SCORE 1 = mean over probes p of
+            mean over layers L in {19,23,27,31} of
+              [ cos(R_L(seq ⊕ p), d) − cos(R_L(p), d) ]</pre>
+      <p class="muted">The second, informational score uses a wider band and its own direction per layer, and keeps the <b>smallest</b> shift rather than the average — so it reports the layer where your sequence works least well:</p>
+      <pre class="formula">SCORE 2 = mean over probes p of
+            [ min over L in {15,23,31,39} of cos(R_L(seq ⊕ p), d_L)
+            − min over L in {15,23,31,39} of cos(R_L(p), d_L) ]</pre>
+      <p class="muted">The two are <b>not</b> on a common scale and neither bounds the other: they use different directions, and a minimum of shifts is not the shift of a minimum. A row where SCORE 2 exceeds SCORE 1 is normal.</p>
+      <p class="muted">Cosine (not raw projection) means inflating activation magnitude does nothing — only <em>direction</em> counts. ▲ pro-human ranks the most positive; ▼ anti-human the most negative (same score, opposite ranking). Both scores come from a single forward pass: the two bands share six layers in total.</p>
+      <p class="muted"><b>What scale is that on?</b> The model's neutral state is essentially orthogonal to <code>d</code>, so scores that look tiny are large moves on this axis. The precise calibration figures published for Season 2 (base <code>cos(R,d) = 0.0067</code>, top sequence <code>+0.0355</code>) were measured against the layer-24 metric and do <b>not</b> carry over to a banded score. The Season 3 equivalent has not been measured yet, and is deliberately left blank rather than restated from the old season.</p>
+      <a class="mini" href="https://github.com/soham-padia/steering-arena/blob/main/app/scoring.py" target="_blank" rel="noopener">scoring.py</a>
+    </section>
+
+    <section class="card">
+      <h2>④ VALIDATION (Season 2 direction)</h2>
+      <p class="muted">Measured on the shipped direction. Raw numbers: <code>data/directions/d_olmo3_L24_logistic.confound_audit.json</code>.</p>
+      <ul class="rules-list">
+        <li><b>HELD-OUT SEPARATION</b> — chosen projects above rejected on held-out pairs. <span class="ok-tag">1.00</span></li>
+        <li><b>CONFOUND COSINES</b> — valence <span class="ok-tag">0.0003</span>, length <span class="ok-tag">0.0011</span>, approach/avoidance <span class="ok-tag">0.150</span></li>
+        <li><b>CONTROL PAIRS</b> — kind text projects higher on held-out pairs the direction never trained on. <span class="ok-tag">1.00</span> (transfer ratio 0.72)</li>
+        <li><b>CAUSAL STEERING</b> — adding <code>+d</code> shifts generations toward kindness. <span class="ok-tag">CONFIRMED</span></li>
+      </ul>
+      <p class="muted"><b>Corrected 2026-08-27.</b> This page previously claimed the causal gate as "adding <code>+d</code> steers toward kindness/empathy, <code>−d</code> toward hostility: PASS". The first half holds and got stronger: <code>+1·d</code> exceeds all 8 norm-matched random directions under two blind judges. <b>The second half does not.</b> Subtracting the direction is not the mirror image of adding it. Under a fixed-baseline re-analysis <code>−1·d</code> sits inside the random-direction band for one judge and just outside it for the other, so the claim is estimator-dependent and is withdrawn as stated. The direction steers when added; it is close to inert when subtracted.</p>
+      <div class="row">
+        <a class="mini" href="https://github.com/soham-padia/steering-arena/blob/main/scripts/validate_direction.py" target="_blank" rel="noopener">validate_direction.py</a>
+        <a class="mini" href="https://github.com/soham-padia/steering-arena/blob/main/data/analysis/steering_random_control.md" target="_blank" rel="noopener">steering_random_control.md</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>⑤ THE MODEL &amp; THE ORACLE</h2>
+      <p class="muted">Season 3 runs on <b>OLMo-3-32B (base)</b>, served remotely on <a href="https://ndif.us" target="_blank" rel="noopener">NDIF</a> via <a href="https://nnsight.net" target="_blank" rel="noopener">NNsight</a> — the same model and the same layers used for both extraction and live scoring, so <code>d</code> lives in exactly the activation space it is scored in.</p>
+      <p class="muted">The model and <code>d</code> are public, but a 32B is not something most players can self-host, so in practice the server is the scoring oracle. Determinism holds while NDIF serves the same model build; if that changes, scores shift and it becomes a new season.</p>
+      <div class="row">
+        <a class="mini" href="https://github.com/soham-padia/steering-arena" target="_blank" rel="noopener">FULL SOURCE ON GITHUB</a>
+        <a class="mini" href="https://ndif.us" target="_blank" rel="noopener">NDIF.US</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>⑥ DOES THE SCORE MEAN ANYTHING?</h2>
+      <p class="muted">A leaderboard scored on internals invites the obvious objection: the winner is a metric exploit with no real content. That was tested separately, on generations rather than activations, and it has its own method page.</p>
+      <div class="row">
+        <a class="btn" href="/behavior-reproducibility.html">▸ BEHAVIOR STUDY: METHOD &amp; NUMBERS</a>
+        <a class="mini" href="/behavior.html">SEE THE TAPES</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap muted">
+    STEERING ARENA · MODEL SERVED ON <a href="https://ndif.us" target="_blank" rel="noopener">NDIF</a> VIA NNSIGHT ·
+    <a href="/limitations.html">LIMITATIONS</a> · <a href="/behavior-reproducibility.html">BEHAVIOR METHOD</a> · <a href="/">ARENA</a>
+  </footer>
+</body>
+</html>
