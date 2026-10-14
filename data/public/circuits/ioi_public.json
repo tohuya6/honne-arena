@@ -1,0 +1,4735 @@
+{
+ "model_id": "gpt2",
+ "split": "public",
+ "seed": 20221101,
+ "metric": "faithfulness = (LD_circuit - LD_ablated) / (LD_full - LD_ablated), LD = mean over prompts of logit(' ' + io) - logit(' ' + s) at the last token",
+ "ablation": "mean over abc_prompts of the same template, per position",
+ "templates": [
+  "Then, {n1} and {n2} went to the {place}. {s2} gave a {obj} to",
+  "Then, {n1} and {n2} had a lot of fun at the {place}. {s2} gave a {obj} to",
+  "Then, {n1} and {n2} were working at the {place}. {s2} decided to give a {obj} to",
+  "Then, {n1} and {n2} were thinking about going to the {place}. {s2} wanted to give a {obj} to",
+  "Then, {n1} and {n2} had a long argument, and afterwards {s2} said to",
+  "After {n1} and {n2} went to the {place}, {s2} gave a {obj} to",
+  "When {n1} and {n2} got a {obj} at the {place}, {s2} decided to give it to",
+  "When {n1} and {n2} got a {obj} at the {place}, {s2} decided to give the {obj} to",
+  "While {n1} and {n2} were working at the {place}, {s2} gave a {obj} to",
+  "While {n1} and {n2} were commuting to the {place}, {s2} gave a {obj} to",
+  "After the lunch, {n1} and {n2} went to the {place}. {s2} gave a {obj} to",
+  "Afterwards, {n1} and {n2} went to the {place}. {s2} gave a {obj} to",
+  "Then, {n1} and {n2} had a long argument. Afterwards {s2} said to",
+  "The {place} {n1} and {n2} went to had a {obj}. {s2} gave it to",
+  "Friends {n1} and {n2} found a {obj} at the {place}. {s2} gave it to"
+ ],
+ "names": [
+  "Mary",
+  "John",
+  "Tom",
+  "James",
+  "Dan",
+  "Sid",
+  "Martin",
+  "Amy",
+  "Paul",
+  "Kate",
+  "Lisa",
+  "Mark",
+  "Sarah",
+  "Michael",
+  "Anna",
+  "Laura",
+  "Steven",
+  "David",
+  "Robert",
+  "Emma",
+  "Jessica",
+  "Chris",
+  "Alex",
+  "Ben",
+  "Jack",
+  "Rachel",
+  "Andrew",
+  "Kevin",
+  "Brian",
+  "Matt",
+  "Sam",
+  "Peter",
+  "Daniel",
+  "Jennifer",
+  "Nicole",
+  "Patrick",
+  "Ryan",
+  "Eric",
+  "Jason",
+  "Adam",
+  "Tim",
+  "Joe",
+  "Rose",
+  "Helen",
+  "Alice",
+  "Bob",
+  "Jane",
+  "Susan",
+  "George",
+  "Frank",
+  "Grace",
+  "Victoria",
+  "Arthur",
+  "Henry",
+  "Thomas",
+  "Max"
+ ],
+ "places": [
+  "store",
+  "garden",
+  "restaurant",
+  "school",
+  "hospital",
+  "office",
+  "house",
+  "station",
+  "park",
+  "beach",
+  "market",
+  "library"
+ ],
+ "objects": [
+  "ring",
+  "bone",
+  "basketball",
+  "computer",
+  "necklace",
+  "drink",
+  "snack",
+  "book",
+  "ball",
+  "cake",
+  "bag",
+  "letter",
+  "gift"
+ ],
+ "prompts": [
+  {
+   "text": "Then, David and Thomas went to the hospital. Thomas gave a gift to",
+   "template": 0,
+   "order": "ABBA",
+   "io": "David",
+   "s": "Thomas"
+  },
+  {
+   "text": "Then, Susan and Grace went to the market. Grace gave a book to",
+   "template": 0,
+   "order": "ABBA",
+   "io": "Susan",
+   "s": "Grace"
+  },
+  {
+   "text": "Then, Tom and Arthur went to the office. Arthur gave a bag to",
+   "template": 0,
+   "order": "ABBA",
+   "io": "Tom",
+   "s": "Arthur"
+  },
+  {
+   "text": "Then, Alex and Chris went to the beach. Chris gave a book to",
+   "template": 0,
+   "order": "ABBA",
+   "io": "Alex",
+   "s": "Chris"
+  },
+  {
+   "text": "Then, Laura and Ryan went to the hospital. Ryan gave a letter to",
+   "template": 0,
+   "order": "ABBA",
+   "io": "Laura",
+   "s": "Ryan"
+  },
+  {
+   "text": "Then, Victoria and Helen went to the hospital. Helen gave a necklace to",
+   "template": 0,
+   "order": "ABBA",
+   "io": "Victoria",
+   "s": "Helen"
+  },
+  {
+   "text": "Then, Emma and Matt went to the house. Emma gave a letter to",
+   "template": 0,
+   "order": "BABA",
+   "io": "Matt",
+   "s": "Emma"
+  },
+  {
+   "text": "Then, Amy and John went to the house. Amy gave a bag to",
+   "template": 0,
+   "order": "BABA",
+   "io": "John",
+   "s": "Amy"
+  },
+  {
+   "text": "Then, Ryan and Helen went to the beach. Ryan gave a snack to",
+   "template": 0,
+   "order": "BABA",
+   "io": "Helen",
+   "s": "Ryan"
+  },
+  {
+   "text": "Then, Robert and Ryan went to the beach. Robert gave a drink to",
+   "template": 0,
+   "order": "BABA",
+   "io": "Ryan",
+   "s": "Robert"
+  },
+  {
+   "text": "Then, Ryan and Bob went to the park. Ryan gave a cake to",
+   "template": 0,
+   "order": "BABA",
+   "io": "Bob",
+   "s": "Ryan"
+  },
+  {
+   "text": "Then, Bob and George went to the beach. Bob gave a bone to",
+   "template": 0,
+   "order": "BABA",
+   "io": "George",
+   "s": "Bob"
+  },
+  {
+   "text": "Then, Rachel and Nicole had a lot of fun at the store. Nicole gave a snack to",
+   "template": 1,
+   "order": "ABBA",
+   "io": "Rachel",
+   "s": "Nicole"
+  },
+  {
+   "text": "Then, Nicole and Mark had a lot of fun at the store. Mark gave a bone to",
+   "template": 1,
+   "order": "ABBA",
+   "io": "Nicole",
+   "s": "Mark"
+  },
+  {
+   "text": "Then, Arthur and Matt had a lot of fun at the house. Matt gave a letter to",
+   "template": 1,
+   "order": "ABBA",
+   "io": "Arthur",
+   "s": "Matt"
+  },
+  {
+   "text": "Then, Steven and Rose had a lot of fun at the school. Rose gave a computer to",
+   "template": 1,
+   "order": "ABBA",
+   "io": "Steven",
+   "s": "Rose"
+  },
+  {
+   "text": "Then, Daniel and Martin had a lot of fun at the house. Martin gave a ball to",
+   "template": 1,
+   "order": "ABBA",
+   "io": "Daniel",
+   "s": "Martin"
+  },
+  {
+   "text": "Then, Ben and Susan had a lot of fun at the restaurant. Susan gave a cake to",
+   "template": 1,
+   "order": "ABBA",
+   "io": "Ben",
+   "s": "Susan"
+  },
+  {
+   "text": "Then, Mark and Sid had a lot of fun at the station. Mark gave a letter to",
+   "template": 1,
+   "order": "BABA",
+   "io": "Sid",
+   "s": "Mark"
+  },
+  {
+   "text": "Then, Daniel and Thomas had a lot of fun at the beach. Daniel gave a bag to",
+   "template": 1,
+   "order": "BABA",
+   "io": "Thomas",
+   "s": "Daniel"
+  },
+  {
+   "text": "Then, Alice and Adam had a lot of fun at the school. Alice gave a basketball to",
+   "template": 1,
+   "order": "BABA",
+   "io": "Adam",
+   "s": "Alice"
+  },
+  {
+   "text": "Then, Kevin and Jack had a lot of fun at the restaurant. Kevin gave a computer to",
+   "template": 1,
+   "order": "BABA",
+   "io": "Jack",
+   "s": "Kevin"
+  },
+  {
+   "text": "Then, Peter and David had a lot of fun at the garden. Peter gave a gift to",
+   "template": 1,
+   "order": "BABA",
+   "io": "David",
+   "s": "Peter"
+  },
+  {
+   "text": "Then, Bob and Laura had a lot of fun at the station. Bob gave a basketball to",
+   "template": 1,
+   "order": "BABA",
+   "io": "Laura",
+   "s": "Bob"
+  },
+  {
+   "text": "Then, John and Brian were working at the office. Brian decided to give a letter to",
+   "template": 2,
+   "order": "ABBA",
+   "io": "John",
+   "s": "Brian"
+  },
+  {
+   "text": "Then, Jessica and Ryan were working at the hospital. Ryan decided to give a bag to",
+   "template": 2,
+   "order": "ABBA",
+   "io": "Jessica",
+   "s": "Ryan"
+  },
+  {
+   "text": "Then, Jessica and Thomas were working at the station. Thomas decided to give a letter to",
+   "template": 2,
+   "order": "ABBA",
+   "io": "Jessica",
+   "s": "Thomas"
+  },
+  {
+   "text": "Then, Michael and James were working at the beach. James decided to give a snack to",
+   "template": 2,
+   "order": "ABBA",
+   "io": "Michael",
+   "s": "James"
+  },
+  {
+   "text": "Then, Steven and Adam were working at the garden. Adam decided to give a ball to",
+   "template": 2,
+   "order": "ABBA",
+   "io": "Steven",
+   "s": "Adam"
+  },
+  {
+   "text": "Then, Daniel and Matt were working at the market. Matt decided to give a bag to",
+   "template": 2,
+   "order": "ABBA",
+   "io": "Daniel",
+   "s": "Matt"
+  },
+  {
+   "text": "Then, Joe and Laura were working at the house. Joe decided to give a letter to",
+   "template": 2,
+   "order": "BABA",
+   "io": "Laura",
+   "s": "Joe"
+  },
+  {
+   "text": "Then, James and Jennifer were working at the park. James decided to give a ball to",
+   "template": 2,
+   "order": "BABA",
+   "io": "Jennifer",
+   "s": "James"
+  },
+  {
+   "text": "Then, Tim and Jason were working at the house. Tim decided to give a snack to",
+   "template": 2,
+   "order": "BABA",
+   "io": "Jason",
+   "s": "Tim"
+  },
+  {
+   "text": "Then, Kate and Chris were working at the office. Kate decided to give a letter to",
+   "template": 2,
+   "order": "BABA",
+   "io": "Chris",
+   "s": "Kate"
+  },
+  {
+   "text": "Then, Jessica and Helen were working at the market. Jessica decided to give a ring to",
+   "template": 2,
+   "order": "BABA",
+   "io": "Helen",
+   "s": "Jessica"
+  },
+  {
+   "text": "Then, John and Susan were working at the library. John decided to give a ring to",
+   "template": 2,
+   "order": "BABA",
+   "io": "Susan",
+   "s": "John"
+  },
+  {
+   "text": "Then, Dan and Susan were thinking about going to the house. Susan wanted to give a letter to",
+   "template": 3,
+   "order": "ABBA",
+   "io": "Dan",
+   "s": "Susan"
+  },
+  {
+   "text": "Then, Daniel and Anna were thinking about going to the market. Anna wanted to give a cake to",
+   "template": 3,
+   "order": "ABBA",
+   "io": "Daniel",
+   "s": "Anna"
+  },
+  {
+   "text": "Then, Alex and Eric were thinking about going to the store. Eric wanted to give a book to",
+   "template": 3,
+   "order": "ABBA",
+   "io": "Alex",
+   "s": "Eric"
+  },
+  {
+   "text": "Then, Dan and Brian were thinking about going to the hospital. Brian wanted to give a snack to",
+   "template": 3,
+   "order": "ABBA",
+   "io": "Dan",
+   "s": "Brian"
+  },
+  {
+   "text": "Then, George and Emma were thinking about going to the park. Emma wanted to give a bag to",
+   "template": 3,
+   "order": "ABBA",
+   "io": "George",
+   "s": "Emma"
+  },
+  {
+   "text": "Then, Amy and Max were thinking about going to the house. Max wanted to give a ball to",
+   "template": 3,
+   "order": "ABBA",
+   "io": "Amy",
+   "s": "Max"
+  },
+  {
+   "text": "Then, Jack and Bob were thinking about going to the house. Jack wanted to give a cake to",
+   "template": 3,
+   "order": "BABA",
+   "io": "Bob",
+   "s": "Jack"
+  },
+  {
+   "text": "Then, Lisa and Emma were thinking about going to the station. Lisa wanted to give a letter to",
+   "template": 3,
+   "order": "BABA",
+   "io": "Emma",
+   "s": "Lisa"
+  },
+  {
+   "text": "Then, Chris and Alex were thinking about going to the school. Chris wanted to give a drink to",
+   "template": 3,
+   "order": "BABA",
+   "io": "Alex",
+   "s": "Chris"
+  },
+  {
+   "text": "Then, Ben and Tom were thinking about going to the station. Ben wanted to give a ring to",
+   "template": 3,
+   "order": "BABA",
+   "io": "Tom",
+   "s": "Ben"
+  },
+  {
+   "text": "Then, Thomas and Martin were thinking about going to the house. Thomas wanted to give a bone to",
+   "template": 3,
+   "order": "BABA",
+   "io": "Martin",
+   "s": "Thomas"
+  },
+  {
+   "text": "Then, Victoria and Thomas were thinking about going to the restaurant. Victoria wanted to give a snack to",
+   "template": 3,
+   "order": "BABA",
+   "io": "Thomas",
+   "s": "Victoria"
+  },
+  {
+   "text": "Then, Rachel and Grace had a long argument, and afterwards Grace said to",
+   "template": 4,
+   "order": "ABBA",
+   "io": "Rachel",
+   "s": "Grace"
+  },
+  {
+   "text": "Then, Jason and Jane had a long argument, and afterwards Jane said to",
+   "template": 4,
+   "order": "ABBA",
+   "io": "Jason",
+   "s": "Jane"
+  },
+  {
+   "text": "Then, Lisa and Adam had a long argument, and afterwards Adam said to",
+   "template": 4,
+   "order": "ABBA",
+   "io": "Lisa",
+   "s": "Adam"
+  },
+  {
+   "text": "Then, Tim and Max had a long argument, and afterwards Max said to",
+   "template": 4,
+   "order": "ABBA",
+   "io": "Tim",
+   "s": "Max"
+  },
+  {
+   "text": "Then, George and Helen had a long argument, and afterwards Helen said to",
+   "template": 4,
+   "order": "ABBA",
+   "io": "George",
+   "s": "Helen"
+  },
+  {
+   "text": "Then, Paul and Victoria had a long argument, and afterwards Victoria said to",
+   "template": 4,
+   "order": "ABBA",
+   "io": "Paul",
+   "s": "Victoria"
+  },
+  {
+   "text": "Then, Joe and Robert had a long argument, and afterwards Joe said to",
+   "template": 4,
+   "order": "BABA",
+   "io": "Robert",
+   "s": "Joe"
+  },
+  {
+   "text": "Then, Jason and Adam had a long argument, and afterwards Jason said to",
+   "template": 4,
+   "order": "BABA",
+   "io": "Adam",
+   "s": "Jason"
+  },
+  {
+   "text": "Then, Jennifer and Steven had a long argument, and afterwards Jennifer said to",
+   "template": 4,
+   "order": "BABA",
+   "io": "Steven",
+   "s": "Jennifer"
+  },
+  {
+   "text": "Then, Mary and Frank had a long argument, and afterwards Mary said to",
+   "template": 4,
+   "order": "BABA",
+   "io": "Frank",
+   "s": "Mary"
+  },
+  {
+   "text": "Then, Brian and Victoria had a long argument, and afterwards Brian said to",
+   "template": 4,
+   "order": "BABA",
+   "io": "Victoria",
+   "s": "Brian"
+  },
+  {
+   "text": "Then, Chris and Anna had a long argument, and afterwards Chris said to",
+   "template": 4,
+   "order": "BABA",
+   "io": "Anna",
+   "s": "Chris"
+  },
+  {
+   "text": "After Robert and Thomas went to the office, Thomas gave a ball to",
+   "template": 5,
+   "order": "ABBA",
+   "io": "Robert",
+   "s": "Thomas"
+  },
+  {
+   "text": "After Amy and Paul went to the garden, Paul gave a drink to",
+   "template": 5,
+   "order": "ABBA",
+   "io": "Amy",
+   "s": "Paul"
+  },
+  {
+   "text": "After Michael and James went to the office, James gave a necklace to",
+   "template": 5,
+   "order": "ABBA",
+   "io": "Michael",
+   "s": "James"
+  },
+  {
+   "text": "After Dan and Frank went to the station, Frank gave a gift to",
+   "template": 5,
+   "order": "ABBA",
+   "io": "Dan",
+   "s": "Frank"
+  },
+  {
+   "text": "After Andrew and Rose went to the office, Rose gave a drink to",
+   "template": 5,
+   "order": "ABBA",
+   "io": "Andrew",
+   "s": "Rose"
+  },
+  {
+   "text": "After Robert and George went to the store, George gave a bag to",
+   "template": 5,
+   "order": "ABBA",
+   "io": "Robert",
+   "s": "George"
+  },
+  {
+   "text": "After Jason and Martin went to the garden, Jason gave a book to",
+   "template": 5,
+   "order": "BABA",
+   "io": "Martin",
+   "s": "Jason"
+  },
+  {
+   "text": "After Tom and John went to the station, Tom gave a computer to",
+   "template": 5,
+   "order": "BABA",
+   "io": "John",
+   "s": "Tom"
+  },
+  {
+   "text": "After Anna and Thomas went to the school, Anna gave a book to",
+   "template": 5,
+   "order": "BABA",
+   "io": "Thomas",
+   "s": "Anna"
+  },
+  {
+   "text": "After Mary and Alice went to the hospital, Mary gave a bag to",
+   "template": 5,
+   "order": "BABA",
+   "io": "Alice",
+   "s": "Mary"
+  },
+  {
+   "text": "After Helen and Sam went to the garden, Helen gave a bone to",
+   "template": 5,
+   "order": "BABA",
+   "io": "Sam",
+   "s": "Helen"
+  },
+  {
+   "text": "After Rachel and Eric went to the station, Rachel gave a ring to",
+   "template": 5,
+   "order": "BABA",
+   "io": "Eric",
+   "s": "Rachel"
+  },
+  {
+   "text": "When Rachel and Martin got a cake at the restaurant, Martin decided to give it to",
+   "template": 6,
+   "order": "ABBA",
+   "io": "Rachel",
+   "s": "Martin"
+  },
+  {
+   "text": "When Sarah and Tom got a snack at the park, Tom decided to give it to",
+   "template": 6,
+   "order": "ABBA",
+   "io": "Sarah",
+   "s": "Tom"
+  },
+  {
+   "text": "When Kate and Jessica got a cake at the station, Jessica decided to give it to",
+   "template": 6,
+   "order": "ABBA",
+   "io": "Kate",
+   "s": "Jessica"
+  },
+  {
+   "text": "When Steven and Martin got a ball at the library, Martin decided to give it to",
+   "template": 6,
+   "order": "ABBA",
+   "io": "Steven",
+   "s": "Martin"
+  },
+  {
+   "text": "When Henry and Jennifer got a book at the station, Jennifer decided to give it to",
+   "template": 6,
+   "order": "ABBA",
+   "io": "Henry",
+   "s": "Jennifer"
+  },
+  {
+   "text": "When John and Martin got a letter at the station, Martin decided to give it to",
+   "template": 6,
+   "order": "ABBA",
+   "io": "John",
+   "s": "Martin"
+  },
+  {
+   "text": "When Henry and Andrew got a basketball at the restaurant, Henry decided to give it to",
+   "template": 6,
+   "order": "BABA",
+   "io": "Andrew",
+   "s": "Henry"
+  },
+  {
+   "text": "When Eric and Thomas got a bone at the beach, Eric decided to give it to",
+   "template": 6,
+   "order": "BABA",
+   "io": "Thomas",
+   "s": "Eric"
+  },
+  {
+   "text": "When Daniel and Tom got a cake at the office, Daniel decided to give it to",
+   "template": 6,
+   "order": "BABA",
+   "io": "Tom",
+   "s": "Daniel"
+  },
+  {
+   "text": "When Jane and Brian got a bag at the station, Jane decided to give it to",
+   "template": 6,
+   "order": "BABA",
+   "io": "Brian",
+   "s": "Jane"
+  },
+  {
+   "text": "When Jessica and Amy got a necklace at the park, Jessica decided to give it to",
+   "template": 6,
+   "order": "BABA",
+   "io": "Amy",
+   "s": "Jessica"
+  },
+  {
+   "text": "When Bob and Patrick got a bone at the station, Bob decided to give it to",
+   "template": 6,
+   "order": "BABA",
+   "io": "Patrick",
+   "s": "Bob"
+  },
+  {
+   "text": "When Steven and Andrew got a ball at the school, Andrew decided to give the ball to",
+   "template": 7,
+   "order": "ABBA",
+   "io": "Steven",
+   "s": "Andrew"
+  },
+  {
+   "text": "When Nicole and Patrick got a letter at the office, Patrick decided to give the letter to",
+   "template": 7,
+   "order": "ABBA",
+   "io": "Nicole",
+   "s": "Patrick"
+  },
+  {
+   "text": "When Joe and Brian got a cake at the house, Brian decided to give the cake to",
+   "template": 7,
+   "order": "ABBA",
+   "io": "Joe",
+   "s": "Brian"
+  },
+  {
+   "text": "When John and Thomas got a computer at the office, Thomas decided to give the computer to",
+   "template": 7,
+   "order": "ABBA",
+   "io": "John",
+   "s": "Thomas"
+  },
+  {
+   "text": "When Helen and Jennifer got a bag at the house, Jennifer decided to give the bag to",
+   "template": 7,
+   "order": "ABBA",
+   "io": "Helen",
+   "s": "Jennifer"
+  },
+  {
+   "text": "When Jack and Nicole got a drink at the hospital, Nicole decided to give the drink to",
+   "template": 7,
+   "order": "ABBA",
+   "io": "Jack",
+   "s": "Nicole"
+  },
+  {
+   "text": "When Alex and Joe got a bone at the beach, Alex decided to give the bone to",
+   "template": 7,
+   "order": "BABA",
+   "io": "Joe",
+   "s": "Alex"
+  },
+  {
+   "text": "When Joe and Jane got a letter at the park, Joe decided to give the letter to",
+   "template": 7,
+   "order": "BABA",
+   "io": "Jane",
+   "s": "Joe"
+  },
+  {
+   "text": "When Chris and Arthur got a ring at the store, Chris decided to give the ring to",
+   "template": 7,
+   "order": "BABA",
+   "io": "Arthur",
+   "s": "Chris"
+  },
+  {
+   "text": "When James and Ryan got a letter at the store, James decided to give the letter to",
+   "template": 7,
+   "order": "BABA",
+   "io": "Ryan",
+   "s": "James"
+  },
+  {
+   "text": "When Max and Frank got a bag at the market, Max decided to give the bag to",
+   "template": 7,
+   "order": "BABA",
+   "io": "Frank",
+   "s": "Max"
+  },
+  {
+   "text": "When Ben and Frank got a computer at the park, Ben decided to give the computer to",
+   "template": 7,
+   "order": "BABA",
+   "io": "Frank",
+   "s": "Ben"
+  },
+  {
+   "text": "While James and Lisa were working at the beach, Lisa gave a basketball to",
+   "template": 8,
+   "order": "ABBA",
+   "io": "James",
+   "s": "Lisa"
+  },
+  {
+   "text": "While Daniel and Peter were working at the house, Peter gave a drink to",
+   "template": 8,
+   "order": "ABBA",
+   "io": "Daniel",
+   "s": "Peter"
+  },
+  {
+   "text": "While Alice and Jennifer were working at the library, Jennifer gave a necklace to",
+   "template": 8,
+   "order": "ABBA",
+   "io": "Alice",
+   "s": "Jennifer"
+  },
+  {
+   "text": "While Alice and Jack were working at the park, Jack gave a cake to",
+   "template": 8,
+   "order": "ABBA",
+   "io": "Alice",
+   "s": "Jack"
+  },
+  {
+   "text": "While David and Martin were working at the office, Martin gave a ring to",
+   "template": 8,
+   "order": "ABBA",
+   "io": "David",
+   "s": "Martin"
+  },
+  {
+   "text": "While Emma and Joe were working at the store, Joe gave a book to",
+   "template": 8,
+   "order": "ABBA",
+   "io": "Emma",
+   "s": "Joe"
+  },
+  {
+   "text": "While Emma and Brian were working at the restaurant, Emma gave a gift to",
+   "template": 8,
+   "order": "BABA",
+   "io": "Brian",
+   "s": "Emma"
+  },
+  {
+   "text": "While Jane and Sarah were working at the library, Jane gave a bone to",
+   "template": 8,
+   "order": "BABA",
+   "io": "Sarah",
+   "s": "Jane"
+  },
+  {
+   "text": "While Laura and Matt were working at the school, Laura gave a ring to",
+   "template": 8,
+   "order": "BABA",
+   "io": "Matt",
+   "s": "Laura"
+  },
+  {
+   "text": "While Alex and Jessica were working at the library, Alex gave a gift to",
+   "template": 8,
+   "order": "BABA",
+   "io": "Jessica",
+   "s": "Alex"
+  },
+  {
+   "text": "While Chris and Robert were working at the store, Chris gave a bone to",
+   "template": 8,
+   "order": "BABA",
+   "io": "Robert",
+   "s": "Chris"
+  },
+  {
+   "text": "While Jane and Brian were working at the library, Jane gave a basketball to",
+   "template": 8,
+   "order": "BABA",
+   "io": "Brian",
+   "s": "Jane"
+  },
+  {
+   "text": "While Lisa and Kevin were commuting to the beach, Kevin gave a basketball to",
+   "template": 9,
+   "order": "ABBA",
+   "io": "Lisa",
+   "s": "Kevin"
+  },
+  {
+   "text": "While Sam and Andrew were commuting to the store, Andrew gave a ball to",
+   "template": 9,
+   "order": "ABBA",
+   "io": "Sam",
+   "s": "Andrew"
+  },
+  {
+   "text": "While Mary and John were commuting to the office, John gave a necklace to",
+   "template": 9,
+   "order": "ABBA",
+   "io": "Mary",
+   "s": "John"
+  },
+  {
+   "text": "While Mary and Helen were commuting to the office, Helen gave a ring to",
+   "template": 9,
+   "order": "ABBA",
+   "io": "Mary",
+   "s": "Helen"
+  },
+  {
+   "text": "While Tom and Jack were commuting to the garden, Jack gave a bag to",
+   "template": 9,
+   "order": "ABBA",
+   "io": "Tom",
+   "s": "Jack"
+  },
+  {
+   "text": "While Michael and John were commuting to the store, John gave a snack to",
+   "template": 9,
+   "order": "ABBA",
+   "io": "Michael",
+   "s": "John"
+  },
+  {
+   "text": "While Kevin and Matt were commuting to the store, Kevin gave a computer to",
+   "template": 9,
+   "order": "BABA",
+   "io": "Matt",
+   "s": "Kevin"
+  },
+  {
+   "text": "While Patrick and Rose were commuting to the restaurant, Patrick gave a basketball to",
+   "template": 9,
+   "order": "BABA",
+   "io": "Rose",
+   "s": "Patrick"
+  },
+  {
+   "text": "While Mark and David were commuting to the store, Mark gave a bone to",
+   "template": 9,
+   "order": "BABA",
+   "io": "David",
+   "s": "Mark"
+  },
+  {
+   "text": "While Ryan and Sid were commuting to the store, Ryan gave a bag to",
+   "template": 9,
+   "order": "BABA",
+   "io": "Sid",
+   "s": "Ryan"
+  },
+  {
+   "text": "While Susan and Nicole were commuting to the hospital, Susan gave a gift to",
+   "template": 9,
+   "order": "BABA",
+   "io": "Nicole",
+   "s": "Susan"
+  },
+  {
+   "text": "While Matt and Anna were commuting to the house, Matt gave a book to",
+   "template": 9,
+   "order": "BABA",
+   "io": "Anna",
+   "s": "Matt"
+  },
+  {
+   "text": "After the lunch, Jessica and Jennifer went to the hospital. Jennifer gave a gift to",
+   "template": 10,
+   "order": "ABBA",
+   "io": "Jessica",
+   "s": "Jennifer"
+  },
+  {
+   "text": "After the lunch, Rose and Jennifer went to the market. Jennifer gave a letter to",
+   "template": 10,
+   "order": "ABBA",
+   "io": "Rose",
+   "s": "Jennifer"
+  },
+  {
+   "text": "After the lunch, Rachel and Robert went to the store. Robert gave a computer to",
+   "template": 10,
+   "order": "ABBA",
+   "io": "Rachel",
+   "s": "Robert"
+  },
+  {
+   "text": "After the lunch, Kevin and Sam went to the house. Sam gave a cake to",
+   "template": 10,
+   "order": "ABBA",
+   "io": "Kevin",
+   "s": "Sam"
+  },
+  {
+   "text": "After the lunch, Sam and Jason went to the school. Jason gave a snack to",
+   "template": 10,
+   "order": "ABBA",
+   "io": "Sam",
+   "s": "Jason"
+  },
+  {
+   "text": "After the lunch, Brian and Kevin went to the school. Kevin gave a basketball to",
+   "template": 10,
+   "order": "ABBA",
+   "io": "Brian",
+   "s": "Kevin"
+  },
+  {
+   "text": "After the lunch, David and Ryan went to the station. David gave a book to",
+   "template": 10,
+   "order": "BABA",
+   "io": "Ryan",
+   "s": "David"
+  },
+  {
+   "text": "After the lunch, Victoria and Michael went to the park. Victoria gave a computer to",
+   "template": 10,
+   "order": "BABA",
+   "io": "Michael",
+   "s": "Victoria"
+  },
+  {
+   "text": "After the lunch, Emma and Tim went to the office. Emma gave a cake to",
+   "template": 10,
+   "order": "BABA",
+   "io": "Tim",
+   "s": "Emma"
+  },
+  {
+   "text": "After the lunch, George and Mark went to the store. George gave a snack to",
+   "template": 10,
+   "order": "BABA",
+   "io": "Mark",
+   "s": "George"
+  },
+  {
+   "text": "After the lunch, Chris and Sarah went to the market. Chris gave a letter to",
+   "template": 10,
+   "order": "BABA",
+   "io": "Sarah",
+   "s": "Chris"
+  },
+  {
+   "text": "After the lunch, Jack and Lisa went to the house. Jack gave a bone to",
+   "template": 10,
+   "order": "BABA",
+   "io": "Lisa",
+   "s": "Jack"
+  },
+  {
+   "text": "Afterwards, Anna and Alex went to the library. Alex gave a bone to",
+   "template": 11,
+   "order": "ABBA",
+   "io": "Anna",
+   "s": "Alex"
+  },
+  {
+   "text": "Afterwards, Rachel and Tim went to the school. Tim gave a necklace to",
+   "template": 11,
+   "order": "ABBA",
+   "io": "Rachel",
+   "s": "Tim"
+  },
+  {
+   "text": "Afterwards, Paul and Tom went to the park. Tom gave a drink to",
+   "template": 11,
+   "order": "ABBA",
+   "io": "Paul",
+   "s": "Tom"
+  },
+  {
+   "text": "Afterwards, Mark and Rachel went to the park. Rachel gave a bone to",
+   "template": 11,
+   "order": "ABBA",
+   "io": "Mark",
+   "s": "Rachel"
+  },
+  {
+   "text": "Afterwards, Ryan and John went to the restaurant. John gave a cake to",
+   "template": 11,
+   "order": "ABBA",
+   "io": "Ryan",
+   "s": "John"
+  },
+  {
+   "text": "Afterwards, Daniel and Arthur went to the house. Arthur gave a book to",
+   "template": 11,
+   "order": "ABBA",
+   "io": "Daniel",
+   "s": "Arthur"
+  },
+  {
+   "text": "Afterwards, Robert and Joe went to the house. Robert gave a computer to",
+   "template": 11,
+   "order": "BABA",
+   "io": "Joe",
+   "s": "Robert"
+  },
+  {
+   "text": "Afterwards, Peter and Steven went to the school. Peter gave a cake to",
+   "template": 11,
+   "order": "BABA",
+   "io": "Steven",
+   "s": "Peter"
+  },
+  {
+   "text": "Afterwards, John and James went to the station. John gave a computer to",
+   "template": 11,
+   "order": "BABA",
+   "io": "James",
+   "s": "John"
+  },
+  {
+   "text": "Afterwards, Helen and Jennifer went to the market. Helen gave a basketball to",
+   "template": 11,
+   "order": "BABA",
+   "io": "Jennifer",
+   "s": "Helen"
+  },
+  {
+   "text": "Afterwards, Tom and Jennifer went to the restaurant. Tom gave a computer to",
+   "template": 11,
+   "order": "BABA",
+   "io": "Jennifer",
+   "s": "Tom"
+  },
+  {
+   "text": "Afterwards, Kate and Alex went to the library. Kate gave a cake to",
+   "template": 11,
+   "order": "BABA",
+   "io": "Alex",
+   "s": "Kate"
+  },
+  {
+   "text": "Then, Ryan and Kate had a long argument. Afterwards Kate said to",
+   "template": 12,
+   "order": "ABBA",
+   "io": "Ryan",
+   "s": "Kate"
+  },
+  {
+   "text": "Then, Jennifer and Victoria had a long argument. Afterwards Victoria said to",
+   "template": 12,
+   "order": "ABBA",
+   "io": "Jennifer",
+   "s": "Victoria"
+  },
+  {
+   "text": "Then, Brian and David had a long argument. Afterwards David said to",
+   "template": 12,
+   "order": "ABBA",
+   "io": "Brian",
+   "s": "David"
+  },
+  {
+   "text": "Then, Michael and Eric had a long argument. Afterwards Eric said to",
+   "template": 12,
+   "order": "ABBA",
+   "io": "Michael",
+   "s": "Eric"
+  },
+  {
+   "text": "Then, Steven and Jason had a long argument. Afterwards Jason said to",
+   "template": 12,
+   "order": "ABBA",
+   "io": "Steven",
+   "s": "Jason"
+  },
+  {
+   "text": "Then, Robert and Alice had a long argument. Afterwards Alice said to",
+   "template": 12,
+   "order": "ABBA",
+   "io": "Robert",
+   "s": "Alice"
+  },
+  {
+   "text": "Then, Nicole and Victoria had a long argument. Afterwards Nicole said to",
+   "template": 12,
+   "order": "BABA",
+   "io": "Victoria",
+   "s": "Nicole"
+  },
+  {
+   "text": "Then, Kate and Mary had a long argument. Afterwards Kate said to",
+   "template": 12,
+   "order": "BABA",
+   "io": "Mary",
+   "s": "Kate"
+  },
+  {
+   "text": "Then, Daniel and Mary had a long argument. Afterwards Daniel said to",
+   "template": 12,
+   "order": "BABA",
+   "io": "Mary",
+   "s": "Daniel"
+  },
+  {
+   "text": "Then, Michael and Alice had a long argument. Afterwards Michael said to",
+   "template": 12,
+   "order": "BABA",
+   "io": "Alice",
+   "s": "Michael"
+  },
+  {
+   "text": "Then, Jason and Chris had a long argument. Afterwards Jason said to",
+   "template": 12,
+   "order": "BABA",
+   "io": "Chris",
+   "s": "Jason"
+  },
+  {
+   "text": "Then, Kevin and Mark had a long argument. Afterwards Kevin said to",
+   "template": 12,
+   "order": "BABA",
+   "io": "Mark",
+   "s": "Kevin"
+  },
+  {
+   "text": "The house Kevin and Dan went to had a necklace. Dan gave it to",
+   "template": 13,
+   "order": "ABBA",
+   "io": "Kevin",
+   "s": "Dan"
+  },
+  {
+   "text": "The hospital Laura and Helen went to had a cake. Helen gave it to",
+   "template": 13,
+   "order": "ABBA",
+   "io": "Laura",
+   "s": "Helen"
+  },
+  {
+   "text": "The market Robert and Brian went to had a computer. Brian gave it to",
+   "template": 13,
+   "order": "ABBA",
+   "io": "Robert",
+   "s": "Brian"
+  },
+  {
+   "text": "The house Brian and George went to had a necklace. George gave it to",
+   "template": 13,
+   "order": "ABBA",
+   "io": "Brian",
+   "s": "George"
+  },
+  {
+   "text": "The office Tom and Emma went to had a cake. Emma gave it to",
+   "template": 13,
+   "order": "ABBA",
+   "io": "Tom",
+   "s": "Emma"
+  },
+  {
+   "text": "The market Nicole and Eric went to had a bag. Eric gave it to",
+   "template": 13,
+   "order": "ABBA",
+   "io": "Nicole",
+   "s": "Eric"
+  },
+  {
+   "text": "The station Sam and Daniel went to had a book. Sam gave it to",
+   "template": 13,
+   "order": "BABA",
+   "io": "Daniel",
+   "s": "Sam"
+  },
+  {
+   "text": "The park George and Jessica went to had a gift. George gave it to",
+   "template": 13,
+   "order": "BABA",
+   "io": "Jessica",
+   "s": "George"
+  },
+  {
+   "text": "The library Rachel and Jason went to had a gift. Rachel gave it to",
+   "template": 13,
+   "order": "BABA",
+   "io": "Jason",
+   "s": "Rachel"
+  },
+  {
+   "text": "The school Peter and Laura went to had a ball. Peter gave it to",
+   "template": 13,
+   "order": "BABA",
+   "io": "Laura",
+   "s": "Peter"
+  },
+  {
+   "text": "The beach Ben and Daniel went to had a letter. Ben gave it to",
+   "template": 13,
+   "order": "BABA",
+   "io": "Daniel",
+   "s": "Ben"
+  },
+  {
+   "text": "The restaurant Jessica and Laura went to had a book. Jessica gave it to",
+   "template": 13,
+   "order": "BABA",
+   "io": "Laura",
+   "s": "Jessica"
+  },
+  {
+   "text": "Friends Laura and Chris found a necklace at the office. Chris gave it to",
+   "template": 14,
+   "order": "ABBA",
+   "io": "Laura",
+   "s": "Chris"
+  },
+  {
+   "text": "Friends Mark and Sarah found a gift at the garden. Sarah gave it to",
+   "template": 14,
+   "order": "ABBA",
+   "io": "Mark",
+   "s": "Sarah"
+  },
+  {
+   "text": "Friends Michael and David found a bone at the library. David gave it to",
+   "template": 14,
+   "order": "ABBA",
+   "io": "Michael",
+   "s": "David"
+  },
+  {
+   "text": "Friends Martin and Sam found a computer at the station. Sam gave it to",
+   "template": 14,
+   "order": "ABBA",
+   "io": "Martin",
+   "s": "Sam"
+  },
+  {
+   "text": "Friends Chris and Robert found a book at the school. Robert gave it to",
+   "template": 14,
+   "order": "ABBA",
+   "io": "Chris",
+   "s": "Robert"
+  },
+  {
+   "text": "Friends James and Tom found a necklace at the hospital. Tom gave it to",
+   "template": 14,
+   "order": "ABBA",
+   "io": "James",
+   "s": "Tom"
+  },
+  {
+   "text": "Friends Ryan and James found a cake at the beach. Ryan gave it to",
+   "template": 14,
+   "order": "BABA",
+   "io": "James",
+   "s": "Ryan"
+  },
+  {
+   "text": "Friends James and Brian found a cake at the store. James gave it to",
+   "template": 14,
+   "order": "BABA",
+   "io": "Brian",
+   "s": "James"
+  },
+  {
+   "text": "Friends Chris and Kate found a letter at the station. Chris gave it to",
+   "template": 14,
+   "order": "BABA",
+   "io": "Kate",
+   "s": "Chris"
+  },
+  {
+   "text": "Friends Robert and Rose found a basketball at the hospital. Robert gave it to",
+   "template": 14,
+   "order": "BABA",
+   "io": "Rose",
+   "s": "Robert"
+  },
+  {
+   "text": "Friends Sarah and Paul found a ball at the school. Sarah gave it to",
+   "template": 14,
+   "order": "BABA",
+   "io": "Paul",
+   "s": "Sarah"
+  },
+  {
+   "text": "Friends Ryan and Adam found a book at the restaurant. Ryan gave it to",
+   "template": 14,
+   "order": "BABA",
+   "io": "Adam",
+   "s": "Ryan"
+  }
+ ],
+ "abc_prompts": [
+  {
+   "text": "Then, Alice and Martin went to the office. Kate gave a book to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Alice",
+   "s": "Martin"
+  },
+  {
+   "text": "Then, Rachel and George went to the market. James gave a book to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "George"
+  },
+  {
+   "text": "Then, Laura and Rachel went to the office. Kevin gave a bag to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "Rachel"
+  },
+  {
+   "text": "Then, Kate and Martin went to the house. Grace gave a cake to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Kate",
+   "s": "Martin"
+  },
+  {
+   "text": "Then, Martin and Daniel went to the restaurant. Tom gave a cake to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "Daniel"
+  },
+  {
+   "text": "Then, Tom and Frank went to the library. Laura gave a cake to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Tom",
+   "s": "Frank"
+  },
+  {
+   "text": "Then, Joe and Chris went to the house. Kevin gave a ball to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Joe",
+   "s": "Chris"
+  },
+  {
+   "text": "Then, Peter and Tim went to the garden. Victoria gave a letter to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Peter",
+   "s": "Tim"
+  },
+  {
+   "text": "Then, Steven and Victoria went to the market. Eric gave a drink to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Steven",
+   "s": "Victoria"
+  },
+  {
+   "text": "Then, Tom and Dan went to the house. Mark gave a basketball to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Tom",
+   "s": "Dan"
+  },
+  {
+   "text": "Then, Thomas and Ben went to the beach. Jennifer gave a gift to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Thomas",
+   "s": "Ben"
+  },
+  {
+   "text": "Then, Rose and Jessica went to the park. Dan gave a computer to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Rose",
+   "s": "Jessica"
+  },
+  {
+   "text": "Then, Rose and Paul went to the garden. Dan gave a gift to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Rose",
+   "s": "Paul"
+  },
+  {
+   "text": "Then, Thomas and Mary went to the market. Paul gave a letter to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Thomas",
+   "s": "Mary"
+  },
+  {
+   "text": "Then, Dan and Mary went to the beach. Jennifer gave a necklace to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Mary"
+  },
+  {
+   "text": "Then, Amy and Brian went to the market. Sam gave a ring to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Amy",
+   "s": "Brian"
+  },
+  {
+   "text": "Then, Joe and Max went to the hospital. Sid gave a snack to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Joe",
+   "s": "Max"
+  },
+  {
+   "text": "Then, Peter and Sid went to the office. Rachel gave a bag to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Peter",
+   "s": "Sid"
+  },
+  {
+   "text": "Then, George and Andrew went to the house. James gave a cake to",
+   "template": 0,
+   "order": "ABC",
+   "io": "George",
+   "s": "Andrew"
+  },
+  {
+   "text": "Then, Kate and Amy went to the house. Sid gave a cake to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Kate",
+   "s": "Amy"
+  },
+  {
+   "text": "Then, Rachel and James went to the office. Henry gave a bag to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "James"
+  },
+  {
+   "text": "Then, Alex and Kate went to the house. Brian gave a computer to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Kate"
+  },
+  {
+   "text": "Then, John and Jennifer went to the house. Thomas gave a bag to",
+   "template": 0,
+   "order": "ABC",
+   "io": "John",
+   "s": "Jennifer"
+  },
+  {
+   "text": "Then, Mary and Kevin went to the beach. Tom gave a gift to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "Kevin"
+  },
+  {
+   "text": "Then, Nicole and Frank went to the station. Jason gave a ball to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Nicole",
+   "s": "Frank"
+  },
+  {
+   "text": "Then, Kevin and David went to the library. Kate gave a gift to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "David"
+  },
+  {
+   "text": "Then, Adam and Susan went to the house. David gave a cake to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Adam",
+   "s": "Susan"
+  },
+  {
+   "text": "Then, Daniel and Robert went to the hospital. Eric gave a computer to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Daniel",
+   "s": "Robert"
+  },
+  {
+   "text": "Then, Kate and Paul went to the school. Tom gave a bag to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Kate",
+   "s": "Paul"
+  },
+  {
+   "text": "Then, Rose and Tom went to the garden. Jessica gave a computer to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Rose",
+   "s": "Tom"
+  },
+  {
+   "text": "Then, Eric and Steven went to the store. Bob gave a book to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Eric",
+   "s": "Steven"
+  },
+  {
+   "text": "Then, Mary and Victoria went to the restaurant. Grace gave a book to",
+   "template": 0,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "Victoria"
+  },
+  {
+   "text": "Then, Jessica and Eric had a lot of fun at the library. Peter gave a gift to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Eric"
+  },
+  {
+   "text": "Then, Amy and Laura had a lot of fun at the park. Susan gave a gift to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Amy",
+   "s": "Laura"
+  },
+  {
+   "text": "Then, Jennifer and Susan had a lot of fun at the office. Emma gave a ball to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Jennifer",
+   "s": "Susan"
+  },
+  {
+   "text": "Then, Thomas and Tom had a lot of fun at the market. Peter gave a gift to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Thomas",
+   "s": "Tom"
+  },
+  {
+   "text": "Then, Tim and Peter had a lot of fun at the market. Jason gave a snack to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Tim",
+   "s": "Peter"
+  },
+  {
+   "text": "Then, Arthur and Emma had a lot of fun at the beach. Victoria gave a ball to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Arthur",
+   "s": "Emma"
+  },
+  {
+   "text": "Then, Jessica and Jane had a lot of fun at the restaurant. Brian gave a drink to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Jane"
+  },
+  {
+   "text": "Then, Michael and Helen had a lot of fun at the library. Jack gave a bone to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Michael",
+   "s": "Helen"
+  },
+  {
+   "text": "Then, Alex and David had a lot of fun at the hospital. Lisa gave a basketball to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "David"
+  },
+  {
+   "text": "Then, Arthur and Jack had a lot of fun at the office. Sam gave a snack to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Arthur",
+   "s": "Jack"
+  },
+  {
+   "text": "Then, Frank and Thomas had a lot of fun at the station. Peter gave a basketball to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Frank",
+   "s": "Thomas"
+  },
+  {
+   "text": "Then, Henry and Alice had a lot of fun at the library. Sam gave a necklace to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Henry",
+   "s": "Alice"
+  },
+  {
+   "text": "Then, Dan and Lisa had a lot of fun at the office. Patrick gave a computer to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Lisa"
+  },
+  {
+   "text": "Then, John and Thomas had a lot of fun at the school. Andrew gave a ring to",
+   "template": 1,
+   "order": "ABC",
+   "io": "John",
+   "s": "Thomas"
+  },
+  {
+   "text": "Then, Alex and Thomas had a lot of fun at the school. Chris gave a letter to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Thomas"
+  },
+  {
+   "text": "Then, David and Paul had a lot of fun at the restaurant. Lisa gave a ring to",
+   "template": 1,
+   "order": "ABC",
+   "io": "David",
+   "s": "Paul"
+  },
+  {
+   "text": "Then, Tim and Robert had a lot of fun at the park. Jessica gave a ball to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Tim",
+   "s": "Robert"
+  },
+  {
+   "text": "Then, Kate and Daniel had a lot of fun at the library. Emma gave a drink to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Kate",
+   "s": "Daniel"
+  },
+  {
+   "text": "Then, Jennifer and Kate had a lot of fun at the hospital. Jane gave a bone to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Jennifer",
+   "s": "Kate"
+  },
+  {
+   "text": "Then, Kate and Ben had a lot of fun at the office. Grace gave a cake to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Kate",
+   "s": "Ben"
+  },
+  {
+   "text": "Then, Alex and Frank had a lot of fun at the market. Nicole gave a computer to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Frank"
+  },
+  {
+   "text": "Then, Ben and Jessica had a lot of fun at the garden. Bob gave a bone to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Ben",
+   "s": "Jessica"
+  },
+  {
+   "text": "Then, George and Eric had a lot of fun at the office. Jessica gave a gift to",
+   "template": 1,
+   "order": "ABC",
+   "io": "George",
+   "s": "Eric"
+  },
+  {
+   "text": "Then, Henry and Brian had a lot of fun at the garden. Rose gave a bone to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Henry",
+   "s": "Brian"
+  },
+  {
+   "text": "Then, Paul and Mark had a lot of fun at the school. Robert gave a ball to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Paul",
+   "s": "Mark"
+  },
+  {
+   "text": "Then, Laura and Ben had a lot of fun at the store. Joe gave a necklace to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "Ben"
+  },
+  {
+   "text": "Then, Mary and Jane had a lot of fun at the beach. Adam gave a basketball to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "Jane"
+  },
+  {
+   "text": "Then, Lisa and Thomas had a lot of fun at the store. Martin gave a snack to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Lisa",
+   "s": "Thomas"
+  },
+  {
+   "text": "Then, John and Jason had a lot of fun at the beach. Michael gave a basketball to",
+   "template": 1,
+   "order": "ABC",
+   "io": "John",
+   "s": "Jason"
+  },
+  {
+   "text": "Then, John and Steven had a lot of fun at the restaurant. Patrick gave a letter to",
+   "template": 1,
+   "order": "ABC",
+   "io": "John",
+   "s": "Steven"
+  },
+  {
+   "text": "Then, Bob and Sarah had a lot of fun at the office. Rachel gave a bone to",
+   "template": 1,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Sarah"
+  },
+  {
+   "text": "Then, James and Eric had a lot of fun at the office. Adam gave a bone to",
+   "template": 1,
+   "order": "ABC",
+   "io": "James",
+   "s": "Eric"
+  },
+  {
+   "text": "Then, Peter and Alex were working at the garden. Sarah decided to give a ball to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Peter",
+   "s": "Alex"
+  },
+  {
+   "text": "Then, Tom and Steven were working at the hospital. Amy decided to give a book to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Tom",
+   "s": "Steven"
+  },
+  {
+   "text": "Then, Matt and Jane were working at the house. Paul decided to give a basketball to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Matt",
+   "s": "Jane"
+  },
+  {
+   "text": "Then, Frank and Daniel were working at the library. Alex decided to give a basketball to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Frank",
+   "s": "Daniel"
+  },
+  {
+   "text": "Then, Jane and Michael were working at the library. Sam decided to give a basketball to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Jane",
+   "s": "Michael"
+  },
+  {
+   "text": "Then, Ben and Jack were working at the beach. Jane decided to give a necklace to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Ben",
+   "s": "Jack"
+  },
+  {
+   "text": "Then, Susan and Max were working at the office. Sam decided to give a snack to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Susan",
+   "s": "Max"
+  },
+  {
+   "text": "Then, Jennifer and Sam were working at the office. Max decided to give a book to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Jennifer",
+   "s": "Sam"
+  },
+  {
+   "text": "Then, Paul and George were working at the school. Rachel decided to give a basketball to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Paul",
+   "s": "George"
+  },
+  {
+   "text": "Then, Daniel and Peter were working at the store. Eric decided to give a basketball to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Daniel",
+   "s": "Peter"
+  },
+  {
+   "text": "Then, Eric and Joe were working at the park. Andrew decided to give a drink to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Eric",
+   "s": "Joe"
+  },
+  {
+   "text": "Then, Peter and Emma were working at the park. Thomas decided to give a bag to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Peter",
+   "s": "Emma"
+  },
+  {
+   "text": "Then, Jessica and Brian were working at the library. Nicole decided to give a basketball to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Brian"
+  },
+  {
+   "text": "Then, Daniel and Jack were working at the store. John decided to give a bone to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Daniel",
+   "s": "Jack"
+  },
+  {
+   "text": "Then, Michael and Kevin were working at the office. Ben decided to give a bag to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Michael",
+   "s": "Kevin"
+  },
+  {
+   "text": "Then, Thomas and Martin were working at the station. Rachel decided to give a bone to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Thomas",
+   "s": "Martin"
+  },
+  {
+   "text": "Then, Jennifer and Bob were working at the office. Laura decided to give a snack to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Jennifer",
+   "s": "Bob"
+  },
+  {
+   "text": "Then, Paul and Rose were working at the hospital. Emma decided to give a necklace to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Paul",
+   "s": "Rose"
+  },
+  {
+   "text": "Then, Rose and Sid were working at the restaurant. Paul decided to give a letter to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Rose",
+   "s": "Sid"
+  },
+  {
+   "text": "Then, Mary and Michael were working at the office. Alex decided to give a ball to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "Michael"
+  },
+  {
+   "text": "Then, Max and Tom were working at the station. Thomas decided to give a basketball to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Max",
+   "s": "Tom"
+  },
+  {
+   "text": "Then, Martin and Frank were working at the restaurant. Sid decided to give a computer to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "Frank"
+  },
+  {
+   "text": "Then, Eric and Victoria were working at the office. John decided to give a book to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Eric",
+   "s": "Victoria"
+  },
+  {
+   "text": "Then, David and Helen were working at the restaurant. Jack decided to give a book to",
+   "template": 2,
+   "order": "ABC",
+   "io": "David",
+   "s": "Helen"
+  },
+  {
+   "text": "Then, James and Mary were working at the hospital. Jessica decided to give a letter to",
+   "template": 2,
+   "order": "ABC",
+   "io": "James",
+   "s": "Mary"
+  },
+  {
+   "text": "Then, Daniel and Bob were working at the house. Kate decided to give a bone to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Daniel",
+   "s": "Bob"
+  },
+  {
+   "text": "Then, Ben and Lisa were working at the hospital. Kate decided to give a book to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Ben",
+   "s": "Lisa"
+  },
+  {
+   "text": "Then, Rose and Grace were working at the store. Jennifer decided to give a book to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Rose",
+   "s": "Grace"
+  },
+  {
+   "text": "Then, Frank and Matt were working at the hospital. Adam decided to give a drink to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Frank",
+   "s": "Matt"
+  },
+  {
+   "text": "Then, Sam and Martin were working at the house. Kate decided to give a book to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Sam",
+   "s": "Martin"
+  },
+  {
+   "text": "Then, Jane and Chris were working at the house. Frank decided to give a letter to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Jane",
+   "s": "Chris"
+  },
+  {
+   "text": "Then, Susan and Sam were working at the library. Rose decided to give a basketball to",
+   "template": 2,
+   "order": "ABC",
+   "io": "Susan",
+   "s": "Sam"
+  },
+  {
+   "text": "Then, John and Daniel were thinking about going to the station. Arthur wanted to give a gift to",
+   "template": 3,
+   "order": "ABC",
+   "io": "John",
+   "s": "Daniel"
+  },
+  {
+   "text": "Then, Dan and Jessica were thinking about going to the hospital. Patrick wanted to give a cake to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Jessica"
+  },
+  {
+   "text": "Then, Tim and Victoria were thinking about going to the beach. Emma wanted to give a cake to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Tim",
+   "s": "Victoria"
+  },
+  {
+   "text": "Then, Tim and Grace were thinking about going to the market. Jane wanted to give a gift to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Tim",
+   "s": "Grace"
+  },
+  {
+   "text": "Then, Sid and Kevin were thinking about going to the hospital. Mary wanted to give a gift to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "Kevin"
+  },
+  {
+   "text": "Then, Matt and Dan were thinking about going to the beach. Anna wanted to give a ball to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Matt",
+   "s": "Dan"
+  },
+  {
+   "text": "Then, Paul and Steven were thinking about going to the beach. Michael wanted to give a book to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Paul",
+   "s": "Steven"
+  },
+  {
+   "text": "Then, Nicole and Grace were thinking about going to the office. Rachel wanted to give a book to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Nicole",
+   "s": "Grace"
+  },
+  {
+   "text": "Then, Tim and John were thinking about going to the station. Sam wanted to give a drink to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Tim",
+   "s": "John"
+  },
+  {
+   "text": "Then, David and Adam were thinking about going to the store. Martin wanted to give a cake to",
+   "template": 3,
+   "order": "ABC",
+   "io": "David",
+   "s": "Adam"
+  },
+  {
+   "text": "Then, Lisa and Helen were thinking about going to the hospital. Sid wanted to give a bag to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Lisa",
+   "s": "Helen"
+  },
+  {
+   "text": "Then, Jessica and Lisa were thinking about going to the restaurant. Eric wanted to give a book to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Lisa"
+  },
+  {
+   "text": "Then, Emma and James were thinking about going to the restaurant. Nicole wanted to give a computer to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Emma",
+   "s": "James"
+  },
+  {
+   "text": "Then, Susan and Arthur were thinking about going to the park. Emma wanted to give a bag to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Susan",
+   "s": "Arthur"
+  },
+  {
+   "text": "Then, Anna and Bob were thinking about going to the store. Matt wanted to give a snack to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Anna",
+   "s": "Bob"
+  },
+  {
+   "text": "Then, Ryan and Andrew were thinking about going to the beach. Brian wanted to give a bone to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Ryan",
+   "s": "Andrew"
+  },
+  {
+   "text": "Then, Eric and Paul were thinking about going to the market. Grace wanted to give a letter to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Eric",
+   "s": "Paul"
+  },
+  {
+   "text": "Then, Peter and John were thinking about going to the station. Dan wanted to give a ball to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Peter",
+   "s": "John"
+  },
+  {
+   "text": "Then, Andrew and Daniel were thinking about going to the house. Ben wanted to give a bone to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Daniel"
+  },
+  {
+   "text": "Then, Brian and Robert were thinking about going to the house. James wanted to give a computer to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Brian",
+   "s": "Robert"
+  },
+  {
+   "text": "Then, Andrew and Peter were thinking about going to the hospital. Emma wanted to give a letter to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Peter"
+  },
+  {
+   "text": "Then, Emma and Joe were thinking about going to the hospital. Michael wanted to give a letter to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Emma",
+   "s": "Joe"
+  },
+  {
+   "text": "Then, Robert and Bob were thinking about going to the market. Helen wanted to give a basketball to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "Bob"
+  },
+  {
+   "text": "Then, Sid and Tim were thinking about going to the garden. Kevin wanted to give a book to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "Tim"
+  },
+  {
+   "text": "Then, Victoria and Sam were thinking about going to the house. Rachel wanted to give a letter to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Victoria",
+   "s": "Sam"
+  },
+  {
+   "text": "Then, Dan and Amy were thinking about going to the school. Rachel wanted to give a ball to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Amy"
+  },
+  {
+   "text": "Then, Arthur and Michael were thinking about going to the station. Nicole wanted to give a basketball to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Arthur",
+   "s": "Michael"
+  },
+  {
+   "text": "Then, Steven and Dan were thinking about going to the house. Rachel wanted to give a drink to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Steven",
+   "s": "Dan"
+  },
+  {
+   "text": "Then, Emma and Victoria were thinking about going to the beach. Henry wanted to give a ring to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Emma",
+   "s": "Victoria"
+  },
+  {
+   "text": "Then, Peter and George were thinking about going to the hospital. Martin wanted to give a necklace to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Peter",
+   "s": "George"
+  },
+  {
+   "text": "Then, Nicole and Peter were thinking about going to the restaurant. Patrick wanted to give a necklace to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Nicole",
+   "s": "Peter"
+  },
+  {
+   "text": "Then, Alice and Ben were thinking about going to the market. Sarah wanted to give a basketball to",
+   "template": 3,
+   "order": "ABC",
+   "io": "Alice",
+   "s": "Ben"
+  },
+  {
+   "text": "Then, Daniel and Alice had a long argument, and afterwards Joe said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Daniel",
+   "s": "Alice"
+  },
+  {
+   "text": "Then, Emma and Robert had a long argument, and afterwards Mary said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Emma",
+   "s": "Robert"
+  },
+  {
+   "text": "Then, Henry and Emma had a long argument, and afterwards Max said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Henry",
+   "s": "Emma"
+  },
+  {
+   "text": "Then, Mark and Michael had a long argument, and afterwards Jack said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Mark",
+   "s": "Michael"
+  },
+  {
+   "text": "Then, James and Grace had a long argument, and afterwards Max said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "James",
+   "s": "Grace"
+  },
+  {
+   "text": "Then, Sarah and Thomas had a long argument, and afterwards Amy said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Sarah",
+   "s": "Thomas"
+  },
+  {
+   "text": "Then, John and Jack had a long argument, and afterwards Kate said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "John",
+   "s": "Jack"
+  },
+  {
+   "text": "Then, Robert and Jason had a long argument, and afterwards Alex said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "Jason"
+  },
+  {
+   "text": "Then, Robert and Tom had a long argument, and afterwards Chris said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "Tom"
+  },
+  {
+   "text": "Then, Mark and Michael had a long argument, and afterwards Adam said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Mark",
+   "s": "Michael"
+  },
+  {
+   "text": "Then, Jessica and Tim had a long argument, and afterwards Sam said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Tim"
+  },
+  {
+   "text": "Then, Max and John had a long argument, and afterwards Adam said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Max",
+   "s": "John"
+  },
+  {
+   "text": "Then, Rose and Grace had a long argument, and afterwards Nicole said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Rose",
+   "s": "Grace"
+  },
+  {
+   "text": "Then, Jennifer and Kate had a long argument, and afterwards Steven said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Jennifer",
+   "s": "Kate"
+  },
+  {
+   "text": "Then, Michael and Mark had a long argument, and afterwards Arthur said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Michael",
+   "s": "Mark"
+  },
+  {
+   "text": "Then, Jane and Dan had a long argument, and afterwards Robert said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Jane",
+   "s": "Dan"
+  },
+  {
+   "text": "Then, Rachel and Emma had a long argument, and afterwards Jennifer said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "Emma"
+  },
+  {
+   "text": "Then, Rachel and Steven had a long argument, and afterwards Michael said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "Steven"
+  },
+  {
+   "text": "Then, Jason and Steven had a long argument, and afterwards Sid said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Jason",
+   "s": "Steven"
+  },
+  {
+   "text": "Then, Jack and Bob had a long argument, and afterwards Chris said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Jack",
+   "s": "Bob"
+  },
+  {
+   "text": "Then, Arthur and Patrick had a long argument, and afterwards James said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Arthur",
+   "s": "Patrick"
+  },
+  {
+   "text": "Then, Steven and Nicole had a long argument, and afterwards Joe said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Steven",
+   "s": "Nicole"
+  },
+  {
+   "text": "Then, Kevin and Alex had a long argument, and afterwards Rachel said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Alex"
+  },
+  {
+   "text": "Then, Martin and Frank had a long argument, and afterwards Dan said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "Frank"
+  },
+  {
+   "text": "Then, Laura and Steven had a long argument, and afterwards Ryan said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "Steven"
+  },
+  {
+   "text": "Then, Alex and Robert had a long argument, and afterwards Victoria said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Robert"
+  },
+  {
+   "text": "Then, Bob and Paul had a long argument, and afterwards David said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Paul"
+  },
+  {
+   "text": "Then, David and Kevin had a long argument, and afterwards Steven said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "David",
+   "s": "Kevin"
+  },
+  {
+   "text": "Then, Alex and Grace had a long argument, and afterwards Sam said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Grace"
+  },
+  {
+   "text": "Then, Ben and Grace had a long argument, and afterwards David said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Ben",
+   "s": "Grace"
+  },
+  {
+   "text": "Then, Bob and Joe had a long argument, and afterwards Max said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Joe"
+  },
+  {
+   "text": "Then, Sam and Kevin had a long argument, and afterwards Daniel said to",
+   "template": 4,
+   "order": "ABC",
+   "io": "Sam",
+   "s": "Kevin"
+  },
+  {
+   "text": "After George and Rose went to the station, Tim gave a computer to",
+   "template": 5,
+   "order": "ABC",
+   "io": "George",
+   "s": "Rose"
+  },
+  {
+   "text": "After Sam and Steven went to the hospital, Mark gave a drink to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Sam",
+   "s": "Steven"
+  },
+  {
+   "text": "After David and Sarah went to the house, Sam gave a letter to",
+   "template": 5,
+   "order": "ABC",
+   "io": "David",
+   "s": "Sarah"
+  },
+  {
+   "text": "After Martin and Amy went to the market, Adam gave a bag to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "Amy"
+  },
+  {
+   "text": "After Peter and Thomas went to the garden, Rachel gave a computer to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Peter",
+   "s": "Thomas"
+  },
+  {
+   "text": "After Patrick and Victoria went to the school, Henry gave a bag to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Patrick",
+   "s": "Victoria"
+  },
+  {
+   "text": "After Henry and Alice went to the hospital, Daniel gave a cake to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Henry",
+   "s": "Alice"
+  },
+  {
+   "text": "After Kevin and Anna went to the restaurant, David gave a gift to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Anna"
+  },
+  {
+   "text": "After Alex and Grace went to the garden, Jane gave a bag to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Grace"
+  },
+  {
+   "text": "After James and Ben went to the school, Arthur gave a cake to",
+   "template": 5,
+   "order": "ABC",
+   "io": "James",
+   "s": "Ben"
+  },
+  {
+   "text": "After Daniel and Jack went to the garden, Sarah gave a necklace to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Daniel",
+   "s": "Jack"
+  },
+  {
+   "text": "After Max and Laura went to the garden, Thomas gave a cake to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Max",
+   "s": "Laura"
+  },
+  {
+   "text": "After Andrew and Brian went to the library, Michael gave a necklace to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Brian"
+  },
+  {
+   "text": "After John and Patrick went to the house, Nicole gave a necklace to",
+   "template": 5,
+   "order": "ABC",
+   "io": "John",
+   "s": "Patrick"
+  },
+  {
+   "text": "After Martin and Susan went to the house, Victoria gave a book to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "Susan"
+  },
+  {
+   "text": "After John and Sid went to the station, Alice gave a ball to",
+   "template": 5,
+   "order": "ABC",
+   "io": "John",
+   "s": "Sid"
+  },
+  {
+   "text": "After James and Rachel went to the beach, Sarah gave a computer to",
+   "template": 5,
+   "order": "ABC",
+   "io": "James",
+   "s": "Rachel"
+  },
+  {
+   "text": "After Rachel and Patrick went to the beach, Peter gave a gift to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "Patrick"
+  },
+  {
+   "text": "After David and Tim went to the station, Mark gave a ball to",
+   "template": 5,
+   "order": "ABC",
+   "io": "David",
+   "s": "Tim"
+  },
+  {
+   "text": "After Adam and Andrew went to the garden, John gave a snack to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Adam",
+   "s": "Andrew"
+  },
+  {
+   "text": "After Bob and Helen went to the office, Michael gave a book to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Helen"
+  },
+  {
+   "text": "After Sid and Mark went to the restaurant, Eric gave a cake to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "Mark"
+  },
+  {
+   "text": "After Dan and Jessica went to the garden, Chris gave a drink to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Jessica"
+  },
+  {
+   "text": "After Helen and Martin went to the house, Chris gave a ball to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Helen",
+   "s": "Martin"
+  },
+  {
+   "text": "After Jessica and Adam went to the hospital, Frank gave a gift to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Adam"
+  },
+  {
+   "text": "After Bob and Brian went to the garden, Arthur gave a bone to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Brian"
+  },
+  {
+   "text": "After Emma and Mary went to the restaurant, Matt gave a gift to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Emma",
+   "s": "Mary"
+  },
+  {
+   "text": "After Martin and Lisa went to the store, James gave a snack to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "Lisa"
+  },
+  {
+   "text": "After Robert and Victoria went to the house, Thomas gave a bag to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "Victoria"
+  },
+  {
+   "text": "After Paul and Tom went to the station, Dan gave a drink to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Paul",
+   "s": "Tom"
+  },
+  {
+   "text": "After Anna and Mary went to the office, Jane gave a basketball to",
+   "template": 5,
+   "order": "ABC",
+   "io": "Anna",
+   "s": "Mary"
+  },
+  {
+   "text": "After George and Tom went to the store, Rachel gave a bag to",
+   "template": 5,
+   "order": "ABC",
+   "io": "George",
+   "s": "Tom"
+  },
+  {
+   "text": "When Michael and Rachel got a snack at the office, Alex decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Michael",
+   "s": "Rachel"
+  },
+  {
+   "text": "When James and Sarah got a ring at the station, Eric decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "James",
+   "s": "Sarah"
+  },
+  {
+   "text": "When Chris and Victoria got a bag at the school, Arthur decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Chris",
+   "s": "Victoria"
+  },
+  {
+   "text": "When Frank and Matt got a bone at the market, James decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Frank",
+   "s": "Matt"
+  },
+  {
+   "text": "When Henry and Thomas got a bone at the library, Joe decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Henry",
+   "s": "Thomas"
+  },
+  {
+   "text": "When Lisa and John got a basketball at the restaurant, Alice decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Lisa",
+   "s": "John"
+  },
+  {
+   "text": "When Sid and Andrew got a computer at the market, Brian decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "Andrew"
+  },
+  {
+   "text": "When Amy and Anna got a cake at the market, James decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Amy",
+   "s": "Anna"
+  },
+  {
+   "text": "When Max and Ryan got a basketball at the restaurant, Robert decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Max",
+   "s": "Ryan"
+  },
+  {
+   "text": "When Sarah and Eric got a computer at the station, Daniel decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Sarah",
+   "s": "Eric"
+  },
+  {
+   "text": "When Michael and Helen got a gift at the market, Jack decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Michael",
+   "s": "Helen"
+  },
+  {
+   "text": "When Jennifer and Peter got a basketball at the park, Brian decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Jennifer",
+   "s": "Peter"
+  },
+  {
+   "text": "When Mary and Adam got a gift at the hospital, Jane decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "Adam"
+  },
+  {
+   "text": "When Susan and Sid got a snack at the station, Jack decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Susan",
+   "s": "Sid"
+  },
+  {
+   "text": "When Joe and Sid got a drink at the store, Kevin decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Joe",
+   "s": "Sid"
+  },
+  {
+   "text": "When Arthur and Joe got a book at the school, Lisa decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Arthur",
+   "s": "Joe"
+  },
+  {
+   "text": "When Mark and Alex got a ring at the office, Rachel decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Mark",
+   "s": "Alex"
+  },
+  {
+   "text": "When Tom and Alex got a necklace at the park, Dan decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Tom",
+   "s": "Alex"
+  },
+  {
+   "text": "When Robert and Paul got a cake at the hospital, Eric decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "Paul"
+  },
+  {
+   "text": "When Grace and Andrew got a letter at the park, Jason decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Grace",
+   "s": "Andrew"
+  },
+  {
+   "text": "When John and Robert got a book at the hospital, Patrick decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "John",
+   "s": "Robert"
+  },
+  {
+   "text": "When David and Michael got a computer at the restaurant, Tim decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "David",
+   "s": "Michael"
+  },
+  {
+   "text": "When James and Frank got a drink at the library, Victoria decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "James",
+   "s": "Frank"
+  },
+  {
+   "text": "When Kate and James got a snack at the station, Eric decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Kate",
+   "s": "James"
+  },
+  {
+   "text": "When Jack and Laura got a bag at the library, Adam decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Jack",
+   "s": "Laura"
+  },
+  {
+   "text": "When Lisa and Susan got a cake at the store, Alice decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Lisa",
+   "s": "Susan"
+  },
+  {
+   "text": "When Ben and Jessica got a letter at the school, Susan decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Ben",
+   "s": "Jessica"
+  },
+  {
+   "text": "When Rachel and Brian got a computer at the market, Peter decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "Brian"
+  },
+  {
+   "text": "When Sid and Laura got a bone at the school, Eric decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "Laura"
+  },
+  {
+   "text": "When Robert and Brian got a bag at the store, Nicole decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "Brian"
+  },
+  {
+   "text": "When Laura and Sid got a ring at the office, Helen decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "Sid"
+  },
+  {
+   "text": "When Robert and Michael got a gift at the office, Matt decided to give it to",
+   "template": 6,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "Michael"
+  },
+  {
+   "text": "When Jessica and Michael got a cake at the beach, Tim decided to give the cake to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Michael"
+  },
+  {
+   "text": "When Jane and Matt got a necklace at the station, Rose decided to give the necklace to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Jane",
+   "s": "Matt"
+  },
+  {
+   "text": "When Jennifer and James got a snack at the school, Adam decided to give the snack to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Jennifer",
+   "s": "James"
+  },
+  {
+   "text": "When Jack and Martin got a book at the hospital, Eric decided to give the book to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Jack",
+   "s": "Martin"
+  },
+  {
+   "text": "When Sid and George got a ball at the station, Mark decided to give the ball to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "George"
+  },
+  {
+   "text": "When Rose and Helen got a ball at the beach, Bob decided to give the ball to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Rose",
+   "s": "Helen"
+  },
+  {
+   "text": "When David and Dan got a snack at the store, Eric decided to give the snack to",
+   "template": 7,
+   "order": "ABC",
+   "io": "David",
+   "s": "Dan"
+  },
+  {
+   "text": "When Jane and Mary got a book at the library, Robert decided to give the book to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Jane",
+   "s": "Mary"
+  },
+  {
+   "text": "When George and Jessica got a snack at the beach, Mark decided to give the snack to",
+   "template": 7,
+   "order": "ABC",
+   "io": "George",
+   "s": "Jessica"
+  },
+  {
+   "text": "When Nicole and Dan got a basketball at the office, Kevin decided to give the basketball to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Nicole",
+   "s": "Dan"
+  },
+  {
+   "text": "When Kevin and Brian got a computer at the restaurant, Alice decided to give the computer to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Brian"
+  },
+  {
+   "text": "When Victoria and Emma got a bag at the beach, Jane decided to give the bag to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Victoria",
+   "s": "Emma"
+  },
+  {
+   "text": "When Robert and Peter got a book at the restaurant, Sid decided to give the book to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "Peter"
+  },
+  {
+   "text": "When Daniel and Grace got a cake at the station, Alex decided to give the cake to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Daniel",
+   "s": "Grace"
+  },
+  {
+   "text": "When Jessica and Alex got a snack at the school, Sarah decided to give the snack to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Alex"
+  },
+  {
+   "text": "When Brian and Kate got a computer at the garden, Arthur decided to give the computer to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Brian",
+   "s": "Kate"
+  },
+  {
+   "text": "When Chris and Grace got a snack at the hospital, Thomas decided to give the snack to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Chris",
+   "s": "Grace"
+  },
+  {
+   "text": "When Kevin and Jessica got a book at the station, Lisa decided to give the book to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Jessica"
+  },
+  {
+   "text": "When Eric and Daniel got a snack at the office, Sam decided to give the snack to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Eric",
+   "s": "Daniel"
+  },
+  {
+   "text": "When Michael and Arthur got a letter at the market, Sid decided to give the letter to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Michael",
+   "s": "Arthur"
+  },
+  {
+   "text": "When Henry and Joe got a letter at the library, Rose decided to give the letter to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Henry",
+   "s": "Joe"
+  },
+  {
+   "text": "When Sid and Susan got a ball at the library, Thomas decided to give the ball to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "Susan"
+  },
+  {
+   "text": "When Michael and Sid got a letter at the office, Alice decided to give the letter to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Michael",
+   "s": "Sid"
+  },
+  {
+   "text": "When Mary and Alice got a book at the restaurant, Anna decided to give the book to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "Alice"
+  },
+  {
+   "text": "When Susan and Steven got a ball at the library, Nicole decided to give the ball to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Susan",
+   "s": "Steven"
+  },
+  {
+   "text": "When James and Adam got a bag at the office, Tom decided to give the bag to",
+   "template": 7,
+   "order": "ABC",
+   "io": "James",
+   "s": "Adam"
+  },
+  {
+   "text": "When John and Nicole got a basketball at the restaurant, Jack decided to give the basketball to",
+   "template": 7,
+   "order": "ABC",
+   "io": "John",
+   "s": "Nicole"
+  },
+  {
+   "text": "When Steven and Michael got a book at the library, Martin decided to give the book to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Steven",
+   "s": "Michael"
+  },
+  {
+   "text": "When David and Jennifer got a book at the station, Bob decided to give the book to",
+   "template": 7,
+   "order": "ABC",
+   "io": "David",
+   "s": "Jennifer"
+  },
+  {
+   "text": "When Sid and Steven got a bone at the market, Frank decided to give the bone to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "Steven"
+  },
+  {
+   "text": "When Ryan and Grace got a gift at the market, Helen decided to give the gift to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Ryan",
+   "s": "Grace"
+  },
+  {
+   "text": "When Adam and Tim got a ball at the office, Matt decided to give the ball to",
+   "template": 7,
+   "order": "ABC",
+   "io": "Adam",
+   "s": "Tim"
+  },
+  {
+   "text": "While Mary and Laura were working at the house, Eric gave a necklace to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "Laura"
+  },
+  {
+   "text": "While Chris and James were working at the market, Helen gave a computer to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Chris",
+   "s": "James"
+  },
+  {
+   "text": "While George and Kevin were working at the market, Max gave a computer to",
+   "template": 8,
+   "order": "ABC",
+   "io": "George",
+   "s": "Kevin"
+  },
+  {
+   "text": "While Grace and Frank were working at the park, Susan gave a ring to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Grace",
+   "s": "Frank"
+  },
+  {
+   "text": "While Dan and Patrick were working at the station, Jason gave a bag to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Patrick"
+  },
+  {
+   "text": "While Emma and Patrick were working at the store, Jason gave a cake to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Emma",
+   "s": "Patrick"
+  },
+  {
+   "text": "While Joe and Mary were working at the station, Matt gave a ball to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Joe",
+   "s": "Mary"
+  },
+  {
+   "text": "While Steven and Arthur were working at the garden, Max gave a gift to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Steven",
+   "s": "Arthur"
+  },
+  {
+   "text": "While Ben and Alice were working at the beach, Victoria gave a snack to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Ben",
+   "s": "Alice"
+  },
+  {
+   "text": "While Jane and Rachel were working at the house, Nicole gave a ball to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Jane",
+   "s": "Rachel"
+  },
+  {
+   "text": "While Helen and Arthur were working at the office, Peter gave a book to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Helen",
+   "s": "Arthur"
+  },
+  {
+   "text": "While Grace and Tim were working at the hospital, Sam gave a letter to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Grace",
+   "s": "Tim"
+  },
+  {
+   "text": "While Victoria and Max were working at the beach, Mark gave a bone to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Victoria",
+   "s": "Max"
+  },
+  {
+   "text": "While Andrew and Kevin were working at the park, Grace gave a drink to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Kevin"
+  },
+  {
+   "text": "While David and Helen were working at the park, Robert gave a bag to",
+   "template": 8,
+   "order": "ABC",
+   "io": "David",
+   "s": "Helen"
+  },
+  {
+   "text": "While Ben and Jason were working at the school, Jack gave a cake to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Ben",
+   "s": "Jason"
+  },
+  {
+   "text": "While Sam and Alex were working at the garden, Ben gave a gift to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Sam",
+   "s": "Alex"
+  },
+  {
+   "text": "While Jason and Alex were working at the park, Anna gave a snack to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Jason",
+   "s": "Alex"
+  },
+  {
+   "text": "While Andrew and Adam were working at the school, Mary gave a letter to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Adam"
+  },
+  {
+   "text": "While Brian and Max were working at the garden, Helen gave a drink to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Brian",
+   "s": "Max"
+  },
+  {
+   "text": "While Sam and Thomas were working at the house, Rose gave a ball to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Sam",
+   "s": "Thomas"
+  },
+  {
+   "text": "While Grace and Daniel were working at the office, Tom gave a book to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Grace",
+   "s": "Daniel"
+  },
+  {
+   "text": "While John and Adam were working at the school, Tom gave a ball to",
+   "template": 8,
+   "order": "ABC",
+   "io": "John",
+   "s": "Adam"
+  },
+  {
+   "text": "While Lisa and Chris were working at the hospital, Max gave a ball to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Lisa",
+   "s": "Chris"
+  },
+  {
+   "text": "While Helen and Chris were working at the store, Anna gave a basketball to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Helen",
+   "s": "Chris"
+  },
+  {
+   "text": "While Sid and Sarah were working at the beach, Patrick gave a bone to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "Sarah"
+  },
+  {
+   "text": "While Robert and Chris were working at the restaurant, David gave a gift to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "Chris"
+  },
+  {
+   "text": "While Nicole and Adam were working at the market, Chris gave a snack to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Nicole",
+   "s": "Adam"
+  },
+  {
+   "text": "While Matt and Patrick were working at the office, Grace gave a bag to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Matt",
+   "s": "Patrick"
+  },
+  {
+   "text": "While Laura and Martin were working at the market, Robert gave a basketball to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "Martin"
+  },
+  {
+   "text": "While Alice and Robert were working at the hospital, Laura gave a cake to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Alice",
+   "s": "Robert"
+  },
+  {
+   "text": "While Patrick and Rose were working at the store, Andrew gave a bone to",
+   "template": 8,
+   "order": "ABC",
+   "io": "Patrick",
+   "s": "Rose"
+  },
+  {
+   "text": "While Martin and Rose were commuting to the beach, Sid gave a bone to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "Rose"
+  },
+  {
+   "text": "While David and Chris were commuting to the school, Helen gave a book to",
+   "template": 9,
+   "order": "ABC",
+   "io": "David",
+   "s": "Chris"
+  },
+  {
+   "text": "While Sam and Emma were commuting to the restaurant, Rachel gave a computer to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Sam",
+   "s": "Emma"
+  },
+  {
+   "text": "While Kevin and Thomas were commuting to the hospital, Arthur gave a ball to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Thomas"
+  },
+  {
+   "text": "While Andrew and Bob were commuting to the office, Joe gave a basketball to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Bob"
+  },
+  {
+   "text": "While Mary and Tim were commuting to the school, Ryan gave a cake to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "Tim"
+  },
+  {
+   "text": "While Ryan and Michael were commuting to the library, Bob gave a ball to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Ryan",
+   "s": "Michael"
+  },
+  {
+   "text": "While Jack and John were commuting to the library, Patrick gave a basketball to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Jack",
+   "s": "John"
+  },
+  {
+   "text": "While Jessica and Nicole were commuting to the store, Kate gave a drink to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Nicole"
+  },
+  {
+   "text": "While Patrick and Laura were commuting to the hospital, Frank gave a basketball to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Patrick",
+   "s": "Laura"
+  },
+  {
+   "text": "While Kevin and Bob were commuting to the park, George gave a letter to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Bob"
+  },
+  {
+   "text": "While Max and Amy were commuting to the restaurant, Jane gave a ring to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Max",
+   "s": "Amy"
+  },
+  {
+   "text": "While Chris and George were commuting to the garden, Nicole gave a cake to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Chris",
+   "s": "George"
+  },
+  {
+   "text": "While Daniel and Jason were commuting to the park, Jane gave a snack to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Daniel",
+   "s": "Jason"
+  },
+  {
+   "text": "While Dan and Grace were commuting to the hospital, Adam gave a letter to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Grace"
+  },
+  {
+   "text": "While Lisa and Patrick were commuting to the store, Victoria gave a cake to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Lisa",
+   "s": "Patrick"
+  },
+  {
+   "text": "While Jack and Ryan were commuting to the office, James gave a computer to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Jack",
+   "s": "Ryan"
+  },
+  {
+   "text": "While Henry and Victoria were commuting to the beach, Mark gave a letter to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Henry",
+   "s": "Victoria"
+  },
+  {
+   "text": "While Alex and Steven were commuting to the park, Matt gave a gift to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Steven"
+  },
+  {
+   "text": "While Bob and Ben were commuting to the market, Emma gave a basketball to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Ben"
+  },
+  {
+   "text": "While Bob and Mary were commuting to the house, Tim gave a necklace to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Mary"
+  },
+  {
+   "text": "While Patrick and Jack were commuting to the market, Mary gave a cake to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Patrick",
+   "s": "Jack"
+  },
+  {
+   "text": "While Amy and Matt were commuting to the station, Adam gave a ball to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Amy",
+   "s": "Matt"
+  },
+  {
+   "text": "While Grace and Jennifer were commuting to the station, Dan gave a drink to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Grace",
+   "s": "Jennifer"
+  },
+  {
+   "text": "While John and Daniel were commuting to the school, Bob gave a ring to",
+   "template": 9,
+   "order": "ABC",
+   "io": "John",
+   "s": "Daniel"
+  },
+  {
+   "text": "While Alex and Laura were commuting to the hospital, Ryan gave a ball to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Laura"
+  },
+  {
+   "text": "While Laura and Max were commuting to the park, Sarah gave a book to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "Max"
+  },
+  {
+   "text": "While Eric and James were commuting to the school, Kevin gave a letter to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Eric",
+   "s": "James"
+  },
+  {
+   "text": "While Henry and Dan were commuting to the house, Joe gave a basketball to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Henry",
+   "s": "Dan"
+  },
+  {
+   "text": "While Arthur and Lisa were commuting to the beach, Grace gave a necklace to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Arthur",
+   "s": "Lisa"
+  },
+  {
+   "text": "While Rachel and Arthur were commuting to the restaurant, Chris gave a drink to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "Arthur"
+  },
+  {
+   "text": "While Jane and Dan were commuting to the library, Peter gave a cake to",
+   "template": 9,
+   "order": "ABC",
+   "io": "Jane",
+   "s": "Dan"
+  },
+  {
+   "text": "After the lunch, Ryan and Daniel went to the store. Joe gave a letter to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Ryan",
+   "s": "Daniel"
+  },
+  {
+   "text": "After the lunch, Alex and Rachel went to the office. Jason gave a cake to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Rachel"
+  },
+  {
+   "text": "After the lunch, Max and Jessica went to the store. Alice gave a snack to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Max",
+   "s": "Jessica"
+  },
+  {
+   "text": "After the lunch, Mark and Eric went to the store. Sarah gave a letter to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Mark",
+   "s": "Eric"
+  },
+  {
+   "text": "After the lunch, Grace and Frank went to the park. Dan gave a basketball to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Grace",
+   "s": "Frank"
+  },
+  {
+   "text": "After the lunch, Joe and Max went to the restaurant. Peter gave a letter to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Joe",
+   "s": "Max"
+  },
+  {
+   "text": "After the lunch, Rachel and Helen went to the house. Laura gave a gift to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "Helen"
+  },
+  {
+   "text": "After the lunch, Bob and Paul went to the market. Patrick gave a snack to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Paul"
+  },
+  {
+   "text": "After the lunch, Lisa and Paul went to the hospital. Mary gave a necklace to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Lisa",
+   "s": "Paul"
+  },
+  {
+   "text": "After the lunch, Steven and Laura went to the house. John gave a cake to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Steven",
+   "s": "Laura"
+  },
+  {
+   "text": "After the lunch, Andrew and Alice went to the garden. James gave a bag to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Alice"
+  },
+  {
+   "text": "After the lunch, Patrick and Henry went to the garden. Tim gave a cake to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Patrick",
+   "s": "Henry"
+  },
+  {
+   "text": "After the lunch, Victoria and Ben went to the office. Tim gave a gift to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Victoria",
+   "s": "Ben"
+  },
+  {
+   "text": "After the lunch, Matt and Henry went to the store. Anna gave a computer to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Matt",
+   "s": "Henry"
+  },
+  {
+   "text": "After the lunch, Paul and Sid went to the beach. Frank gave a ring to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Paul",
+   "s": "Sid"
+  },
+  {
+   "text": "After the lunch, Laura and Kate went to the park. Thomas gave a drink to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "Kate"
+  },
+  {
+   "text": "After the lunch, Sarah and Sid went to the garden. Kate gave a snack to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Sarah",
+   "s": "Sid"
+  },
+  {
+   "text": "After the lunch, Ryan and Mark went to the school. Adam gave a snack to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Ryan",
+   "s": "Mark"
+  },
+  {
+   "text": "After the lunch, Laura and John went to the house. Martin gave a drink to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "John"
+  },
+  {
+   "text": "After the lunch, Sid and Jane went to the station. Laura gave a ball to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "Jane"
+  },
+  {
+   "text": "After the lunch, Emma and Alice went to the library. Alex gave a bone to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Emma",
+   "s": "Alice"
+  },
+  {
+   "text": "After the lunch, Sarah and Mark went to the beach. Victoria gave a book to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Sarah",
+   "s": "Mark"
+  },
+  {
+   "text": "After the lunch, Frank and Helen went to the hospital. Jennifer gave a basketball to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Frank",
+   "s": "Helen"
+  },
+  {
+   "text": "After the lunch, Emma and Helen went to the park. Max gave a book to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Emma",
+   "s": "Helen"
+  },
+  {
+   "text": "After the lunch, Andrew and Michael went to the station. Chris gave a ball to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Michael"
+  },
+  {
+   "text": "After the lunch, Thomas and Arthur went to the beach. James gave a basketball to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Thomas",
+   "s": "Arthur"
+  },
+  {
+   "text": "After the lunch, Andrew and Bob went to the beach. Jessica gave a computer to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Bob"
+  },
+  {
+   "text": "After the lunch, Joe and Sam went to the house. Henry gave a ball to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Joe",
+   "s": "Sam"
+  },
+  {
+   "text": "After the lunch, John and Frank went to the park. Grace gave a necklace to",
+   "template": 10,
+   "order": "ABC",
+   "io": "John",
+   "s": "Frank"
+  },
+  {
+   "text": "After the lunch, Kevin and Thomas went to the garden. Susan gave a basketball to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Thomas"
+  },
+  {
+   "text": "After the lunch, Jane and Thomas went to the hospital. James gave a bone to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Jane",
+   "s": "Thomas"
+  },
+  {
+   "text": "After the lunch, Amy and Patrick went to the station. Brian gave a letter to",
+   "template": 10,
+   "order": "ABC",
+   "io": "Amy",
+   "s": "Patrick"
+  },
+  {
+   "text": "Afterwards, Susan and Eric went to the hospital. Jack gave a computer to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Susan",
+   "s": "Eric"
+  },
+  {
+   "text": "Afterwards, Victoria and Andrew went to the house. Rachel gave a basketball to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Victoria",
+   "s": "Andrew"
+  },
+  {
+   "text": "Afterwards, Alice and Patrick went to the school. James gave a drink to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Alice",
+   "s": "Patrick"
+  },
+  {
+   "text": "Afterwards, Tom and Eric went to the garden. Victoria gave a basketball to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Tom",
+   "s": "Eric"
+  },
+  {
+   "text": "Afterwards, Matt and Patrick went to the beach. Paul gave a snack to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Matt",
+   "s": "Patrick"
+  },
+  {
+   "text": "Afterwards, Alex and Brian went to the park. Martin gave a necklace to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Brian"
+  },
+  {
+   "text": "Afterwards, Amy and Brian went to the market. Ben gave a cake to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Amy",
+   "s": "Brian"
+  },
+  {
+   "text": "Afterwards, Susan and Patrick went to the restaurant. Helen gave a book to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Susan",
+   "s": "Patrick"
+  },
+  {
+   "text": "Afterwards, Kevin and Helen went to the restaurant. Adam gave a cake to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Helen"
+  },
+  {
+   "text": "Afterwards, Lisa and Mark went to the station. Grace gave a book to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Lisa",
+   "s": "Mark"
+  },
+  {
+   "text": "Afterwards, Rose and Martin went to the garden. Laura gave a cake to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Rose",
+   "s": "Martin"
+  },
+  {
+   "text": "Afterwards, Alice and Joe went to the school. Grace gave a necklace to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Alice",
+   "s": "Joe"
+  },
+  {
+   "text": "Afterwards, Mark and Peter went to the library. David gave a gift to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Mark",
+   "s": "Peter"
+  },
+  {
+   "text": "Afterwards, Mary and James went to the house. Bob gave a book to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "James"
+  },
+  {
+   "text": "Afterwards, Mary and Ben went to the garden. Bob gave a book to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "Ben"
+  },
+  {
+   "text": "Afterwards, Dan and Paul went to the library. Sam gave a cake to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Paul"
+  },
+  {
+   "text": "Afterwards, Matt and Thomas went to the library. Nicole gave a ring to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Matt",
+   "s": "Thomas"
+  },
+  {
+   "text": "Afterwards, Sarah and Mark went to the hospital. John gave a cake to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Sarah",
+   "s": "Mark"
+  },
+  {
+   "text": "Afterwards, Jack and George went to the market. Grace gave a gift to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Jack",
+   "s": "George"
+  },
+  {
+   "text": "Afterwards, Nicole and Mark went to the store. Adam gave a basketball to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Nicole",
+   "s": "Mark"
+  },
+  {
+   "text": "Afterwards, Daniel and Rose went to the house. Amy gave a drink to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Daniel",
+   "s": "Rose"
+  },
+  {
+   "text": "Afterwards, Eric and Patrick went to the hospital. David gave a letter to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Eric",
+   "s": "Patrick"
+  },
+  {
+   "text": "Afterwards, Sam and Lisa went to the store. Amy gave a drink to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Sam",
+   "s": "Lisa"
+  },
+  {
+   "text": "Afterwards, Dan and George went to the hospital. Sarah gave a snack to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "George"
+  },
+  {
+   "text": "Afterwards, Matt and Robert went to the market. Laura gave a necklace to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Matt",
+   "s": "Robert"
+  },
+  {
+   "text": "Afterwards, Jack and Max went to the house. Victoria gave a basketball to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Jack",
+   "s": "Max"
+  },
+  {
+   "text": "Afterwards, Alex and Ryan went to the library. David gave a drink to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Ryan"
+  },
+  {
+   "text": "Afterwards, Martin and George went to the library. Sarah gave a computer to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "George"
+  },
+  {
+   "text": "Afterwards, Adam and Jane went to the station. Daniel gave a bag to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Adam",
+   "s": "Jane"
+  },
+  {
+   "text": "Afterwards, Mark and Paul went to the park. Peter gave a necklace to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Mark",
+   "s": "Paul"
+  },
+  {
+   "text": "Afterwards, Alex and Adam went to the restaurant. Mary gave a bone to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Alex",
+   "s": "Adam"
+  },
+  {
+   "text": "Afterwards, Sid and Kate went to the restaurant. Jessica gave a letter to",
+   "template": 11,
+   "order": "ABC",
+   "io": "Sid",
+   "s": "Kate"
+  },
+  {
+   "text": "Then, Anna and Max had a long argument. Afterwards Sam said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Anna",
+   "s": "Max"
+  },
+  {
+   "text": "Then, Grace and Paul had a long argument. Afterwards Thomas said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Grace",
+   "s": "Paul"
+  },
+  {
+   "text": "Then, Dan and Sam had a long argument. Afterwards Susan said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Sam"
+  },
+  {
+   "text": "Then, Eric and Sam had a long argument. Afterwards Daniel said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Eric",
+   "s": "Sam"
+  },
+  {
+   "text": "Then, Martin and Lisa had a long argument. Afterwards Ben said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "Lisa"
+  },
+  {
+   "text": "Then, Kevin and Arthur had a long argument. Afterwards Alice said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Arthur"
+  },
+  {
+   "text": "Then, Jack and John had a long argument. Afterwards Kevin said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Jack",
+   "s": "John"
+  },
+  {
+   "text": "Then, David and Jason had a long argument. Afterwards Alex said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "David",
+   "s": "Jason"
+  },
+  {
+   "text": "Then, David and Rachel had a long argument. Afterwards Patrick said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "David",
+   "s": "Rachel"
+  },
+  {
+   "text": "Then, Matt and Max had a long argument. Afterwards Martin said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Matt",
+   "s": "Max"
+  },
+  {
+   "text": "Then, Victoria and Kate had a long argument. Afterwards Max said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Victoria",
+   "s": "Kate"
+  },
+  {
+   "text": "Then, Robert and George had a long argument. Afterwards Tim said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "George"
+  },
+  {
+   "text": "Then, Rachel and Tim had a long argument. Afterwards Jane said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "Tim"
+  },
+  {
+   "text": "Then, Joe and Sarah had a long argument. Afterwards Michael said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Joe",
+   "s": "Sarah"
+  },
+  {
+   "text": "Then, Dan and George had a long argument. Afterwards Eric said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "George"
+  },
+  {
+   "text": "Then, Martin and Jack had a long argument. Afterwards Patrick said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "Jack"
+  },
+  {
+   "text": "Then, Steven and Peter had a long argument. Afterwards Amy said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Steven",
+   "s": "Peter"
+  },
+  {
+   "text": "Then, Andrew and Tom had a long argument. Afterwards Helen said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Tom"
+  },
+  {
+   "text": "Then, Jason and Mark had a long argument. Afterwards Andrew said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Jason",
+   "s": "Mark"
+  },
+  {
+   "text": "Then, Susan and Max had a long argument. Afterwards Alice said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Susan",
+   "s": "Max"
+  },
+  {
+   "text": "Then, Grace and James had a long argument. Afterwards Matt said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Grace",
+   "s": "James"
+  },
+  {
+   "text": "Then, Lisa and Mary had a long argument. Afterwards Jane said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Lisa",
+   "s": "Mary"
+  },
+  {
+   "text": "Then, Nicole and Chris had a long argument. Afterwards Matt said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Nicole",
+   "s": "Chris"
+  },
+  {
+   "text": "Then, Anna and Jason had a long argument. Afterwards Helen said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Anna",
+   "s": "Jason"
+  },
+  {
+   "text": "Then, Joe and Sam had a long argument. Afterwards Alex said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Joe",
+   "s": "Sam"
+  },
+  {
+   "text": "Then, Jessica and Peter had a long argument. Afterwards Joe said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Peter"
+  },
+  {
+   "text": "Then, Eric and Frank had a long argument. Afterwards Laura said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Eric",
+   "s": "Frank"
+  },
+  {
+   "text": "Then, Nicole and Arthur had a long argument. Afterwards Kate said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Nicole",
+   "s": "Arthur"
+  },
+  {
+   "text": "Then, Tom and Ryan had a long argument. Afterwards Bob said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Tom",
+   "s": "Ryan"
+  },
+  {
+   "text": "Then, Anna and Mark had a long argument. Afterwards Victoria said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Anna",
+   "s": "Mark"
+  },
+  {
+   "text": "Then, Amy and Laura had a long argument. Afterwards Patrick said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Amy",
+   "s": "Laura"
+  },
+  {
+   "text": "Then, Steven and Susan had a long argument. Afterwards Chris said to",
+   "template": 12,
+   "order": "ABC",
+   "io": "Steven",
+   "s": "Susan"
+  },
+  {
+   "text": "The library Dan and Alex went to had a necklace. Brian gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Alex"
+  },
+  {
+   "text": "The house Mary and George went to had a bone. Eric gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Mary",
+   "s": "George"
+  },
+  {
+   "text": "The market Rose and Sam went to had a bone. Susan gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Rose",
+   "s": "Sam"
+  },
+  {
+   "text": "The school Ben and Eric went to had a bone. Anna gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Ben",
+   "s": "Eric"
+  },
+  {
+   "text": "The school Arthur and Jane went to had a gift. Anna gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Arthur",
+   "s": "Jane"
+  },
+  {
+   "text": "The office Kevin and Dan went to had a bag. Sam gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Dan"
+  },
+  {
+   "text": "The school Laura and Max went to had a letter. Rachel gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "Max"
+  },
+  {
+   "text": "The restaurant Bob and Victoria went to had a snack. Frank gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Victoria"
+  },
+  {
+   "text": "The station Patrick and Victoria went to had a gift. Dan gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Patrick",
+   "s": "Victoria"
+  },
+  {
+   "text": "The store George and Patrick went to had a computer. Mary gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "George",
+   "s": "Patrick"
+  },
+  {
+   "text": "The beach Max and Tim went to had a bag. Sam gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Max",
+   "s": "Tim"
+  },
+  {
+   "text": "The beach Frank and Sam went to had a drink. Andrew gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Frank",
+   "s": "Sam"
+  },
+  {
+   "text": "The office Kevin and Laura went to had a book. Sam gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Laura"
+  },
+  {
+   "text": "The hospital John and Sid went to had a snack. Jason gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "John",
+   "s": "Sid"
+  },
+  {
+   "text": "The station Robert and Susan went to had a snack. Andrew gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Robert",
+   "s": "Susan"
+  },
+  {
+   "text": "The garden Amy and Grace went to had a gift. Ryan gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Amy",
+   "s": "Grace"
+  },
+  {
+   "text": "The park Brian and James went to had a basketball. Susan gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Brian",
+   "s": "James"
+  },
+  {
+   "text": "The park Laura and Frank went to had a gift. Dan gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "Frank"
+  },
+  {
+   "text": "The hospital Max and Michael went to had a drink. Frank gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Max",
+   "s": "Michael"
+  },
+  {
+   "text": "The hospital Bob and Eric went to had a bone. Frank gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Eric"
+  },
+  {
+   "text": "The hospital Emma and Alice went to had a ring. Amy gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Emma",
+   "s": "Alice"
+  },
+  {
+   "text": "The hospital Susan and Andrew went to had a necklace. Anna gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Susan",
+   "s": "Andrew"
+  },
+  {
+   "text": "The garden Ben and Susan went to had a gift. Alice gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Ben",
+   "s": "Susan"
+  },
+  {
+   "text": "The office Ryan and Sam went to had a bag. Rose gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Ryan",
+   "s": "Sam"
+  },
+  {
+   "text": "The park Laura and Rachel went to had a book. Peter gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Laura",
+   "s": "Rachel"
+  },
+  {
+   "text": "The house Helen and Jason went to had a letter. Ben gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Helen",
+   "s": "Jason"
+  },
+  {
+   "text": "The station Kate and Thomas went to had a ring. Chris gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Kate",
+   "s": "Thomas"
+  },
+  {
+   "text": "The hospital Grace and Laura went to had a gift. Brian gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Grace",
+   "s": "Laura"
+  },
+  {
+   "text": "The market Bob and Tom went to had a snack. Jason gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Tom"
+  },
+  {
+   "text": "The hospital Dan and Tom went to had a computer. Arthur gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Dan",
+   "s": "Tom"
+  },
+  {
+   "text": "The restaurant Bob and Michael went to had a bag. Amy gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Bob",
+   "s": "Michael"
+  },
+  {
+   "text": "The hospital Alice and Daniel went to had a ring. Bob gave it to",
+   "template": 13,
+   "order": "ABC",
+   "io": "Alice",
+   "s": "Daniel"
+  },
+  {
+   "text": "Friends Kate and Ben found a snack at the park. Jennifer gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Kate",
+   "s": "Ben"
+  },
+  {
+   "text": "Friends Adam and Thomas found a letter at the station. Rose gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Adam",
+   "s": "Thomas"
+  },
+  {
+   "text": "Friends Jason and Eric found a cake at the restaurant. Bob gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Jason",
+   "s": "Eric"
+  },
+  {
+   "text": "Friends Eric and Daniel found a drink at the store. Grace gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Eric",
+   "s": "Daniel"
+  },
+  {
+   "text": "Friends Adam and Laura found a drink at the restaurant. Henry gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Adam",
+   "s": "Laura"
+  },
+  {
+   "text": "Friends Jessica and Eric found a computer at the station. Peter gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Eric"
+  },
+  {
+   "text": "Friends Peter and Eric found a cake at the garden. Lisa gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Peter",
+   "s": "Eric"
+  },
+  {
+   "text": "Friends Andrew and David found a bag at the park. Alice gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "David"
+  },
+  {
+   "text": "Friends Ryan and Amy found a snack at the library. Michael gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Ryan",
+   "s": "Amy"
+  },
+  {
+   "text": "Friends Kate and Grace found a ring at the hospital. George gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Kate",
+   "s": "Grace"
+  },
+  {
+   "text": "Friends Anna and Brian found a ball at the hospital. Victoria gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Anna",
+   "s": "Brian"
+  },
+  {
+   "text": "Friends Arthur and Victoria found a gift at the office. Jane gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Arthur",
+   "s": "Victoria"
+  },
+  {
+   "text": "Friends Martin and Michael found a bag at the hospital. Tom gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Martin",
+   "s": "Michael"
+  },
+  {
+   "text": "Friends Sam and Daniel found a drink at the school. Matt gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Sam",
+   "s": "Daniel"
+  },
+  {
+   "text": "Friends Chris and Adam found a letter at the store. Bob gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Chris",
+   "s": "Adam"
+  },
+  {
+   "text": "Friends Jennifer and Grace found a snack at the beach. Lisa gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Jennifer",
+   "s": "Grace"
+  },
+  {
+   "text": "Friends Kevin and Nicole found a necklace at the restaurant. Jack gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Kevin",
+   "s": "Nicole"
+  },
+  {
+   "text": "Friends Peter and Brian found a ball at the house. Rose gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Peter",
+   "s": "Brian"
+  },
+  {
+   "text": "Friends Tim and Nicole found a gift at the market. Sam gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Tim",
+   "s": "Nicole"
+  },
+  {
+   "text": "Friends Henry and David found a drink at the station. Laura gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Henry",
+   "s": "David"
+  },
+  {
+   "text": "Friends Andrew and Grace found a drink at the house. Patrick gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Andrew",
+   "s": "Grace"
+  },
+  {
+   "text": "Friends Brian and Tom found a drink at the garden. Steven gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Brian",
+   "s": "Tom"
+  },
+  {
+   "text": "Friends Kate and Daniel found a ball at the restaurant. Jane gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Kate",
+   "s": "Daniel"
+  },
+  {
+   "text": "Friends Ryan and Nicole found a bone at the garden. Kate gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Ryan",
+   "s": "Nicole"
+  },
+  {
+   "text": "Friends Frank and Arthur found a bone at the library. Mary gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Frank",
+   "s": "Arthur"
+  },
+  {
+   "text": "Friends Mark and Amy found a ring at the station. Chris gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Mark",
+   "s": "Amy"
+  },
+  {
+   "text": "Friends Rachel and Susan found a bone at the beach. Tim gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "Susan"
+  },
+  {
+   "text": "Friends Rachel and Victoria found a letter at the house. Susan gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "Victoria"
+  },
+  {
+   "text": "Friends Rachel and Tom found a snack at the hospital. Daniel gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Rachel",
+   "s": "Tom"
+  },
+  {
+   "text": "Friends Jessica and Bob found a basketball at the hospital. Emma gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Jessica",
+   "s": "Bob"
+  },
+  {
+   "text": "Friends Lisa and Chris found a cake at the restaurant. Nicole gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Lisa",
+   "s": "Chris"
+  },
+  {
+   "text": "Friends Sarah and Emma found a bag at the house. Jessica gave it to",
+   "template": 14,
+   "order": "ABC",
+   "io": "Sarah",
+   "s": "Emma"
+  }
+ ]
+}
