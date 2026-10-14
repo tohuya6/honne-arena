@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "fixture-liar",
+    "title": "Fixture liar",
+    "kind": "predictions",
+    "track": "lie-detection",
+    "tier": "compete",
+    "config": {"labels_file": "private/fixture-labels.json", "metric": "auroc"}
+  },
+  {
+    "slug": "fixture-broken",
+    "title": "Broken on purpose",
+    "kind": "no-such-kind",
+    "track": "ctf"
+  }
+]
