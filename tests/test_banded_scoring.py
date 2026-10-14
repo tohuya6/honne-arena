@@ -234,18 +234,3 @@ def test_both_scores_come_from_one_batched_read():
                          per_layer=per2, aggregate=scoring.PER_LAYER_MIN)
     assert len(calls) == 1, f"both scores must share ONE forward, got {len(calls)}"
 
-
-def test_config_band_parsing_and_read_union():
-    """read_layers() is what one forward pass must fetch; it is the UNION of both bands,
-    which is why the informational second score costs no extra NDIF call."""
-    from app.config import Settings
-
-    s = Settings(score1_layers="19,23,27,31", score2_layers="15,23,31,39")
-    assert s.band1() == [19, 23, 27, 31]
-    assert s.band2() == [15, 23, 31, 39]
-    assert s.banded() is True
-    assert s.read_layers() == [15, 19, 23, 27, 31, 39]   # 6 layers, one call
-
-    off = Settings(score1_layers="", score2_layers="")
-    assert off.banded() is False, "empty band must keep the Season 2 single-layer path"
-    assert off.read_layers() == []

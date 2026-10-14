@@ -1,270 +1,36 @@
-"""FastAPI app: JSON API + static frontend.
+"""HTTP layer. Thin: parse, call app.submission / app.standings, map errors to codes.
 
-Endpoints: /health, /season, /leaderboard, /submit (PROJECT_SPEC.md §7).
-No model is loaded at startup — the scorer (NDIF via NNsight) is built lazily on
-the first /submit, so /health, /season, and /leaderboard stay light and always up.
+Run with the factory so importing this module has no side effects:
+    uvicorn app.main:create_app --factory --port 7860
 """
 
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from app import captcha, generation, scoring, userauth
-from app.config import settings
-from app.errors import DuplicateError, RateLimited, SubmitError, ValidationError
+from app import captcha, challenges, standings, submission
+from app.config import Settings, settings
+from app.db import Database
+from app.errors import Forbidden, NotFound, SubmitError, ValidationError
 from app.queue import ScoringGate
-from app.ratelimit import check_generation_limits, hash_ip
-from app.submission import process_submission, validate_handle
+from app.ratelimit import hash_ip
 
-# docs_url/redoc_url/openapi_url are None on purpose. FastAPI serves Swagger UI at
-# /docs, ReDoc at /redoc and the schema at /openapi.json by default, and all three
-# were live and public — /openapi.json enumerated all 12 endpoints including /submit
-# and /generate. Nothing needs them: the API contract lives in PROJECT_SPEC.md §7,
-# and the board's own frontend is the only client.
-app = FastAPI(title="Steering Arena", version="0.3.0",
-              docs_url=None, redoc_url=None, openapi_url=None)
-
-_log = logging.getLogger("steering_arena")
-if settings.allowed_origin == "*":
-    _log.warning("ALLOWED_ORIGIN is '*' — lock it to the Space origin (audit M1). The "
-                 "default is the Space origin, so something is overriding it.")
-# /submit has no CAPTCHA, deliberately: a Turnstile gate was considered and declined,
-# because the global daily ceiling already bounds the worst case and a challenge costs
-# more real players than it stops bots. Audit H1 named CAPTCHA as the mitigation; the
-# ceiling is the mitigation actually chosen. Logged rather than silent so the tradeoff
-# is visible at boot, and at info because it is a decision, not a defect.
-if not settings.turnstile_secret:
-    _log.info("no CAPTCHA on /submit (by decision) — NDIF exposure is bounded by "
-              "global_per_day=%d and generate_global_per_day=%d",
-              settings.global_per_day, settings.generate_global_per_day)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"] if settings.allowed_origin == "*" else [settings.allowed_origin],
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
-
-
-@app.middleware("http")
-async def no_cache(request, call_next):
-    """Revalidate the app shell each load so users get new JS/HTML without a hard refresh."""
-    response = await call_next(request)
-    response.headers.setdefault("Cache-Control", "no-cache")
-    return response
-
-_gate = ScoringGate(settings.score_concurrency, call_timeout_s=settings.ndif_timeout_s)
-
-
-# ── Lazy singletons ──────────────────────────────────────────
-
-_db = None
-_scorer = None  # (season_id, count_tokens, score_fn) — cached PER SEASON, so flipping
-                # `active` in the DB swaps the scorer with no redeploy and no restart.
-
-
-def get_db():
-    """Supabase when configured, else an in-memory store seeded with a stub season."""
-    global _db
-    if _db is not None:
-        return _db
-
-    backend = os.getenv("DB_BACKEND", "auto").lower()
-    use_supabase = backend == "supabase" or (
-        backend == "auto" and settings.supabase_url and settings.supabase_service_key
-    )
-    if use_supabase:
-        from app.db import SupabaseDatabase
-
-        _db = SupabaseDatabase(settings.supabase_url, settings.supabase_service_key)
-    else:
-        from app.db import InMemoryDatabase
-
-        _db = InMemoryDatabase()
-        _db.add_season(
-            id=settings.season_id or 1,
-            name=settings.season_name,
-            model_id=settings.model_id,
-            layer=settings.layer,
-            d_version=settings.d_version,
-            scoring_mode=settings.scoring_mode,
-            token_budget=settings.token_budget,
-            active=True,
-        )
-    return _db
-
-
-def _season_bands(season):
-    """(band1, band2, d1_path, d2_path, probe_set) for the ACTIVE SEASON ROW.
-
-    The scored function follows the DATABASE, not the environment. Env vars are only a
-    local override for scripts; on the Space nothing needs setting to switch seasons.
-
-    This exists because the alternative has a corruption window in both directions. If the
-    band lived in env, then between deploying the new vars and flipping `active` the app
-    would score Season 3's metric and write those rows under Season 2's id -- silently
-    poisoning the LIVE board -- and doing it in the other order poisons the new one. Read
-    the band off the same row that decides where rows are written and neither can happen.
-    """
-    layers = str(season.get("layers") or "").strip() if season else ""
-    if not layers:
-        return [], [], None, None, None
-    band1 = [int(x) for x in layers.split(",") if x.strip()]
-    # Season 3 ships two files per d_version, distinguished by `role`.
-    ver = season["d_version"]
-    d1 = settings.score1_d_file or f"data/directions/d_{ver}_score1.npz"
-    d2 = settings.score2_d_file or f"data/directions/d_{ver}_score2.npz"
-    _, _, band2, _ = scoring.load_banded_direction(d2)
-    probe = f"data/probes/{season['probe_set_id']}.json" if season.get("probe_set_id") else None
-    return band1, band2, d1, d2, probe
-
-
-def get_scorer():
-    """Build the NDIF/local scorer + tokenizer for the ACTIVE season.
-
-    Cached per season id, so flipping `active` in the database swaps the scorer on the
-    next submission with no redeploy and no restart. Raises ScoringUnavailable on any
-    failure (missing deps, NDIF down, d/model dim mismatch).
-    """
-    global _scorer
-
-    from app.errors import ScoringUnavailable
-
-    try:
-        season = get_db().get_active_season()
-    except Exception:  # noqa: BLE001 — fall back to env-configured behaviour
-        season = None
-    season_id = (season or {}).get("id")
-    if _scorer is not None and _scorer[0] == season_id:
-        return _scorer[1], _scorer[2]
-
-    try:
-        from app.ndif_client import ResidualReader
-
-        band1, band2, d1_file, d2_file, probe_file = _season_bands(season)
-        banded = bool(band1)
-        d, meta = scoring.load_direction(settings.d_file)
-        probes = scoring.load_probes(probe_file or settings.probe_set)
-        reader = ResidualReader.from_settings(settings)
-
-        hidden = reader.hidden_size
-        if hidden is not None and hidden != d.shape[0]:
-            raise ScoringUnavailable(
-                f"Direction dim {d.shape[0]} != model hidden {hidden} — "
-                f"regenerate the placeholder at --dim {hidden} or ship a matching d."
-            )
-
-        def count_tokens(text: str) -> int:
-            return len(reader.tokenizer(text, add_special_tokens=False)["input_ids"])
-
-        if banded:
-            # ── Season 3: one multi-layer forward, two scores ──
-            # score1 RANKS (banded mean over a shared d_bar); score2 is informational
-            # (per-layer min over a wider band). read_layers() is the UNION of the two
-            # bands, so BOTH come out of a single remote call — score2 costs no quota.
-            d1, per1, f_band1, meta1 = scoring.load_banded_direction(d1_file)
-            d2, per2, f_band2, meta2 = scoring.load_banded_direction(d2_file)
-            # The season row and the d file must agree, or the board records numbers under
-            # a config that did not produce them. Fail CLOSED (503) rather than score wrong:
-            # a wrong score is indistinguishable from a right one after the fact.
-            if f_band1 != band1:
-                raise ScoringUnavailable(
-                    f"Band mismatch: season row says {band1} but {d1_file} says {f_band1}. "
-                    f"Run scripts/check_season_matches_d.py."
-                )
-            if meta1.get("d_version") != season["d_version"]:
-                raise ScoringUnavailable(
-                    f"d_version mismatch: season row says {season['d_version']!r} but "
-                    f"{d1_file} says {meta1.get('d_version')!r}."
-                )
-            band2 = f_band2
-            read = sorted(set(band1) | set(band2))
-            _pos = {L: i for i, L in enumerate(read)}
-
-            def _make_reader():
-                """One remote call per distinct text batch, sliced per band.
-
-                banded_shift asks for its OWN band, so a naive passthrough would issue a
-                separate forward for score1 and score2 — two calls where one suffices, and
-                the union-band design exists precisely to avoid that. Both scores request
-                the SAME texts, so caching the last batch collapses them to one call.
-                Cache is per-scorer and holds one entry: submissions are scored one at a
-                time behind the queue, so there is nothing to grow.
-                """
-                last = {"texts": None, "mat": None}
-
-                def fn(texts, layers):
-                    key = tuple(texts)
-                    if last["texts"] != key:
-                        last["mat"] = reader.batch_last_resids_layers(list(texts), read)
-                        last["texts"] = key
-                    return last["mat"][[_pos[L] for L in layers]]
-                return fn
-
-            batch_layers_fn = _make_reader()
-
-            base1 = scoring.banded_baseline(probes, batch_layers_fn, band1)
-            base2 = scoring.banded_baseline(probes, batch_layers_fn, band2)
-
-            def score_fn(seq: str) -> scoring.ScoreResult:
-                # Specificity survives the move to a band: score1 uses ONE direction
-                # (d_bar) over several layers, and the closed form is the same functional
-                # over L*P rows instead of P. It is the anti-token-soup measure, so the
-                # season built to resist Goodharting is the last one that should lose it.
-                # It is NOT defined for score2 (a min is not linear in the direction).
-                s1, z = scoring.banded_shift_and_specificity(
-                    seq, probes, batch_layers_fn, band1, base1, d1,
-                    eps=settings.specificity_eps)
-                s2 = scoring.banded_shift(seq, probes, batch_layers_fn, band2, base2, d2,
-                                          per_layer=per2, aggregate=scoring.PER_LAYER_MIN)
-                return scoring.ScoreResult(
-                    s1, s1, z if settings.specificity_enabled else None, s2)
-        elif settings.scoring_mode in (scoring.STEERING_SHIFT, scoring.SPECIFICITY_Z):
-            # One batched forward per submission; unit-normalized probe baselines
-            # precomputed once. Raw shift AND the specificity z come from the same
-            # forward (the z is closed-form — pure numpy on the same matrices).
-            def batch_fn(texts):
-                return reader.batch_last_resids(texts, settings.layer)
-
-            base_units = scoring.baseline_unit_rows(probes, batch_fn)
-
-            def score_fn(seq: str) -> scoring.ScoreResult:
-                shift, z = scoring.shift_and_specificity(
-                    seq, probes, batch_fn, base_units, d, eps=settings.specificity_eps,
-                )
-                ranked = z if settings.scoring_mode == scoring.SPECIFICITY_Z else shift
-                return scoring.ScoreResult(ranked, shift, z if settings.specificity_enabled else None)
-        else:
-            def score_fn(seq: str) -> float:
-                return scoring.score(
-                    seq, probes, lambda t: reader.last_token_resid(t, settings.layer),
-                    d, mode=settings.scoring_mode,
-                )
-
-        _scorer = (season_id, count_tokens, score_fn)
-    except ScoringUnavailable:
-        raise
-    except Exception as exc:  # noqa: BLE001 — log detail server-side, return a generic message
-        _log.exception("scorer build failed")
-        raise ScoringUnavailable("Scoring is temporarily unavailable — please try again shortly.") from exc
-    return _scorer[1], _scorer[2]
+_log = logging.getLogger("arena")
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 
 def _client_ip(request: Request) -> str:
-    """Resolve the client IP for rate limiting, resistant to X-Forwarded-For spoofing.
+    """Client IP for rate limiting, resistant to X-Forwarded-For spoofing.
 
-    A client can prepend fake entries to XFF, but cannot control the entry the
-    outermost *trusted* proxy inserts. With `trusted_proxy_hops = N`, that entry
-    is the Nth from the right. Falls back to the direct peer if XFF is absent or
-    too short.
+    A client can prepend fake XFF entries but cannot control the one the outermost
+    trusted proxy appends. With `trusted_proxy_hops = N` that is the Nth from the right.
     """
     hops = settings.trusted_proxy_hops
     xff = request.headers.get("x-forwarded-for")
@@ -275,413 +41,171 @@ def _client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-# ── Routes ───────────────────────────────────────────────────
-
 class SubmitIn(BaseModel):
     handle: str
-    sequence: str
-    turnstile_token: str = ""  # Cloudflare Turnstile token (when CAPTCHA is enabled)
-    # Research-use consent. Defaults False so programmatic/omitting callers (who never
-    # saw the notice) are NOT silently consented; the frontend sends an explicit value
-    # (the opt-out checkbox is ticked by default in the UI).
-    consent: bool = False
-
-
-_tokenizer = None
-
-
-def _get_tokenizer():
-    """Lazy, cached HF tokenizer for the season model (no NDIF / no model weights —
-    just the tokenizer, so the live token counter matches server enforcement)."""
-    global _tokenizer
-    if _tokenizer is None:
-        from transformers import AutoTokenizer
-
-        _tokenizer = AutoTokenizer.from_pretrained(settings.model_id)
-    return _tokenizer
-
-
-@app.get("/tokenize")
-def tokenize(text: str = "") -> dict:
-    """Real token count for the live counter (same tokenizer the budget is enforced with)."""
-    try:
-        n = len(_get_tokenizer()(text, add_special_tokens=False)["input_ids"]) if text else 0
-    except Exception:  # noqa: BLE001
-        return {"tokens": None}
-    return {"tokens": n, "budget": settings.token_budget}
-
-
-@app.get("/seed-pairs.jsonl")
-def seed_pairs():
-    """Download the contrastive seed pairs used to extract the direction (reproducibility)."""
-    p = Path(__file__).resolve().parent.parent / "data" / "seed_pairs.jsonl"
-    return FileResponse(p, media_type="application/x-ndjson", filename="steering_arena_seed_pairs.jsonl")
-
-
-@app.get("/health")
-def health() -> dict:
-    """Liveness, plus which season is actually live.
-
-    Reads the season from the DATABASE, with settings only as a fallback. It used to
-    report settings.season_id, which has never matched a real row — the env says 2 while
-    the DB ids are 1/3/4/5 — so /health has been advertising a season that does not exist
-    and anything scripting against it was reading a fiction. Taking it from the same row
-    that decides scoring also means a season flip needs no Space redeploy to stay honest.
-    """
-    s = None
-    try:
-        s = get_db().get_active_season()
-    except Exception:  # noqa: BLE001 — health must not 500 on a DB hiccup
-        s = None
-    return {
-        "status": "ok",
-        "season": s["id"] if s else settings.season_id,
-        "season_name": s["name"] if s else settings.season_name,
-        "model": s["model_id"] if s else settings.model_id,
-    }
-
-
-@app.get("/season")
-def season() -> dict:
-    s = None
-    try:
-        s = get_db().get_active_season()
-    except Exception:  # noqa: BLE001 — DB hiccup shouldn't 500 a read; fall back to config
-        s = None
-    if s:
-        return {
-            "id": s["id"], "name": s["name"], "model_id": s["model_id"],
-            # `layer` is the single representative layer and stays for back-compat;
-            # `layers` is the authoritative band on a multi-layer season and is null on
-            # Seasons 1/2, which really were single-layer. The banner renders whichever
-            # is present.
-            "layer": s["layer"], "layers": s.get("layers"),
-            "d_version": s["d_version"],
-            "token_budget": s.get("token_budget", settings.token_budget),
-            "scoring_mode": s.get("scoring_mode", settings.scoring_mode),
-            "captcha_sitekey": settings.turnstile_sitekey,
-        }
-    return {
-        "id": settings.season_id, "name": settings.season_name, "model_id": settings.model_id,
-        "layer": settings.layer, "layers": settings.score1_layers or None,
-        "d_version": settings.d_version,
-        "token_budget": settings.token_budget, "scoring_mode": settings.scoring_mode,
-        "captcha_sitekey": settings.turnstile_sitekey,
-    }
-
-
-@app.get("/seasons")
-def seasons() -> dict:
-    """Every season, newest first — what the season switcher lists.
-
-    /season returns only the ACTIVE one, so before this there was no way for a client to
-    discover that Season 2 exists or to learn what config an archived board was scored
-    under. /leaderboard already accepted ?season=<id>; this is the missing half.
-
-    Read-only and public: a season row is already fully described on the rules pages.
-    Must stay registered ABOVE the StaticFiles mount at "/", which is a catch-all.
-    """
-    try:
-        rows = get_db().client.table("seasons").select("*").order("id", desc=True).execute().data
-    except Exception:  # noqa: BLE001 — a read shouldn't 500; the switcher just won't populate
-        logging.getLogger("steering_arena").exception("seasons read failed")
-        return {"seasons": []}
-    return {"seasons": [
-        {"id": s["id"], "name": s["name"], "model_id": s["model_id"],
-         "layer": s["layer"], "layers": s.get("layers"), "d_version": s["d_version"],
-         "scoring_mode": s.get("scoring_mode"), "token_budget": s.get("token_budget"),
-         "active": bool(s.get("active"))}
-        for s in rows
-    ]}
-
-
-@app.get("/leaderboard")
-def leaderboard(season: int | None = None, limit: int = 50, board: str = "pro") -> dict:
-    limit = max(1, min(limit, settings.leaderboard_max))
-    ascending = board.lower() == "anti"  # anti-human board ranks by most-negative score
-    try:
-        db = get_db()
-        season_id = season if season is not None else (db.get_active_season() or {}).get("id")
-        rows = db.leaderboard(season_id, limit, ascending=ascending) if season_id is not None else []
-    except Exception:  # noqa: BLE001 — a read shouldn't 500; show an empty board instead
-        logging.getLogger("steering_arena").exception("leaderboard read failed")
-        return {"season": season, "board": board, "entries": []}
-    entries = [
-        {
-            "rank": i + 1,
-            "handle": r.get("user_handle"),
-            "sequence": r.get("sequence_text"),
-            "score": r.get("score"),
-            # null on Season 1/2 rows, which predate the banded scorer — the UI must
-            # render that as "not scored", never as 0.
-            "score_alt": r.get("score_alt"),
-            "specificity": r.get("specificity"),
-            "at": r.get("created_at"),
-        }
-        for i, r in enumerate(rows)
-    ]
-    return {"season": season_id, "board": board, "entries": entries}
-
-
-@app.post("/submit")
-def submit(body: SubmitIn, request: Request):
-    db = get_db()
-    ip = _client_ip(request)
-    # CAPTCHA gate first — guards the NDIF quota against bot floods (audit H1).
-    if not captcha.verify(body.turnstile_token, settings.turnstile_secret, ip):
-        return JSONResponse(status_code=400, content={"error": "CAPTCHA check failed — please retry."})
-    ip_hash = hash_ip(ip, settings.ip_hash_salt)
-    try:
-        count_tokens, score_fn = get_scorer()
-        result = process_submission(
-            handle=body.handle,
-            sequence=body.sequence,
-            ip_hash=ip_hash,
-            db=db,
-            count_tokens=count_tokens,
-            score_fn=lambda s: _gate.run(score_fn, s),
-            settings=settings,
-            research_consent=bool(body.consent),
-        )
-        return result
-    except DuplicateError as e:
-        return JSONResponse(
-            status_code=e.http_status,
-            content={"error": e.message, "score": e.existing.get("score"), "rank": e.rank},
-        )
-    except SubmitError as e:
-        return JSONResponse(status_code=e.http_status, content={"error": e.message})
-    except Exception:  # noqa: BLE001 — e.g. NDIF deployment down mid-score; a raw 500
-        # would surface as a misleading "Network error" in the frontend.
-        _log.exception("scoring failed mid-submission (model backend?)")
-        return JSONResponse(
-            status_code=503,
-            content={"error": "Scoring backend is temporarily unavailable (the model "
-                              "deployment may be restarting). Your sequence was NOT "
-                              "used up — please try again in a few minutes."},
-        )
-
-
-# ── Live prefix demo (/generate) ─────────────────────────────────────────────
-# Public text generation on the maintainer's NDIF key. Every guard here is
-# load-bearing (spec §2 constraint 6): CAPTCHA, durable per-IP + global daily caps
-# in generation_events, the same concurrency gate as scoring, an enum of frozen
-# prefixes (never client text), a length-capped prompt, and a bounded output.
-
-class GenerateIn(BaseModel):
-    prompt: str = ""
-    arm: str = "base"
-    handle: str = ""       # shown publicly on the feed; the email never is
+    challenge: str
+    answer: str
     turnstile_token: str = ""
-    consent: bool = True   # gates the PUBLISHED dataset only; the row is kept either way
 
 
-_generator = None
+class TeamIn(BaseModel):
+    handle: str
+    name: str
 
 
-def get_generator():
-    """ResidualReader for generation, built once, lazily."""
-    global _generator
-    if _generator is None:
-        from app.ndif_client import ResidualReader
-        _generator = ResidualReader.from_settings(settings)
-    return _generator
+class JoinIn(BaseModel):
+    handle: str
+    join_code: str
 
 
-@app.get("/generate/arms")
-def generate_arms() -> dict:
-    """The prefixes the demo will accept, for the UI to render."""
-    return {"enabled": settings.generation_enabled,
-            "max_new_tokens": settings.generate_max_new,
-            "prompt_max_chars": settings.generate_prompt_max_chars,
-            "model_id": settings.model_id,
-            "captcha_sitekey": settings.turnstile_sitekey,
-            "logging": settings.generation_logging,
-            "consent_version": settings.consent_version,
-            "arms": generation.public_arms()}
+class SeasonIn(BaseModel):
+    name: str
+    active: bool = True
 
 
-@app.get("/generations.jsonl")
-def generations_dataset():
-    """The recorded generations behind /behavior.html — 50 prompts x 5 arms."""
-    p = Path(__file__).resolve().parent.parent / "data" / "generations" / "steering_arena_generations.jsonl"
-    if not p.exists():
-        return JSONResponse(status_code=404, content={"error": "dataset not built yet"})
-    return FileResponse(p, media_type="application/x-ndjson",
-                        filename="steering_arena_generations.jsonl")
+class ChallengeIn(BaseModel):
+    slug: str = Field(pattern=r"^[a-z0-9][a-z0-9\-]{0,63}$")
+    title: str
+    kind: str
+    track: str = ""
+    tier: str = Field(default="compete", pattern=r"^(learn|compete)$")
+    description: str = ""
+    config: dict = {}
+    # Plain-text flag, for kind "flag" only. Hashed here and never stored.
+    flag: str | None = None
+    points_initial: int = 500
+    points_min: int = 100
+    points_decay: int = 10
+    hidden: bool = False
 
 
-@app.post("/generate")
-def generate_text(body: GenerateIn, request: Request):
-    if not settings.generation_enabled:
-        return JSONResponse(status_code=503, content={"error": "The generation demo is off right now."})
-    ip = _client_ip(request)
-    if not captcha.verify(body.turnstile_token, settings.turnstile_secret, ip):
-        return JSONResponse(status_code=400, content={"error": "CAPTCHA check failed — please retry."})
+def create_app(cfg: Settings | None = None, db: Database | None = None,
+               gate: ScoringGate | None = None) -> FastAPI:
+    cfg = cfg or settings
+    if db is None:
+        db = Database(cfg.db_path)
+    db.migrate()
+    gate = gate or ScoringGate(cfg.ndif_concurrency, call_timeout_s=cfg.ndif_timeout_s)
 
-    # Sign-in is OPTIONAL (settings.generate_require_auth). At low traffic an account is
-    # a bigger barrier to the people you want than to the abuse you don't. A signed-in
-    # request still gets the stronger rate-limit key (the account survives a network
-    # change; an IP does not), so signing in is rewarded rather than required.
-    ip_hash = hash_ip(ip, settings.ip_hash_salt)
-    token = userauth.bearer(request)
-    u_hash, limit_key, limit_by = None, ip_hash, "ip_hash"
-    if token or settings.generate_require_auth:
+    app = FastAPI(title="Arena", docs_url="/api/docs", redoc_url=None)
+    app.state.db, app.state.settings, app.state.gate = db, cfg, gate
+
+    if cfg.allowed_origin:
+        app.add_middleware(CORSMiddleware, allow_origins=[cfg.allowed_origin],
+                           allow_methods=["GET", "POST"], allow_headers=["*"])
+
+    @app.exception_handler(SubmitError)
+    def _submit_error(_request, exc: SubmitError):
+        body = {"error": exc.message}
+        if getattr(exc, "existing", None):
+            body["existing"] = exc.existing
+        return JSONResponse(body, status_code=exc.http_status)
+
+    def require_admin(token: str | None) -> None:
+        if not cfg.admin_token or token != cfg.admin_token:
+            raise Forbidden("Admin token required.")
+
+    # ── public ──
+    @app.get("/health")
+    def health() -> dict:
+        season = db.get_active_season()
+        return {"ok": True, "season": season["name"] if season else None,
+                "model_scoring": cfg.ndif_enabled}
+
+    @app.get("/api/season")
+    def season() -> dict:
+        s = submission.active_season(db)
+        return {"id": s["id"], "name": s["name"],
+                "captcha_sitekey": cfg.turnstile_sitekey or None}
+
+    @app.get("/api/challenges")
+    def list_challenges(track: str = "", tier: str = "") -> dict:
+        s = submission.active_season(db)
+        rows = db.list_challenges(s["id"])
+        if track:
+            rows = [r for r in rows if r["track"] == track]
+        if tier:
+            rows = [r for r in rows if r["tier"] == tier]
+        return {"challenges": [standings.challenge_view(db, r, limit=0) for r in rows]}
+
+    @app.get("/api/challenges/{slug}")
+    def get_challenge(slug: str, limit: int = 50) -> dict:
+        s = submission.active_season(db)
+        row = db.get_challenge(s["id"], slug)
+        if not row or row["hidden"]:
+            raise NotFound("No such challenge.")
+        return standings.challenge_view(db, row, limit=min(limit, cfg.leaderboard_max))
+
+    @app.get("/api/leaderboard")
+    def leaderboard() -> dict:
+        s = submission.active_season(db)
+        return {"season": s["name"], "teams": standings.season_board(db, s["id"])}
+
+    @app.post("/api/teams")
+    def create_team(body: TeamIn) -> dict:
+        team = submission.create_team(db, handle=body.handle, name=body.name)
+        # The join code goes only to the creator, who shares it with teammates.
+        return {"team": team["name"], "join_code": team["join_code"]}
+
+    @app.post("/api/teams/join")
+    def join_team(body: JoinIn) -> dict:
+        team = submission.join_team(db, handle=body.handle, join_code=body.join_code)
+        return {"team": team["name"], "members": db.team_members(team["id"])}
+
+    @app.post("/api/submit")
+    def submit(body: SubmitIn, request: Request) -> dict:
+        ip = _client_ip(request)
+        if not captcha.verify(body.turnstile_token, cfg.turnstile_secret, ip):
+            raise ValidationError("CAPTCHA check failed, please retry.")
+        return submission.process_submission(
+            handle=body.handle, slug=body.challenge, answer=body.answer,
+            ip_hash=hash_ip(ip, cfg.ip_hash_salt), db=db, settings=cfg,
+            run_remote=gate.run)
+
+    # ── admin ──
+    @app.post("/api/admin/seasons")
+    def admin_season(body: SeasonIn, x_admin_token: str | None = Header(default=None)) -> dict:
+        require_admin(x_admin_token)
+        return db.create_season(body.name, body.active)
+
+    @app.post("/api/admin/challenges")
+    def admin_challenge(body: ChallengeIn,
+                        x_admin_token: str | None = Header(default=None)) -> dict:
+        require_admin(x_admin_token)
+        s = submission.active_season(db)
+        if body.kind not in challenges.KINDS:
+            raise ValidationError(f"Unknown kind. Known: {sorted(challenges.KINDS)}")
+        config = dict(body.config)
+        if body.kind == "flag":
+            if not body.flag:
+                raise ValidationError("A flag challenge needs `flag`.")
+            config["flag_sha256"] = challenges.hash_flag(
+                body.flag, bool(config.get("case_sensitive", False)))
         try:
-            user = userauth.verify_token(token, settings)
-            u_hash = userauth.user_hash(user["id"], settings.ip_hash_salt)
-            limit_key, limit_by = u_hash, "user_hash"
-        except userauth.AuthError as e:
-            if settings.generate_require_auth:
-                return JSONResponse(status_code=401, content={"error": str(e)})
-            # token present but bad, and auth is not required: fall back to the IP key
-            _log.info("ignoring an invalid session on an open /generate: %s", e)
+            challenges.KINDS[body.kind]({"id": 0, "slug": body.slug, "title": body.title,
+                                         "kind": body.kind, "config": config})
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from None
+        if db.get_challenge(s["id"], body.slug):
+            raise ValidationError("That slug is taken this season.")
+        row = db.create_challenge(
+            s["id"], body.slug, body.title, body.kind, track=body.track, tier=body.tier,
+            description=body.description, config=config,
+            points_initial=body.points_initial, points_min=body.points_min,
+            points_decay=body.points_decay, hidden=body.hidden)
+        return {"id": row["id"], "slug": body.slug}
 
-    db = get_db()
+    @app.post("/api/admin/challenges/{slug}/hidden")
+    def admin_hide(slug: str, hidden: bool = True,
+                   x_admin_token: str | None = Header(default=None)) -> dict:
+        require_admin(x_admin_token)
+        s = submission.active_season(db)
+        row = db.get_challenge(s["id"], slug)
+        if not row:
+            raise NotFound("No such challenge.")
+        db.set_challenge_hidden(row["id"], hidden)
+        return {"slug": slug, "hidden": hidden}
 
-    # Validate the cheap things first: a bad arm or prompt must not cost a rate-limit
-    # slot, a DB round trip, or a place in the NDIF queue.
-    try:
-        prompt = generation.clean_prompt(body.prompt, settings.generate_prompt_max_chars)
-        if body.arm not in {a["arm"] for a in generation.public_arms()}:
-            raise generation.GenerationError("Unknown prefix.")
-        # Same handle rules as the leaderboard, so there is one policy, not two.
-        handle = validate_handle(body.handle) if (body.handle or "").strip() else "anonymous"
-    except generation.GenerationError as e:
-        return JSONResponse(status_code=400, content={"error": str(e)})
-    except ValidationError as e:
-        return JSONResponse(status_code=400, content={"error": e.message})
-
-    # Fail CLOSED if the durable counters are unreachable: without them there is no cap
-    # on how much of the maintainer's NDIF quota this endpoint can spend.
-    try:
-        check_generation_limits(db, limit_key, settings, by=limit_by)
-    except RateLimited as e:
-        return JSONResponse(status_code=429, content={"error": e.message})
-    except Exception:  # noqa: BLE001 — missing table, Supabase down, network
-        _log.exception("generation limit check failed — refusing to generate uncapped")
-        return JSONResponse(status_code=503, content={
-            "error": "The generation demo is unavailable right now. The recorded "
-                     "generations are still downloadable."})
-
-    try:
-        cont, cached = _gate.run(generation.generate, get_generator(), prompt,
-                                 body.arm, settings.generate_max_new)
-    except generation.GenerationError as e:
-        return JSONResponse(status_code=400, content={"error": str(e)})
-    except SubmitError as e:  # QueueFull / BackendTimeout / ScoringUnavailable from the gate
-        _log.warning("generation refused by the gate: %s: %s", type(e).__name__, e.message)
-        return JSONResponse(status_code=e.http_status, content={"error": e.message})
-    except Exception:  # noqa: BLE001 — NDIF error / deployment restarting
-        _log.exception("generation failed")
-        return JSONResponse(status_code=503, content={
-            "error": "The model backend returned an error — try again in a minute."})
-
-    # Durable counter, plus the text when logging is on (migration 0006). ip_hash stays
-    # salted and is never exported; research_consent gates publication, not storage.
-    try:
-        db.log_generation(
-            ip_hash, body.arm, hash_ip(prompt, settings.ip_hash_salt), cached,
-            user_hash=u_hash, handle=handle,
-            prompt=prompt if settings.generation_logging else None,
-            continuation=cont if settings.generation_logging else None,
-            research_consent=bool(body.consent),
-            consent_version=settings.consent_version if settings.generation_logging else None,
-        )
-    except Exception:  # noqa: BLE001 — never fail a served response on bookkeeping
-        _log.exception("generation_events insert failed")
-
-    return {"arm": body.arm, "prompt": prompt, "continuation": cont, "cached": cached,
-            "handle": handle, "model_id": settings.model_id,
-            "max_new_tokens": settings.generate_max_new}
-
-
-# ── The generation feed ──────────────────────────────────────────────────────
-# Reading is public; writing needs an account (see /generate). Both go through the
-# service key here, so generation_events stays RLS-on with no policies and only the
-# allow-listed columns below can ever leave the server.
-
-PUBLIC_FIELDS = ["created_at", "arm", "handle", "prompt", "continuation"]
-# Columns introduced by later migrations; dropped from a query if the schema predates them.
-OPTIONAL_COLUMNS = {"hidden", "handle"}
-def _feed(fields, *, limit, arm, consented=False, include_hidden=False):
-    """`consented` and `include_hidden` are only ever left at their defaults now that
-    the admin feed is gone. They stay because they are what makes the one remaining
-    caller's intent explicit: the public feed shows consented-or-not but never a
-    hidden row."""
-    db = get_db()
-    client = getattr(db, "client", None)
-    if client is None:
-        raise RuntimeError("no database configured")
-    def build(cols, with_hidden_filter):
-        q = client.table("generation_events").select(", ".join(cols)).not_.is_("prompt", "null")
-        if with_hidden_filter:
-            q = q.eq("hidden", False)
-        if arm:
-            q = q.eq("arm", arm)
-        if consented:
-            q = q.eq("research_consent", True)
-        return q.order("created_at", desc=True).limit(max(1, min(limit, 500)))
-
-    try:
-        rows = build(fields, not include_hidden).execute().data or []
-    except Exception:
-        # A migration adding these columns may not have run yet (0007 `hidden`,
-        # 0008 `handle`). Retry without them rather than serving an error: nothing can
-        # be hidden or attributed in a schema that has no such columns, so the
-        # unfiltered feed is the correct answer there, not merely a convenient one.
-        cols = [c for c in fields if c not in OPTIONAL_COLUMNS]
-        rows = build(cols, False).execute().data or []
-        fields = cols
-    # Allow-list on the way out as well: user_hash, ip_hash and prompt_hash never leave.
-    return [{k: r.get(k) for k in fields} for r in rows]
-
-
-@app.get("/generations/recent")
-def generations_recent(limit: int = 50, arm: str = ""):
-    """Public feed of what people have generated. No identities: the author of a
-    generation is never exposed, only the arm, the prompt and the model's answer."""
-    try:
-        rows = _feed(PUBLIC_FIELDS, limit=limit, arm=arm)
-    except Exception:  # noqa: BLE001
-        _log.exception("public feed query failed")
-        return JSONResponse(status_code=503, content={"error": "Could not read the feed."})
-    return {"count": len(rows), "rows": rows}
-
-
-@app.get("/auth/config")
-def auth_config() -> dict:
-    """What the browser sign-in flow needs. Deliberately unauthenticated.
-
-    A browser cannot start a Supabase session without the publishable key, so this
-    key is meant to be shipped to clients — `sb_publishable_*` is Supabase's own
-    name for exactly that. The SECRET key is never served: app/db.py builds the
-    server client from `settings.supabase_service_key`.
-
-    What keeps the publishable key harmless is row-level security, not secrecy.
-    `seasons`, `submissions` and `generation_events` all have RLS enabled with no
-    policies, so an anonymous caller reads `[]` and an insert fails with
-    `42501 new row violates row-level security policy`. Both probed against the
-    live project on 2026-09-07. **If you add a policy, re-run those probes.** Note
-    that a policy-denied read returns 200 with `[]` — PostgREST reserves 403 for
-    table-grant denial — so a status-code check cannot tell locked-down from wide
-    open. Read the body.
-
-    This lived at `/admin/config` until 2026-09-07. The payload was fine; the path
-    was not. A deliberately-public endpoint sitting under `/admin/*` between two
-    authenticated siblings reads as a leak to anyone who opens it, and it did. The
-    old path is gone rather than aliased, because keeping it would preserve the
-    thing that was wrong with it. `auth.js` is versioned `?v=3` so no browser
-    holding a cached copy keeps asking for the old one.
-
-    It no longer reports whether admin is configured. Nothing public needs to know.
-    """
-    return {"enabled": bool(settings.browser_key()),
-            "supabase_url": settings.supabase_url,
-            "anon_key": settings.browser_key()}
-
-
-# Serve the static frontend if present (Phase 3 fills web/). Mounted last.
-_web_dir = Path(__file__).resolve().parent.parent / "web"
-if _web_dir.is_dir():
-    app.mount("/", StaticFiles(directory=str(_web_dir), html=True), name="web")
+    if WEB_DIR.is_dir():
+        app.mount("/", StaticFiles(directory=WEB_DIR, html=True), name="web")
+    return app

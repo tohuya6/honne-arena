@@ -1,213 +1,199 @@
-"""Data access. Two implementations behind one duck-typed interface:
+"""Data access over SQLite.
 
-- `SupabaseDatabase` — production, via PostgREST (supabase-py).
-- `InMemoryDatabase` — tests / local boot without Supabase.
+One small file database is enough for a club (tens of players, a few hundred
+submissions a week), needs no hosted service, and `:memory:` makes tests self-contained.
+Methods stay narrow and query-shaped so a Postgres backend could slot in later.
 
-Methods kept narrow and query-shaped so both backends stay simple.
+FastAPI runs sync endpoints in a threadpool, so one connection is shared behind a lock.
 """
 
 from __future__ import annotations
 
+import json
+import secrets
+import sqlite3
+import threading
 from datetime import datetime, timezone
+from pathlib import Path
+
+SCHEMA = Path(__file__).resolve().parent.parent / "db" / "schema.sql"
 
 
-def _now() -> datetime:
-    return datetime.now(timezone.utc)
+def now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
-# ── In-memory (tests / no-Supabase local dev) ────────────────
+class Database:
+    def __init__(self, path: str = ":memory:"):
+        if path != ":memory:":
+            Path(path).parent.mkdir(parents=True, exist_ok=True)
+        self._conn = sqlite3.connect(path, check_same_thread=False, isolation_level=None)
+        self._conn.row_factory = sqlite3.Row
+        self._conn.execute("pragma foreign_keys = on")
+        self._lock = threading.Lock()
 
-class InMemoryDatabase:
-    def __init__(self):
-        self.seasons: list[dict] = []
-        self.submissions: list[dict] = []
-        self.generations: list[dict] = []
-        self._sub_id = 0
+    def migrate(self) -> None:
+        with self._lock:
+            self._conn.executescript(SCHEMA.read_text(encoding="utf-8"))
 
-    # seasons
-    def get_active_season(self) -> dict | None:
-        for s in self.seasons:
-            if s.get("active"):
-                return s
-        return None
+    # ── helpers ──
+    def _one(self, sql: str, args=()) -> dict | None:
+        with self._lock:
+            row = self._conn.execute(sql, args).fetchone()
+        return dict(row) if row else None
 
-    def get_season(self, season_id: int) -> dict | None:
-        return next((s for s in self.seasons if s["id"] == season_id), None)
+    def _all(self, sql: str, args=()) -> list[dict]:
+        with self._lock:
+            return [dict(r) for r in self._conn.execute(sql, args).fetchall()]
 
-    def add_season(self, **fields) -> dict:
-        sid = fields.get("id", len(self.seasons) + 1)
-        row = {"id": sid, "active": True, "scoring_mode": "cosine_steering_shift",
-               "token_budget": 10, **fields}
-        self.seasons.append(row)
-        return row
+    def _insert(self, table: str, row: dict) -> dict:
+        cols = ", ".join(row)
+        marks = ", ".join("?" for _ in row)
+        with self._lock:
+            cur = self._conn.execute(f"insert into {table} ({cols}) values ({marks})",
+                                     tuple(row.values()))
+            new_id = cur.lastrowid
+        return {"id": new_id, **row}
 
-    # submissions
-    def leaderboard(self, season_id: int, limit: int, ascending: bool = False) -> list[dict]:
-        rows = [s for s in self.submissions if s["season_id"] == season_id]
-        rows.sort(key=lambda r: (r["score"] if ascending else -r["score"], r["created_at"]))
-        return rows[:limit]
+    def _count(self, sql: str, args=()) -> int:
+        with self._lock:
+            return int(self._conn.execute(sql, args).fetchone()[0])
 
-    def find_submission(self, season_id: int, norm_key: str) -> dict | None:
-        return next(
-            (s for s in self.submissions if s["season_id"] == season_id and s["norm_key"] == norm_key),
-            None,
-        )
-
-    def insert_submission(self, row: dict) -> dict:
-        self._sub_id += 1
-        stored = {"id": self._sub_id, "created_at": _now().isoformat(), **row}
-        self.submissions.append(stored)
-        return stored
-
-    def rank_for(self, season_id: int, score: float, higher_is_better: bool = True) -> int:
-        if higher_is_better:
-            better = sum(1 for s in self.submissions if s["season_id"] == season_id and s["score"] > score)
-        else:
-            better = sum(1 for s in self.submissions if s["season_id"] == season_id and s["score"] < score)
-        return better + 1
-
-    def count_ip_since(self, ip_hash: str, since_iso: str) -> int:
-        return sum(
-            1 for s in self.submissions
-            if s.get("ip_hash") == ip_hash and s["created_at"] >= since_iso
-        )
-
-    def count_global_since(self, since_iso: str) -> int:
-        return sum(1 for s in self.submissions if s["created_at"] >= since_iso)
-
-    # generation demo (/generate) — counters kept apart from submissions so demo
-    # traffic can never consume the leaderboard's share of the NDIF quota
-    def log_generation(self, ip_hash: str, arm: str, prompt_hash: str, cached: bool,
-                       prompt: str | None = None, continuation: str | None = None,
-                       research_consent: bool = False, consent_version: str | None = None,
-                       user_hash: str | None = None, handle: str | None = None) -> None:
-        self.generations.append({"ip_hash": ip_hash, "arm": arm, "prompt_hash": prompt_hash,
-                                 "cached": cached, "prompt": prompt,
-                                 "continuation": continuation,
-                                 "research_consent": research_consent,
-                                 "consent_version": consent_version,
-                                 "user_hash": user_hash, "handle": handle, "hidden": False,
-                                 "created_at": _now().isoformat()})
-
-    def count_gen_ip_since(self, key: str, since_iso: str, by: str = "ip_hash") -> int:
-        """Count a person's generations, keyed by account when signed in and by
-        connection when not."""
-        return sum(1 for g in self.generations
-                   if g.get(by) == key and g["created_at"] >= since_iso)
-
-    def count_gen_global_since(self, since_iso: str) -> int:
-        return sum(1 for g in self.generations if g["created_at"] >= since_iso)
-
-
-# ── Supabase (production) ────────────────────────────────────
-
-class SupabaseDatabase:
-    def __init__(self, url: str, service_key: str):
-        from supabase import create_client  # lazy: tests don't need supabase installed
-
-        self.client = create_client(url, service_key)
+    # ── seasons ──
+    def create_season(self, name: str, active: bool = True) -> dict:
+        if active:
+            with self._lock:
+                self._conn.execute("update seasons set active = 0 where active = 1")
+        return self._insert("seasons", {"name": name, "active": int(active),
+                                        "created_at": now_iso()})
 
     def get_active_season(self) -> dict | None:
-        res = self.client.table("seasons").select("*").eq("active", True).limit(1).execute()
-        return res.data[0] if res.data else None
+        return self._one("select * from seasons where active = 1")
 
-    def get_season(self, season_id: int) -> dict | None:
-        res = self.client.table("seasons").select("*").eq("id", season_id).limit(1).execute()
-        return res.data[0] if res.data else None
+    # ── teams / players ──
+    def create_team(self, season_id: int, name: str) -> dict:
+        return self._insert("teams", {"season_id": season_id, "name": name,
+                                      "join_code": secrets.token_urlsafe(6),
+                                      "created_at": now_iso()})
 
-    def leaderboard(self, season_id: int, limit: int, ascending: bool = False) -> list[dict]:
-        res = (
-            self.client.table("submissions")
-            .select("user_handle, sequence_text, score, score_alt, specificity, shift_raw, created_at")
-            .eq("season_id", season_id)
-            .order("score", desc=not ascending)
-            .order("created_at", desc=False)
-            .limit(limit)
-            .execute()
-        )
-        return res.data or []
+    def get_team(self, team_id: int) -> dict | None:
+        return self._one("select * from teams where id = ?", (team_id,))
 
-    def find_submission(self, season_id: int, norm_key: str) -> dict | None:
-        res = (
-            self.client.table("submissions")
-            .select("*")
-            .eq("season_id", season_id)
-            .eq("norm_key", norm_key)
-            .limit(1)
-            .execute()
-        )
-        return res.data[0] if res.data else None
+    def get_team_by_name(self, season_id: int, name: str) -> dict | None:
+        return self._one("select * from teams where season_id = ? and name = ?", (season_id, name))
 
+    def get_team_by_code(self, season_id: int, code: str) -> dict | None:
+        return self._one("select * from teams where season_id = ? and join_code = ?",
+                         (season_id, code))
+
+    def list_teams(self, season_id: int) -> list[dict]:
+        return self._all("select id, name from teams where season_id = ? order by id", (season_id,))
+
+    def get_player(self, season_id: int, handle: str) -> dict | None:
+        return self._one("select * from players where season_id = ? and handle = ?",
+                         (season_id, handle))
+
+    def create_player(self, season_id: int, handle: str, team_id: int) -> dict:
+        return self._insert("players", {"season_id": season_id, "handle": handle,
+                                        "team_id": team_id, "created_at": now_iso()})
+
+    def set_player_team(self, player_id: int, team_id: int) -> None:
+        with self._lock:
+            self._conn.execute("update players set team_id = ? where id = ?", (team_id, player_id))
+
+    def player_submission_count(self, player_id: int) -> int:
+        return self._count("select count(*) from submissions where player_id = ?", (player_id,))
+
+    def team_members(self, team_id: int) -> list[str]:
+        return [r["handle"] for r in
+                self._all("select handle from players where team_id = ? order by id", (team_id,))]
+
+    # ── challenges ──
+    def create_challenge(self, season_id: int, slug: str, title: str, kind: str, *,
+                         track: str = "", tier: str = "compete",
+                         description: str = "", config: dict | None = None,
+                         points_initial: int = 500, points_min: int = 100,
+                         points_decay: int = 10, hidden: bool = False) -> dict:
+        return self._insert("challenges", {
+            "season_id": season_id, "slug": slug, "title": title, "kind": kind,
+            "track": track, "tier": tier,
+            "description": description, "config": json.dumps(config or {}),
+            "points_initial": points_initial, "points_min": points_min,
+            "points_decay": points_decay, "hidden": int(hidden), "created_at": now_iso(),
+        })
+
+    def get_challenge(self, season_id: int, slug: str) -> dict | None:
+        return self._one("select * from challenges where season_id = ? and slug = ?",
+                         (season_id, slug))
+
+    def list_challenges(self, season_id: int, include_hidden: bool = False) -> list[dict]:
+        sql = "select * from challenges where season_id = ?"
+        if not include_hidden:
+            sql += " and hidden = 0"
+        return self._all(sql + " order by id", (season_id,))
+
+    def set_challenge_hidden(self, challenge_id: int, hidden: bool) -> None:
+        with self._lock:
+            self._conn.execute("update challenges set hidden = ? where id = ?",
+                               (int(hidden), challenge_id))
+
+    # ── submissions ──
     def insert_submission(self, row: dict) -> dict:
-        res = self.client.table("submissions").insert(row).execute()
-        return res.data[0] if res.data else row
+        """Raises sqlite3.IntegrityError when a uniqueness rule is hit (team already
+        solved, answer already scored). The caller maps that to DuplicateError."""
+        row = dict(row)
+        if isinstance(row.get("detail"), dict):
+            row["detail"] = json.dumps(row["detail"])
+        row.setdefault("created_at", now_iso())
+        return self._insert("submissions", row)
 
-    def rank_for(self, season_id: int, score: float, higher_is_better: bool = True) -> int:
-        q = (
-            self.client.table("submissions")
-            .select("id", count="exact", head=True)
-            .eq("season_id", season_id)
-        )
-        q = q.gt("score", score) if higher_is_better else q.lt("score", score)
-        return (q.execute().count or 0) + 1
+    def team_solved(self, challenge_id: int, team_id: int) -> bool:
+        return self._count("select count(*) from submissions where challenge_id = ? "
+                           "and team_id = ? and correct = 1", (challenge_id, team_id)) > 0
+
+    def solve_count(self, challenge_id: int) -> int:
+        return self._count("select count(*) from submissions where challenge_id = ? "
+                           "and correct = 1", (challenge_id,))
+
+    def solves(self, challenge_id: int) -> list[dict]:
+        """First-blood order: earliest solve first."""
+        return self._all(
+            "select s.created_at, t.name as team, p.handle from submissions s "
+            "join teams t on t.id = s.team_id join players p on p.id = s.player_id "
+            "where s.challenge_id = ? and s.correct = 1 order by s.created_at, s.id",
+            (challenge_id,))
+
+    def find_scored(self, challenge_id: int, answer_key: str) -> dict | None:
+        return self._one(
+            "select s.*, p.handle from submissions s join players p on p.id = s.player_id "
+            "where s.challenge_id = ? and s.answer_key = ? and s.correct is null",
+            (challenge_id, answer_key))
+
+    def scored_entries(self, challenge_id: int) -> list[dict]:
+        """Every scored answer, with its player and team. Ranking happens in Python."""
+        return self._all(
+            "select s.id, s.answer, s.score, s.created_at, s.player_id, s.team_id, "
+            "p.handle, t.name as team from submissions s "
+            "join players p on p.id = s.player_id join teams t on t.id = s.team_id "
+            "where s.challenge_id = ? and s.correct is null", (challenge_id,))
 
     def count_ip_since(self, ip_hash: str, since_iso: str) -> int:
-        res = (
-            self.client.table("submissions")
-            .select("id", count="exact", head=True)
-            .eq("ip_hash", ip_hash)
-            .gte("created_at", since_iso)
-            .execute()
-        )
-        return res.count or 0
+        return self._count("select count(*) from submissions where ip_hash = ? "
+                           "and created_at >= ?", (ip_hash, since_iso))
 
     def count_global_since(self, since_iso: str) -> int:
-        res = (
-            self.client.table("submissions")
-            .select("id", count="exact", head=True)
-            .gte("created_at", since_iso)
-            .execute()
-        )
-        return res.count or 0
+        return self._count("select count(*) from submissions where created_at >= ?",
+                           (since_iso,))
 
-    # generation demo (/generate)
-    def log_generation(self, ip_hash: str, arm: str, prompt_hash: str, cached: bool,
-                       prompt: str | None = None, continuation: str | None = None,
-                       research_consent: bool = False, consent_version: str | None = None,
-                       user_hash: str | None = None, handle: str | None = None) -> None:
-        counter = {"ip_hash": ip_hash, "arm": arm, "prompt_hash": prompt_hash,
-                   "cached": cached}
-        row = {**counter, "prompt": prompt, "continuation": continuation,
-               "research_consent": research_consent, "consent_version": consent_version,
-               "user_hash": user_hash, "handle": handle}
-        try:
-            self.client.table("generation_events").insert(row).execute()
-        except Exception:
-            # Migration 0006 not applied yet: the text columns do not exist, and the
-            # whole insert fails. Fall back to the 0005 counter columns — losing the
-            # log is survivable, losing the rate-limit counter is not (the per-IP and
-            # global caps read this table, so a silent failure would uncap the demo).
-            self.client.table("generation_events").insert(counter).execute()
+    # ── NDIF budget ledger ──
+    def log_ndif_call(self, *, player_id: int | None, challenge_id: int | None, ok: bool,
+                      created_at: str | None = None) -> None:
+        self._insert("ndif_calls", {"player_id": player_id, "challenge_id": challenge_id,
+                                    "ok": int(ok), "created_at": created_at or now_iso()})
 
-    def count_gen_ip_since(self, key: str, since_iso: str, by: str = "ip_hash") -> int:
-        """Counts a person's generations. `by` selects the key: the account hash when the
-        request is signed in, the connection hash when it is not. The account key is the
-        stronger of the two — a new network defeats an IP limit, an account costs an email
-        — which is why sign-in stays supported even though it is no longer required."""
-        res = (
-            self.client.table("generation_events")
-            .select("id", count="exact", head=True)
-            .eq(by, key)
-            .gte("created_at", since_iso)
-            .execute()
-        )
-        return res.count or 0
-
-    def count_gen_global_since(self, since_iso: str) -> int:
-        res = (
-            self.client.table("generation_events")
-            .select("id", count="exact", head=True)
-            .gte("created_at", since_iso)
-            .execute()
-        )
-        return res.count or 0
+    def count_ndif_since(self, since_iso: str, player_id: int | None = None) -> int:
+        if player_id is None:
+            return self._count("select count(*) from ndif_calls where created_at >= ?",
+                               (since_iso,))
+        return self._count("select count(*) from ndif_calls where player_id = ? "
+                           "and created_at >= ?", (player_id, since_iso))

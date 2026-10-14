@@ -1,15 +1,17 @@
-"""Central config: season settings + secrets, read from env / .env.
+"""Central config, read from env / .env. Anything here can be overridden by an
+environment variable of the same name (case-insensitive). Secrets stay server-side.
 
-Defaults mirror PROJECT_SPEC.md §12. Anything here can be overridden by an
-environment variable of the same name (case-insensitive), or by the active
-season row in Supabase once that exists. Secrets are server-side only.
+The NDIF block is deliberately conservative. NDIF is free for research use but it is a
+small shared cluster, so every remote call this app makes is one some researcher could
+not. Scoring through it is OFF until `NDIF_ENABLED=true`, and the budgets below cap it
+even when it is on. See DECISIONS.md, "NDIF use".
 """
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    # `model_*` fields would collide with pydantic's protected namespace; disable it.
+    # `model_*` names would collide with pydantic's protected namespace, so disable it.
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -17,137 +19,42 @@ class Settings(BaseSettings):
         protected_namespaces=(),
     )
 
-    # ── Season / scoring ──
-    # Season 2: OLMo-3-32B, layer 24, logistic d (confound-audited + best causal
-    # steerer; see data/directions/d_olmo3_L24_logistic.confound_audit.json). The live
-    # scorer reads model_id/layer/d_file/probe_set from here (or env); the Supabase
-    # active-season row drives display + leaderboard partitioning. NOTE: a Space env
-    # var of the same name overrides these — to switch the live season, update (or
-    # remove) any stale Season-1 env vars on the Space too.
-    season_id: int = 2
-    season_name: str = "Season 2"
-    d_version: str = "olmo3_L24_logistic"
-    model_id: str = "allenai/Olmo-3-1125-32B"  # exact NDIF-hosted id
-    model_build: str = ""
-    layer: int = 24
-    token_budget: int = 1000
-    scoring_mode: str = "cosine_steering_shift"
-    probe_set: str = "data/probes/season2.json"
-    d_file: str = "data/directions/d_olmo3_L24_logistic.npz"
-    prepend_bos: bool = True
+    # ── Storage ──
+    db_path: str = "data/arena.db"   # SQLite file. ":memory:" for throwaway runs.
 
-    # ── Season 3: banded multi-layer scoring ──
-    # Empty `score1_layers` keeps the single-layer Season 2 path; set it (and
-    # scoring_mode = "banded_mean_multilayer") to switch the scorer to a band. The DB
-    # season row is authoritative for display — seasons.layers — and
-    # scripts/check_season_matches_d.py asserts the row and the d files agree before a
-    # season may open.
-    #
-    # score1 RANKS the board (banded mean over one shared d_bar; the only steerable
-    # aggregate). score2 is INFORMATIONAL (per-layer min over a wider band — the sharper
-    # test of whether a sequence holds up at every depth). The two bands union to six
-    # layers, which one batch_last_resids_layers call reads, so score2 is free.
-    score1_layers: str = ""                     # e.g. "19,23,27,31"
-    score1_d_file: str = "data/directions/d_olmo3_s3_score1.npz"
-    score2_layers: str = ""                     # e.g. "15,23,31,39"
-    score2_d_file: str = "data/directions/d_olmo3_s3_score2.npz"
+    # ── Admin ──
+    # Sent as the X-Admin-Token header. Empty disables every /admin route.
+    admin_token: str = ""
 
-    @staticmethod
-    def _parse_layers(spec: str) -> list[int]:
-        return [int(x) for x in spec.split(",") if x.strip()]
-
-    def band1(self) -> list[int]:
-        return self._parse_layers(self.score1_layers)
-
-    def band2(self) -> list[int]:
-        return self._parse_layers(self.score2_layers)
-
-    def banded(self) -> bool:
-        """True when the active season scores across a band rather than one layer."""
-        return bool(self.band1())
-
-    def read_layers(self) -> list[int]:
-        """Every layer one forward pass must return: the union of both bands, sorted."""
-        return sorted(set(self.band1()) | set(self.band2()))
-
-    # ── Direction-specificity metric (non-ranking column this season; see
-    #    db/migrations/0003_specificity.sql + app/scoring.py closed-form notes) ──
-    specificity_enabled: bool = True
-    specificity_eps: float = 1e-4                       # denominator floor (frozen per season)
-    specificity_null: str = "isotropic_closed_form"     # method id, recorded for provenance
-
-    # ── Research-data consent (data governance; see db/migrations/0004_consent.sql) ──
-    # Frozen id of the consent notice text currently shown (web/consent.html). Bump when
-    # the notice materially changes, so each consented row records what was agreed to.
-    consent_version: str = "v1-2026-06"
-
-    # ── NDIF call / queue ──
-    ndif_api_key: str = ""
-    # Deadline for one whole NDIF call (queue wait + run), enforced by ScoringGate.
-    ndif_timeout_s: int = 120
-    score_concurrency: int = 2
-    hf_token: str = ""
-
-    # ── Live generation demo (/generate) — spends NDIF quota per uncached call ──
-    # Every limit here exists to bound that spend (spec §2 constraint 6). generate_*
-    # counters are separate from the submission counters so a burst of demo traffic can
-    # never eat the scoring budget the leaderboard needs.
-    generation_enabled: bool = True
-    # Require a signed-in account to generate. Off by default: at low traffic an account
-    # is a bigger barrier to the people you want than to the abuse you don't. Flip to
-    # true if the demo starts drawing bots. When off, rate limits fall back to the
-    # connection (ip_hash) instead of the account (user_hash).
-    generate_require_auth: bool = False
-    generation_logging: bool = True      # record prompt + output (see 0006); UI says so
-    generate_max_new: int = 120          # live demo only; the offline eval used 40
-    generate_prompt_max_chars: int = 600 # room for a 32-token prefix plus a sentence
-    generate_per_min: int = 4
-    generate_per_day: int = 40
-    generate_global_per_day: int = 600
-
-    # ── Rate limiting / leaderboard (caps NDIF quota) ──
-    rate_per_min: int = 8
-    rate_per_day: int = 100
-    global_per_day: int = 2000
-    leaderboard_max: int = 1000
-
-    # ── Supabase (secrets) ──
-    supabase_url: str = ""
-    supabase_service_key: str = ""
-    # Browser-safe Supabase key, used ONLY for sign-in. Supabase renamed this concept
-    # (anon -> publishable, service_role -> secret) and both formats still work, so
-    # accept either name and let browser_key() pick. Whatever lands here is served to
-    # clients by /auth/config, so a SECRET key must never be put in it.
-    supabase_publishable_key: str = ""
-    supabase_anon_key: str = ""
-
-    def browser_key(self) -> str:
-        return self.supabase_publishable_key or self.supabase_anon_key
-
+    # ── Submissions (all challenge kinds) ──
+    rate_per_min: int = 10
+    rate_per_day: int = 200
+    global_per_day: int = 5000
+    leaderboard_max: int = 200
     ip_hash_salt: str = ""
 
-    # ── CAPTCHA (Cloudflare Turnstile) — optional; active only when secret is set ──
-    turnstile_secret: str = ""   # server-side verification key
-    turnstile_sitekey: str = ""  # public key sent to the browser
+    # ── NDIF (steering challenges only) ──
+    ndif_enabled: bool = False
+    ndif_api_key: str = ""
+    scoring_backend: str = "ndif"      # "ndif", or "local" for a small local model in dev
+    local_model_id: str = "EleutherAI/pythia-70m"
+    prepend_bos: bool = True
+    ndif_timeout_s: int = 120          # deadline for one remote call, queue wait included
+    ndif_concurrency: int = 1          # one job in flight at a time
+    ndif_calls_per_day: int = 150      # hard global budget of remote calls per rolling day
+    ndif_player_per_day: int = 10
+    ndif_player_per_min: int = 2
+    cache_dir: str = "data/cache"      # probe baselines are computed once and kept here
 
-    # ── Server / deploy ──
+    # ── CAPTCHA (Cloudflare Turnstile), active only when the secret is set ──
+    turnstile_secret: str = ""
+    turnstile_sitekey: str = ""
+
+    # ── Server ──
     port: int = 7860
-    # Locked to the Space origin (audit M1). Was "*", which let any page on the
-    # internet call /submit and /generate with the caller's cookies and read the
-    # response. Nothing legitimate needs cross-origin access: the frontend in web/
-    # is served by this same app, so every real request is same-origin and never
-    # consults CORS at all.
-    #
-    # A Space environment variable of the same name OVERRIDES this, so check the
-    # Space's variables if the boot log still warns about "*".
-    #
-    # Running the app on a different host means setting ALLOWED_ORIGIN there.
-    # Local development does not: 127.0.0.1 serving its own frontend is same-origin.
-    allowed_origin: str = "https://sohampadianeu-steering-arena.hf.space"
-    # Number of trusted reverse-proxy hops in front of the app. The real client
-    # IP is the X-Forwarded-For entry inserted by the outermost trusted proxy
-    # (counted from the right) — the leftmost entries are client-spoofable. On an
-    # HF Space this is typically 1; confirm against the platform's proxy chain.
+    # Empty means same-origin only, which is all the bundled frontend needs.
+    allowed_origin: str = ""
+    # Trusted reverse-proxy hops in front of the app (for spoof-resistant client IPs).
     trusted_proxy_hops: int = 1
 
 

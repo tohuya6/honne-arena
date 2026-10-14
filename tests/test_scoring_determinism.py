@@ -207,5 +207,5 @@ def test_load_direction_and_probes(tmp_path):
     loaded, m = scoring.load_direction(p)
     assert loaded.shape == (8,) and m["d_version"] == "vtest"
 
-    probes = scoring.load_probes("data/probes/season1.json")
+    probes = scoring.load_probes("data/probes/season2.json")
     assert len(probes) == 16 and all(isinstance(x, str) for x in probes)

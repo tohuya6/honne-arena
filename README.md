@@ -1,50 +1,59 @@
----
-title: Steering Arena
-emoji: 🧭
-colorFrom: indigo
-colorTo: purple
-sdk: docker
-app_port: 7860
-pinned: false
----
+# Arena
 
-# Steering Arena
+A competition and learning arena for NU AI Safety. One site, several tracks:
 
-A public leaderboard for **activation steering**. Players submit short token
-sequences; the server scores each by **how much it pushes a frozen large
-language model's internal activations along a fixed "pro-human" direction
-`d`**, then ranks it. The served model (**OLMo-3-32B**) runs on
-[NDIF](https://ndif.us) via [NNsight](https://nnsight.net) — the server is the
-canonical scoring oracle.
+- **steering**: push a model's activations along a direction (from Steering Arena)
+- **lie-detection**: predict which transcripts are lies, scored by AUROC on hidden labels
+- **circuits**: find the components that do a task (planned)
+- **ctf**: classic flags
 
-- **Research record:** [`data/analysis/`](data/analysis/) — results, each `.md` beside
-  the `.json` a script produced. Start at
-  [`REVISIONS_2026-09-05.md`](data/analysis/REVISIONS_2026-09-05.md) for what survived
-  and what was withdrawn.
-- **Build spec (source of truth):** [`PROJECT_SPEC.md`](PROJECT_SPEC.md)
-- **Phased plan:** [`ROADMAP.md`](ROADMAP.md)
+Each track has a `learn` tier (guided, small models) and a `compete` tier (hidden test
+sets). Teams, CTF-style decaying points, and a season leaderboard tie them together.
 
-## Stack (all free)
+Built on [Steering Arena](https://sohampadianeu-steering-arena.hf.space/) by Soham Padia.
+See [CREDITS.md](CREDITS.md). Why things are the way they are: [DECISIONS.md](DECISIONS.md).
 
-| Layer | Choice |
-|---|---|
-| API + UI host | Hugging Face Space (Docker, CPU) — no model loaded locally |
-| Model + scoring | OLMo-3-32B on NDIF, via NNsight |
-| Database | Supabase (Postgres) |
-| Frontend | plain HTML/CSS/JS + Alpine.js (no build step) |
-
-## Local dev
+## Run it
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # then fill in secrets (Supabase, NDIF, IP salt)
-uvicorn app.main:app --reload --port 7860
-# → http://localhost:7860/health
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt            # add requirements-model.txt for steering
+cp .env.example .env                       # set ADMIN_TOKEN and IP_HASH_SALT
+uvicorn app.main:create_app --factory --port 7860
 ```
 
-Run tests with `pytest`.
+Tests: `pytest`. They never call NDIF.
 
-> Secrets live in `.env` locally (gitignored) and as **Space secrets** in
-> production: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `IP_HASH_SALT`,
-> `NDIF_API_KEY`. Never expose them client-side.
+## Add a challenge
+
+Create a season, then a challenge, with the admin token:
+
+```bash
+curl -X POST localhost:7860/api/admin/seasons -H "X-Admin-Token: $ADMIN_TOKEN" \
+  -H 'content-type: application/json' -d '{"name": "Fall 2026"}'
+
+curl -X POST localhost:7860/api/admin/challenges -H "X-Admin-Token: $ADMIN_TOKEN" \
+  -H 'content-type: application/json' -d '{
+    "slug": "warmup", "title": "Warmup", "kind": "flag", "track": "ctf", "tier": "learn",
+    "flag": "nuais{hello}", "config": {"flag_format": "nuais{...}"}}'
+```
+
+The flag is hashed on arrival and never stored in plain text.
+
+## API
+
+| Route | What |
+|---|---|
+| `GET /api/challenges?track=&tier=` | open challenges with current points |
+| `GET /api/challenges/{slug}` | one challenge and its board |
+| `GET /api/leaderboard` | season standings by team |
+| `POST /api/teams` | create a team, returns its join code |
+| `POST /api/teams/join` | join with a code |
+| `POST /api/submit` | `{handle, challenge, answer}` |
+| `GET /api/docs` | interactive docs |
+
+## NDIF
+
+Steering challenges call [NDIF](https://ndif.us), which is free for research use but a
+small shared cluster. Model scoring is **off** until `NDIF_ENABLED=true`, and hard daily
+budgets apply when it is on. See DECISIONS.md, "NDIF use".

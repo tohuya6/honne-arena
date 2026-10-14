@@ -1,6 +1,5 @@
-# Steering Arena — HF Docker Space. Serves the FastAPI app (UI + API).
-# No model weights are bundled: scoring runs on NDIF; only OLMo-3's config +
-# tokenizer are fetched at runtime (small, public).
+# Arena. Serves the FastAPI app (UI + API). No model weights are bundled: steering
+# scoring runs on NDIF, and only the tokenizer/config are fetched at runtime.
 FROM python:3.13-slim
 
 ENV PYTHONUNBUFFERED=1 \
@@ -9,17 +8,17 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Torch CPU build first (from the CPU index), then the rest of the deps.
-COPY requirements.txt .
+COPY requirements.txt requirements-model.txt ./
 RUN pip install torch==2.12.0 --index-url https://download.pytorch.org/whl/cpu \
- && pip install -r requirements.txt
+ && pip install -r requirements-model.txt
 
 COPY app/ ./app/
+COPY db/ ./db/
 COPY web/ ./web/
-COPY data/ ./data/
+COPY data/directions/ ./data/directions/
+COPY data/probes/ ./data/probes/
 
-# HF cache must be writable by the non-root Space user.
-RUN mkdir -p /tmp/hf_home && chmod -R 777 /tmp/hf_home
+RUN mkdir -p /tmp/hf_home /app/data/cache && chmod -R 777 /tmp/hf_home /app/data
 
 EXPOSE 7860
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "7860"]

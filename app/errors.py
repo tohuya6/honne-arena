@@ -41,3 +41,11 @@ class BackendTimeout(SubmitError):
     has been released; the abandoned call keeps running in its own thread."""
 
     http_status = 504
+
+
+class NotFound(SubmitError):
+    http_status = 404
+
+
+class Forbidden(SubmitError):
+    http_status = 403

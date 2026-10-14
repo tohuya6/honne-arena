@@ -1,135 +1,197 @@
-"""The /submit pipeline as a pure-ish service function with injected dependencies
-(db, tokenizer, scorer), so it's fully unit-testable without Supabase or NDIF.
-See PROJECT_SPEC.md §7."""
+"""The /submit pipeline and team membership, as plain functions over an injected db.
+Everything here is testable without HTTP, NDIF, or a network.
+
+Identity is a handle per season, with no accounts. That fits a club where people know
+each other; see DECISIONS.md "Identity" for when that stops being enough.
+"""
 
 from __future__ import annotations
 
 import re
+import sqlite3
 from datetime import datetime, timezone
 from typing import Callable
 
-from app.errors import DuplicateError, ScoringUnavailable, ValidationError
+from app import challenges
+from app.budget import check_ndif_budget
+from app.errors import (DuplicateError, NotFound, ScoringUnavailable, SubmitError,
+                        ValidationError)
 from app.ratelimit import check_rate_limits
 
-HANDLE_RE = re.compile(r"^[\w \-.]{1,32}$")  # letters, digits, _, space, -, .
-MAX_SEQUENCE_CHARS = 6000  # ~1000 tokens of headroom (token budget is enforced separately)
-
-
-def normalize_key(sequence: str) -> str:
-    """Dedup/cache key: lowercased, whitespace-collapsed."""
-    return re.sub(r"\s+", " ", sequence.strip().lower())
+HANDLE_RE = re.compile(r"^[\w \-.]{1,32}$")   # letters, digits, _, space, -, .
+TEAM_RE = re.compile(r"^[\w \-.']{1,40}$")
+MAX_ANSWER_CHARS = 200_000                    # room for a predictions file
 
 
 def validate_handle(handle: str) -> str:
     handle = (handle or "").strip()
     if not HANDLE_RE.match(handle):
-        raise ValidationError("Handle must be 1–32 chars: letters, digits, spaces, _ - . only.")
+        raise ValidationError("Handle must be 1-32 characters: letters, digits, spaces, "
+                              "_ - . only.")
     return handle
 
 
-def validate_sequence(sequence: str) -> str:
-    if sequence is None:
-        raise ValidationError("Sequence is required.")
-    # Reject control chars (except normal whitespace); require valid text.
-    if any(ord(c) < 32 and c not in "\t\n\r" for c in sequence):
-        raise ValidationError("Sequence contains invalid control characters.")
-    stripped = sequence.strip()
-    if not stripped:
-        raise ValidationError("Sequence cannot be empty.")
-    if len(sequence) > MAX_SEQUENCE_CHARS:
-        raise ValidationError(f"Sequence too long (max {MAX_SEQUENCE_CHARS} characters).")
-    return sequence
+def validate_answer(answer: str) -> str:
+    if answer is None or not answer.strip():
+        raise ValidationError("Answer cannot be empty.")
+    if any(ord(c) < 32 and c not in "\t\n\r" for c in answer):
+        raise ValidationError("Answer contains invalid control characters.")
+    if len(answer) > MAX_ANSWER_CHARS:
+        raise ValidationError(f"Answer too long (max {MAX_ANSWER_CHARS} characters).")
+    return answer
+
+
+def active_season(db) -> dict:
+    season = db.get_active_season()
+    if not season:
+        raise ScoringUnavailable("No season is open right now.")
+    return season
+
+
+def get_or_create_player(db, season_id: int, handle: str) -> dict:
+    """A new handle gets a solo team named after it, so nobody has to set up a team
+    before playing."""
+    player = db.get_player(season_id, handle)
+    if player:
+        return player
+    team = db.get_team_by_name(season_id, handle) or db.create_team(season_id, handle)
+    return db.create_player(season_id, handle, team["id"])
+
+
+def create_team(db, *, handle: str, name: str) -> dict:
+    season = active_season(db)
+    handle = validate_handle(handle)
+    name = (name or "").strip()
+    if not TEAM_RE.match(name):
+        raise ValidationError("Team name must be 1-40 characters.")
+    if db.get_team_by_name(season["id"], name):
+        raise DuplicateError("That team name is taken.", existing={}, rank=0)
+    player = get_or_create_player(db, season["id"], handle)
+    _ensure_can_switch(db, player)
+    team = db.create_team(season["id"], name)
+    db.set_player_team(player["id"], team["id"])
+    return team
+
+
+def join_team(db, *, handle: str, join_code: str) -> dict:
+    season = active_season(db)
+    handle = validate_handle(handle)
+    team = db.get_team_by_code(season["id"], (join_code or "").strip())
+    if not team:
+        raise NotFound("No team has that join code.")
+    player = get_or_create_player(db, season["id"], handle)
+    if player["team_id"] == team["id"]:
+        return team
+    _ensure_can_switch(db, player)
+    db.set_player_team(player["id"], team["id"])
+    return team
+
+
+def _ensure_can_switch(db, player: dict) -> None:
+    # Switching after submitting would let one player's solves count for two teams.
+    if db.player_submission_count(player["id"]) > 0:
+        raise ValidationError("You can only change teams before your first submission "
+                              "this season.")
 
 
 def process_submission(
     *,
     handle: str,
-    sequence: str,
+    slug: str,
+    answer: str,
     ip_hash: str,
     db,
-    count_tokens: Callable[[str], int],
-    score_fn: Callable[[str], float],
     settings,
-    research_consent: bool = False,
+    run_remote: Callable | None = None,
     now: datetime | None = None,
 ) -> dict:
-    """Validate → token-budget → dedup/cache → rate-limit → score → insert → rank.
+    """Validate, dedup, rate-limit, judge, record.
 
-    `score_fn` should already be wrapped by the ScoringGate (concurrency bound).
-    Raises the typed errors in app.errors; main.py maps them to HTTP responses.
+    `run_remote(fn)` runs a callable behind the bounded NDIF queue (ScoringGate.run).
+    Only challenges with `uses_ndif` go through it and through the NDIF budget.
     """
     now = now or datetime.now(timezone.utc)
-
-    season = db.get_active_season()
-    if not season:
-        raise ScoringUnavailable("No active season is open right now.")
-
+    season = active_season(db)
     handle = validate_handle(handle)
-    sequence = validate_sequence(sequence)
+    answer = validate_answer(answer)
 
-    token_count = count_tokens(sequence)
-    budget = season.get("token_budget", settings.token_budget)
-    if token_count > budget:
-        raise ValidationError(f"Sequence is {token_count} tokens; the budget is {budget}.")
+    row = db.get_challenge(season["id"], slug)
+    if not row or row["hidden"]:
+        raise NotFound("No such challenge.")
+    challenge = challenges.load(row)
+    key = challenge.answer_key(answer)
 
-    key = normalize_key(sequence)
+    player = get_or_create_player(db, season["id"], handle)
+    team_id = player["team_id"]
 
-    # Dedup == cache: one canonical row per (season, sequence). A repeat is rejected
-    # (never re-scored on NDIF), and we hand back the existing score/rank.
-    existing = db.find_submission(season["id"], key)
-    if existing:
-        rank = db.rank_for(season["id"], existing["score"])
-        raise DuplicateError(
-            f"That sequence is already on the board (submitted by "
-            f"{existing.get('user_handle', 'someone')}).",
-            existing=existing,
-            rank=rank,
-        )
+    if challenge.mode == "solve" and db.team_solved(challenge.id, team_id):
+        raise DuplicateError("Your team already solved this one.", existing={}, rank=0)
+    if challenge.mode == "score":
+        existing = db.find_scored(challenge.id, key)
+        if existing:
+            raise DuplicateError(
+                f"That answer is already on the board (submitted by {existing['handle']}).",
+                existing={"score": existing["score"], "handle": existing["handle"]}, rank=0)
 
-    # Rate limits guard the NDIF quota; checked only for genuinely new sequences.
     check_rate_limits(db, ip_hash, settings, now)
 
-    # score_fn returns either a plain float (legacy/tests) or a scoring.ScoreResult
-    # (score=ranked value, shift=raw steering shift, specificity=closed-form z).
-    res = score_fn(sequence)
-    score_alt = None
-    if isinstance(res, tuple):  # ScoreResult (NamedTuple)
-        score, shift_raw, specificity = float(res[0]), float(res[1]), res[2]
-        specificity = float(specificity) if specificity is not None else None
-        # 4th field arrived with Season 3's banded scorer; older 3-field results and the
-        # tests that build them keep working.
-        if len(res) > 3 and res[3] is not None:
-            score_alt = float(res[3])
+    if challenge.uses_ndif:
+        check_ndif_budget(db, player["id"], settings, now)
+        outcome = _evaluate_remote(challenge, answer, db, player, settings, run_remote, now)
     else:
-        score, shift_raw, specificity = float(res), float(res), None
+        outcome = challenge.evaluate(answer)
 
-    inserted = db.insert_submission({
-        "season_id": season["id"],
-        "user_handle": handle,
-        "sequence_text": sequence,
-        "norm_key": key,
-        "token_count": token_count,
-        "score": score,
-        "shift_raw": shift_raw,
-        "specificity": specificity,
-        "score_alt": score_alt,
-        "ip_hash": ip_hash,
-        "research_consent": bool(research_consent),
-        # record which notice they agreed to (null when not consented)
-        "consent_version": getattr(settings, "consent_version", None) if research_consent else None,
-    })
-    # One signed score, two boards: pro-human ranks by most-positive projection,
-    # anti-human by most-negative (the geometric opposite).
-    pro_rank = db.rank_for(season["id"], score, higher_is_better=True)
-    anti_rank = db.rank_for(season["id"], score, higher_is_better=False)
+    try:
+        db.insert_submission({
+            "challenge_id": challenge.id, "player_id": player["id"], "team_id": team_id,
+            "answer": answer, "answer_key": key,
+            "correct": None if outcome.correct is None else int(outcome.correct),
+            "score": outcome.score, "detail": outcome.detail, "ip_hash": ip_hash,
+            "created_at": now.isoformat(),
+        })
+    except sqlite3.IntegrityError:
+        # A teammate solved it, or someone scored the same answer, a moment earlier.
+        raise DuplicateError("Someone just beat you to that, try again.",
+                             existing={}, rank=0) from None
 
-    return {
-        "score": score,
-        "score_alt": score_alt,
-        "specificity": specificity,
-        "rank": pro_rank,  # back-compat alias for pro_rank
-        "pro_rank": pro_rank,
-        "anti_rank": anti_rank,
-        "token_count": token_count,
-        "id": inserted.get("id"),
-    }
+    result = {"challenge": challenge.slug, "mode": challenge.mode}
+    if challenge.mode == "solve":
+        result["correct"] = bool(outcome.correct)
+    else:
+        result["score"] = outcome.score
+        result.update(outcome.detail)
+    return result
+
+
+def _evaluate_remote(challenge, answer, db, player, settings, run_remote, now):
+    """Judge through the NDIF queue, logging each remote forward to the budget ledger.
+
+    Calls made while building the scorer (the one-time probe baseline) are logged with
+    no player, so they count against the global cap but not this player's."""
+    calls = {"prepare": 0, "evaluate": 0}
+    phase = {"now": "prepare"}
+
+    def on_remote_call():
+        calls[phase["now"]] += 1
+
+    def work():
+        challenge.prepare(settings, on_remote_call)
+        phase["now"] = "evaluate"
+        return challenge.evaluate(answer)
+
+    ok = False
+    try:
+        outcome = run_remote(work) if run_remote else work()
+        ok = True
+        return outcome
+    except SubmitError:
+        raise
+    except Exception as exc:  # noqa: BLE001, detail goes to the server log
+        raise ScoringUnavailable("Model scoring failed, please try again later.") from exc
+    finally:
+        stamp = now.isoformat()
+        for _ in range(calls["prepare"]):
+            db.log_ndif_call(player_id=None, challenge_id=challenge.id, ok=ok, created_at=stamp)
+        for _ in range(calls["evaluate"]):
+            db.log_ndif_call(player_id=player["id"], challenge_id=challenge.id, ok=ok,
+                             created_at=stamp)
