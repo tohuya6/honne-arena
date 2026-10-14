@@ -12,8 +12,9 @@ accessible replicas of three existing contests, plus classic CTF flags:
 |---|---|---|---|
 | `steering` | Steering Arena (Soham Padia) | shift of the model's residual along a direction | yes, budgeted |
 | `lie-detection` | Aletheia's Quest (Cadenza Labs + NDIF) | AUROC of predictions against hidden labels | no |
-| `circuits` | MIB, circuit localization (Mueller et al., ICML 2025) | lookup in a precomputed ablation table (planned) | no |
+| `circuits` | MIB, circuit localization (Mueller et al., ICML 2025) | faithfulness of the submitted heads on GPT-2 small | local only, no NDIF |
 | `ctf` | classic CTF | SHA-256 of the flag | no |
+| `cp` | competitive programming | sandboxed run against hidden tests | local Docker, no NDIF |
 
 "Accessible" means every track has two tiers:
 - `learn`: guided, small models, hints free, open to everyone, good for the weekly talks.
@@ -109,13 +110,51 @@ by accident.
 - Tiers are not tied to club membership. That may change later; it is not official.
 - Open: the email sender for magic links.
 
+## Compute modes (2026-10-14)
+
+- Every challenge says where judging runs, via `compute_mode()`:
+  `inline` (hash compare, AUROC), `local` (sandboxed code, small local models), or
+  `ndif` (remote model). `local` and `ndif` each get their own bounded queue, so a burst
+  of code runs cannot delay NDIF scoring and the other way round.
+- Only `ndif` touches the NDIF budget. A steering challenge with `config.backend =
+  "local"` scores on a small model on this server, which gives the steering track a
+  learn tier that costs no NDIF at all.
+- Circuits changed from "lookup table" to live local scoring: GPT-2 small runs on CPU
+  in about a second, so the score can be the real faithfulness of whatever head set is
+  submitted, not an approximation from a table.
+
+## Replica notes (2026-10-14)
+
+- Aletheia's Quest is over. It ran Summer 2026 (Cadenza Labs, NDIF, funded by Schmidt
+  Sciences), with invited teams meeting in Boston on Aug 25. Final ranking was mean
+  AUROC over ten held-out test datasets, in white-box and black-box tracks. Weekly
+  prizes used balanced accuracy with AUROC as tie-break. Our lie-detection track uses
+  the same metrics. Source: aletheias-quest.github.io/winners.html.
+
+## Hidden material (2026-10-14)
+
+- The repo is public, so nothing committed may give away an answer. Flags, test-set
+  labels, and hidden code tests live in `data/private/` (gitignored) and seeds point at
+  them by path. See `seeds/README.md`. Deploying means copying `data/private/` by hand.
+- Admin emails and the sign-in sender address live in the server's `.env`, never in
+  the repo. For now both are the organizer's NU address.
+
+## Build plan (2026-10-14)
+
+Built the same day in parallel branches, merged into `main` after review:
+- `runner`: sandboxed code runner (Docker) and the `code` challenge kind for the `cp`
+  track.
+- `local-models`: GPT-2 small loader, the `circuits` kind, and the local steering
+  backend.
+- `lie-data`: learn and compete datasets for the lie-detection track.
+- `main`: NU email sign-in, all-time identity and tiers, hints, writeups, live
+  leaderboard, admin API, then the new UI.
+
 ## Open / next
 
 - UI: `web/` is still Steering Arena's single-challenge page and calls the old routes.
   Rework it for the challenge list, teams, and season board. Style direction: plainer
   and more readable (simple white text), keeping the arcade feel.
-- `circuits` kind: precompute an ablation table per task, score a submitted head set by
-  lookup.
 - Hints that cost points, writeups unlocked after a challenge closes.
 - Sandboxed code runner (CP track, script submissions).
 - Live leaderboard over WebSockets.

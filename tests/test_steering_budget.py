@@ -86,6 +86,21 @@ def test_player_budget(client, cfg, monkeypatch):
     assert _submit(client, "b", "two").status_code == 200
 
 
+def test_local_backend_never_touches_ndif(client, cfg, monkeypatch, db):
+    # NDIF switched off, yet a "local" steering challenge still scores, through the
+    # local gate, with nothing written to the NDIF ledger.
+    calls = {"builds": 0, "scores": 0}
+    monkeypatch.setattr(SteeringChallenge, "scorer_factory", staticmethod(_fake_factory(calls)))
+    body = {"slug": "steer-local", "title": "Steer GPT-2", "kind": "steering",
+            "track": "steering", "tier": "learn", "config": {**CONFIG, "backend": "local"}}
+    assert client.post("/api/admin/challenges", json=body, headers=ADMIN).status_code == 200
+    r = client.post("/api/submit", json={"handle": "a", "challenge": "steer-local",
+                                         "answer": "be kind"})
+    assert r.status_code == 200, r.text
+    assert calls == {"builds": 1, "scores": 1}
+    assert db.count_ndif_since("0") == 0
+
+
 def test_token_budget(client, cfg, monkeypatch):
     cfg.ndif_enabled = True
     _setup(client, monkeypatch)

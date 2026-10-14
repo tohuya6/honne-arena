@@ -7,6 +7,7 @@ each other; see DECISIONS.md "Identity" for when that stops being enough.
 
 from __future__ import annotations
 
+import logging
 import re
 import sqlite3
 from datetime import datetime, timezone
@@ -17,6 +18,8 @@ from app.budget import check_ndif_budget
 from app.errors import (DuplicateError, NotFound, ScoringUnavailable, SubmitError,
                         ValidationError)
 from app.ratelimit import check_rate_limits
+
+_log = logging.getLogger("honne")
 
 HANDLE_RE = re.compile(r"^[\w \-.]{1,32}$")   # letters, digits, _, space, -, .
 TEAM_RE = re.compile(r"^[\w \-.']{1,40}$")
@@ -103,12 +106,14 @@ def process_submission(
     db,
     settings,
     run_remote: Callable | None = None,
+    run_local: Callable | None = None,
     now: datetime | None = None,
 ) -> dict:
     """Validate, dedup, rate-limit, judge, record.
 
-    `run_remote(fn)` runs a callable behind the bounded NDIF queue (ScoringGate.run).
-    Only challenges with `uses_ndif` go through it and through the NDIF budget.
+    `run_remote(fn)` runs a callable behind the bounded NDIF queue, `run_local(fn)`
+    behind the local job queue (both ScoringGate.run). A challenge's compute_mode()
+    picks which one, and only "ndif" challenges touch the NDIF budget.
     """
     now = now or datetime.now(timezone.utc)
     season = active_season(db)
@@ -135,9 +140,14 @@ def process_submission(
 
     check_rate_limits(db, ip_hash, settings, now)
 
-    if challenge.uses_ndif:
+    compute = challenge.compute_mode()
+    if compute == "ndif":
         check_ndif_budget(db, player["id"], settings, now)
-        outcome = _evaluate_remote(challenge, answer, db, player, settings, run_remote, now)
+        outcome = _evaluate_gated(challenge, answer, db, player, settings, run_remote, now,
+                                  log_ndif=True)
+    elif compute == "local":
+        outcome = _evaluate_gated(challenge, answer, db, player, settings, run_local, now,
+                                  log_ndif=False)
     else:
         outcome = challenge.evaluate(answer)
 
@@ -163,8 +173,9 @@ def process_submission(
     return result
 
 
-def _evaluate_remote(challenge, answer, db, player, settings, run_remote, now):
-    """Judge through the NDIF queue, logging each remote forward to the budget ledger.
+def _evaluate_gated(challenge, answer, db, player, settings, run, now, *, log_ndif: bool):
+    """Judge behind a job gate. For NDIF challenges, log each remote forward to the
+    budget ledger.
 
     Calls made while building the scorer (the one-time probe baseline) are logged with
     no player, so they count against the global cap but not this player's."""
@@ -181,17 +192,20 @@ def _evaluate_remote(challenge, answer, db, player, settings, run_remote, now):
 
     ok = False
     try:
-        outcome = run_remote(work) if run_remote else work()
+        outcome = run(work) if run else work()
         ok = True
         return outcome
     except SubmitError:
         raise
     except Exception as exc:  # noqa: BLE001, detail goes to the server log
-        raise ScoringUnavailable("Model scoring failed, please try again later.") from exc
+        _log.exception("judging failed for %s", challenge.slug)
+        raise ScoringUnavailable("Judging failed, please try again later.") from exc
     finally:
-        stamp = now.isoformat()
-        for _ in range(calls["prepare"]):
-            db.log_ndif_call(player_id=None, challenge_id=challenge.id, ok=ok, created_at=stamp)
-        for _ in range(calls["evaluate"]):
-            db.log_ndif_call(player_id=player["id"], challenge_id=challenge.id, ok=ok,
-                             created_at=stamp)
+        if log_ndif:
+            stamp = now.isoformat()
+            for _ in range(calls["prepare"]):
+                db.log_ndif_call(player_id=None, challenge_id=challenge.id, ok=ok,
+                                 created_at=stamp)
+            for _ in range(calls["evaluate"]):
+                db.log_ndif_call(player_id=player["id"], challenge_id=challenge.id, ok=ok,
+                                 created_at=stamp)

@@ -80,15 +80,21 @@ class ChallengeIn(BaseModel):
 
 
 def create_app(cfg: Settings | None = None, db: Database | None = None,
-               gate: ScoringGate | None = None) -> FastAPI:
+               gate: ScoringGate | None = None,
+               local_gate: ScoringGate | None = None) -> FastAPI:
     cfg = cfg or settings
     if db is None:
         db = Database(cfg.db_path)
     db.migrate()
+    # Two separate queues: a burst of code runs must not delay NDIF scoring, and the
+    # other way round.
     gate = gate or ScoringGate(cfg.ndif_concurrency, call_timeout_s=cfg.ndif_timeout_s)
+    local_gate = local_gate or ScoringGate(cfg.local_concurrency,
+                                           call_timeout_s=cfg.local_timeout_s)
 
     app = FastAPI(title="Honne Arena", docs_url="/api/docs", redoc_url=None)
-    app.state.db, app.state.settings, app.state.gate = db, cfg, gate
+    app.state.db, app.state.settings = db, cfg
+    app.state.gate, app.state.local_gate = gate, local_gate
 
     if cfg.allowed_origin:
         app.add_middleware(CORSMiddleware, allow_origins=[cfg.allowed_origin],
@@ -160,7 +166,7 @@ def create_app(cfg: Settings | None = None, db: Database | None = None,
         return submission.process_submission(
             handle=body.handle, slug=body.challenge, answer=body.answer,
             ip_hash=hash_ip(ip, cfg.ip_hash_salt), db=db, settings=cfg,
-            run_remote=gate.run)
+            run_remote=gate.run, run_local=local_gate.run)
 
     # ── admin ──
     @app.post("/api/admin/seasons")

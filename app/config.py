@@ -46,6 +46,16 @@ class Settings(BaseSettings):
     ndif_player_per_min: int = 2
     cache_dir: str = "data/cache"      # probe baselines are computed once and kept here
 
+    # ── Local jobs: sandboxed code runs and small models on this server ──
+    local_concurrency: int = 2         # jobs in flight at once
+    local_timeout_s: int = 90          # backstop deadline per job, queue wait included
+    # "docker" runs submitted code in a locked-down container. "unsafe-subprocess" runs
+    # it as a plain child process with rlimits only. It exists for tests on machines
+    # without Docker and must never face real users.
+    runner_backend: str = "docker"
+    runner_image: str = "python:3.12-slim"
+    local_device: str = "cpu"          # torch device for small local models
+
     # ── CAPTCHA (Cloudflare Turnstile), active only when the secret is set ──
     turnstile_secret: str = ""
     turnstile_sitekey: str = ""

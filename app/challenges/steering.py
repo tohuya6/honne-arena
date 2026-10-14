@@ -93,7 +93,12 @@ def _cached_baseline(challenge, settings, model_id, probes, compute):
 class SteeringChallenge(Challenge):
     kind = "steering"
     mode = "score"
-    uses_ndif = True
+    compute = "ndif"
+
+    def compute_mode(self) -> str:
+        # config.backend "local" scores on a small model on this server (learn tier,
+        # no NDIF spend). Anything else is NDIF.
+        return "local" if self.config.get("backend") == "local" else "ndif"
 
     # Tests swap this for a fake so no test ever builds a real model client.
     scorer_factory = staticmethod(build_scorer)
