@@ -26,10 +26,14 @@ Challenge {slug, title, kind, mode: "solve"|"score", track, tier: "learn"|"compe
            solves: int|null,       # solve mode
            entries: int|null,      # score mode
            closes_at: str|null, closed: bool,
-           solved_by_me: bool, my_best: float|null}
+           solved_by_me: bool,     # I personally solved it (solve mode)
+           solved_by_team: bool,   # anyone on my team solved it (solve mode)
+           submitted_by_me: bool,  # I have any submission on it (gates the writeup form)
+           my_best: float|null}
 ```
 
-Kinds today: `flag`, `predictions`, `steering`, `code`, `circuits`.
+Kinds today: `flag` (solve), `code` (solve), `predictions` (score), `steering` (score),
+`circuits` (score). Circuits' public config includes `n_layers`, `n_heads`, `max_heads`.
 Tracks: `ctf`, `lie-detection`, `steering`, `circuits`, `cp`.
 
 ## Auth
@@ -39,7 +43,7 @@ Tracks: `ctf`, `lie-detection`, `steering`, `circuits`, `cp`.
 | POST | `/api/auth/request` | `{email}` | `{ok: true}`. 400 if not an allowed domain (`@northeastern.edu`). Dev only: `{ok, dev_link}` when `EMAIL_BACKEND=console` and `DEV_EXPOSE_LINKS=true` |
 | POST | `/api/auth/verify` | `{token}` | `{user: User}` and sets the cookie. Tokens are single use, 15 minutes |
 | POST | `/api/auth/logout` | `{}` | `{ok: true}`, clears the cookie |
-| GET | `/api/me` | | `{user: User|null, team: {name, join_code, members: [handle]}|null, tiers: {<track>: Tier}}` |
+| GET | `/api/me` | | `{user: User|null, team: {name, join_code, members: [handle]}|null, tiers: {<track>: Tier}}`. Any member sees the join code |
 | POST | `/api/me/handle` | `{handle}` | `{user: User}`. 1-32 chars `[\w \-.]`, unique. Required before submitting |
 
 The emailed link is `/verify.html?token=...`. That page must not consume the token on
@@ -52,7 +56,7 @@ load (Outlook Safe Links prefetches every link). It shows a "Sign in" button tha
 |---|---|---|---|
 | GET | `/api/season` | | `{id, name, captcha_sitekey: str|null, seasons: [{id, name, active}]}` |
 | GET | `/api/challenges?track=&tier=` | | `{challenges: [Challenge]}` |
-| GET | `/api/challenges/{slug}` | | `Challenge` plus `{board: [BoardRow...], hints: [Hint], writeups: [{handle, body, created_at}]}` (writeups only after close) |
+| GET | `/api/challenges/{slug}` | | Hidden challenges are 404 except to admins. `Challenge` plus `{board: [BoardRow...], hints: [Hint], writeups: [{handle, body, created_at}]}` (writeups only after close) |
 | POST | `/api/submit` | `{challenge, answer, turnstile_token?}` | solve: `{challenge, mode, correct, first_blood: bool}`. score: `{challenge, mode, score, ...detail}`. code adds `{verdict, passed, total}`. 401 if signed out, 400 if no handle yet, 409 duplicate, 403 if closed |
 | POST | `/api/challenges/{slug}/hints/{position}/unlock` | `{}` | `Hint` with body. Costs points except on `learn` challenges |
 | POST | `/api/challenges/{slug}/writeup` | `{body}` | `{ok: true}`. Only after close, only by someone who submitted. Plain text, max 20k chars, one per person (re-posting replaces) |
@@ -68,7 +72,7 @@ load (Outlook Safe Links prefetches every link). It shows a "Sign in" button tha
 
 | Method | Path | Returns |
 |---|---|---|
-| GET | `/api/leaderboard?season=` | `{season, teams: [{rank, team, points, solves}]}` (default active season) |
+| GET | `/api/leaderboard?season=` | `{season: {id, name}, teams: [{rank, team, points, solves}]}` (default active season) |
 | GET | `/api/tracks` | `{tracks: [{track, board: [{rank, handle, points, tier}]}]}`, all-time across seasons |
 | WS | `/ws` | server pushes `{type: "solve", challenge, handle, team, first_blood, at}` and `{type: "entry", challenge, handle, team, score, at}`. Wrong answers are never broadcast. Clients refetch what changed |
 
@@ -90,6 +94,6 @@ Allowed for a signed-in user whose email is in `ADMIN_EMAILS`, or with header
 | POST | `/api/admin/seasons` | `{name, active}` | season row |
 | GET | `/api/admin/challenges` | | `{challenges: [Challenge + {hidden, points_initial, points_min, points_decay}]}` incl. hidden, never secrets |
 | POST | `/api/admin/challenges` | challenge fields + `flag?` + `hints?: [{body, cost}]` + `closes_at?` | `{id, slug}` |
-| PATCH | `/api/admin/challenges/{slug}` | any of `{title, description, hidden, closes_at, points_initial, points_min, points_decay}` | `{slug}` |
+| PATCH | `/api/admin/challenges/{slug}` | any of `{title, description, hidden, closes_at, points_initial, points_min, points_decay}`. `closes_at: null` reopens | `{slug}` |
 | POST | `/api/admin/challenges/{slug}/hints` | `{body, cost}` | `{position}` |
 | GET | `/api/admin/usage` | | `{ndif: {enabled, calls_today, cap_per_day, cap_per_player_day}, submissions_today, users, local_jobs_in_flight}` |
