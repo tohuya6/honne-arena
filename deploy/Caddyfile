@@ -1,0 +1,13 @@
+# Replace arena.example.org with the real host name. Caddy gets and renews the HTTPS
+# certificate on its own.
+arena.example.org {
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		X-Frame-Options "DENY"
+	}
+	# WebSocket upgrades for /ws pass through reverse_proxy unchanged.
+	reverse_proxy 127.0.0.1:7860
+}

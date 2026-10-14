@@ -1,0 +1,24 @@
+[Unit]
+Description=Honne Arena (FastAPI)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+User=honne
+Group=honne
+WorkingDirectory=/srv/honne/app
+EnvironmentFile=/srv/honne/app/.env
+# Bound to localhost. Caddy terminates HTTPS in front of it.
+ExecStart=/srv/honne/app/.venv/bin/uvicorn app.main:create_app --factory --host 127.0.0.1 --port 7860 --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+# The code runner bind-mounts submissions from /tmp/honne-run-* into sandbox containers,
+# so the Docker daemon must see the same /tmp. A private /tmp would break that.
+PrivateTmp=false
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/honne
+
+[Install]
+WantedBy=multi-user.target

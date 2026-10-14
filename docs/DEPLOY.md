@@ -1,82 +1,89 @@
-# Deploying to the Hugging Face Space
+# Deploying Honne Arena
 
-The Space (`sohampadianeu/steering-arena`) is a **deployment target, not a mirror**. It
-holds ONE squashed commit of the application tree. The development history lives on GitHub.
-
-## Why it is not a mirror
-
-The HF pre-receive hook rejects plain binary blobs and **walks the entire pushed history**,
-not just the tip tree. This repo's history contains binaries that were committed without
-LFS for a stretch (`036f66d` removed the LFS rules; `c340e6e` put them back). Once those
-blobs exist in a commit range, converting them at the tip does not help — the push is
-still refused, listing the same files:
+The arena is one Python process plus a SQLite file. The code track runs submissions in
+throwaway Docker containers on the same machine, so the app runs **directly on a Linux
+host that has Docker**, not inside a container of its own (giving a container the Docker
+socket would hand it root on the host).
 
 ```
-remote: Your push was rejected because it contains binary files.
-remote:   - data/directions/d_olmo3_s3_score1.npz (ref: refs/heads/main)
+internet -> Caddy (HTTPS, port 443) -> uvicorn on 127.0.0.1:7860 -> data/arena.db
+                                              \-> docker run (one per code test)
 ```
 
-The alternatives were rewriting upstream history (`git lfs migrate import --everything`,
-which means force-pushing GitHub and invalidating other clones) or deploying a single
-commit. The Space does not need 20+ commits of research history, so it gets one.
+## What you need
 
-## Deploy
+- A Linux VM with 2+ cores, 4 GB RAM, 10 GB disk, and a public DNS name.
+  GPT-2 small for the circuits and local steering tracks runs on the CPU.
+- Docker, Python 3.12, Caddy.
+- SMTP credentials for sign-in links (any provider: Resend, Postmark, SES, or a
+  Google Workspace app password). Northeastern's Microsoft 365 often blocks SMTP sign-in
+  for student accounts, so a transactional provider is the safer choice.
 
-From a clean tree on the commit you want live (normally `main`):
+## Install
 
 ```bash
-git checkout --orphan space-deploy      # keeps the working tree, drops history
-git add -A                              # .gitattributes turns binaries into LFS pointers
-git commit -m "Steering Arena — deploy (squashed from <repo> @ $(git rev-parse --short main))"
-git push --force space space-deploy:main
-git checkout main && git branch -D space-deploy
+sudo adduser --system --group --home /srv/honne honne
+sudo usermod -aG docker honne                 # lets the app start sandbox containers
+sudo -u honne git clone https://github.com/tohuya6/honne-arena /srv/honne/app
+cd /srv/honne/app
+sudo -u honne python3 -m venv .venv
+sudo -u honne .venv/bin/pip install --no-cache-dir torch==2.12.0 --index-url https://download.pytorch.org/whl/cpu
+sudo -u honne .venv/bin/pip install --no-cache-dir -r requirements-model.txt
+sudo docker pull python:3.12-slim             # the sandbox image, pulled once
 ```
 
-The branch is disposable — create, push, delete. Do not keep it around; it only drifts.
-
-### Credentials
-
-`~/.gitconfig` wires the GitHub CLI in as the credential helper for github.com only, so a
-push to huggingface.co finds nothing and fails with `could not read Username`. Use an
-askpass shim so the token never lands in argv, git config, or shell history:
+Copy the hidden material (flags, labels, hidden tests) that is not in git:
 
 ```bash
-cat > /tmp/hf_askpass.sh <<'EOF'
-#!/bin/sh
-case "$1" in *[Uu]sername*) echo "hf" ;; *) printf '%s' "$HF_TOKEN" ;; esac
-EOF
-chmod +x /tmp/hf_askpass.sh
-GIT_ASKPASS=/tmp/hf_askpass.sh GIT_TERMINAL_PROMPT=0 git push --force space space-deploy:main
-rm -f /tmp/hf_askpass.sh
+rsync -a data/private/ honne@<host>:/srv/honne/app/data/private/
 ```
 
-`HF_TOKEN` comes from `~/.hf_token`, sourced by `~/startload.sh`.
+Create `/srv/honne/app/.env` from `.env.example`, mode 600, owned by `honne`. At least:
 
-## What the Space needs, and what it does NOT
+```
+ADMIN_TOKEN=<random>
+IP_HASH_SALT=<random>
+ADMIN_EMAILS=<organizer emails>
+PUBLIC_BASE_URL=https://<host>
+COOKIE_SECURE=true
+EMAIL_BACKEND=smtp
+SMTP_HOST=...
+SMTP_USER=...
+SMTP_PASSWORD=...
+EMAIL_FROM=...
+HF_HOME=/srv/honne/hf_cache
+```
 
-**Needs:** `app/`, `web/`, `data/` (probe sets + direction files the scorer loads),
-`Dockerfile`, `requirements.txt`, and `README.md` — whose YAML frontmatter (`sdk: docker`,
-`app_port: 7860`) is what makes it a Docker Space. Losing that frontmatter breaks the build.
+Leave `NDIF_ENABLED=false` until the NDIF team has said a club leaderboard is in scope.
 
-**Does NOT need env vars for a season change.** The scorer, `/health` and `/season` all read
-the active season row from Supabase. Opening a season is a SQL statement, not a redeploy —
-see `db/migrations/0009_season3.sql`. The Space variables `LAYER`, `D_FILE`, `D_VERSION`,
-`PROBE_SET`, `SEASON_ID`, `SEASON_NAME` are legacy fallbacks that the database overrides.
-
-## After deploying
+## Run
 
 ```bash
-curl -s https://sohampadianeu-steering-arena.hf.space/health
+sudo cp deploy/honne-arena.service /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now honne-arena
+sudo cp deploy/Caddyfile /etc/caddy/Caddyfile   # edit the host name first
+sudo systemctl reload caddy
 ```
 
-Confirm it reports the season you expect. `season_name` in the response means the new code
-is live; its absence means you are still looking at a pre-2026-09 build. Rebuild takes about
-a minute (`RUNNING_BUILDING` → `RUNNING_APP_STARTING` → `RUNNING`).
+Load the first season:
 
-## The ordering trap, for the record
+```bash
+sudo -u honne .venv/bin/python scripts/seed.py --season "Fall 2026"
+```
 
-Do not open a season in the database before the deployed code can score it. Between the two,
-`/submit` resolves the active season from the DB but scores with whatever the deployed build
-does, so rows land under the new season carrying the old metric — silently, with no error,
-and indistinguishable afterward from correct rows. This happened once during the Season 3
-build and was caught before any submission arrived. Deploy first, flip second.
+## Backups
+
+`deploy/backup.sh` takes a consistent SQLite snapshot with `.backup` (safe while the app
+is running). Run it nightly from cron and copy the snapshots off the machine.
+
+```
+15 3 * * * /srv/honne/app/deploy/backup.sh /srv/honne/backups
+```
+
+## Updating
+
+```bash
+cd /srv/honne/app && sudo -u honne git pull && sudo systemctl restart honne-arena
+```
+
+The schema is applied idempotently at startup.
