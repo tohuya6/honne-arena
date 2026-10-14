@@ -46,7 +46,7 @@ _log = logging.getLogger("honne")
 
 STATUSES = ("ok", "timeout", "memory", "runtime_error", "output_limit", "internal_error")
 
-OUTPUT_LIMIT_BYTES = 1 << 20   # per stream; more than this ends the run as output_limit
+OUTPUT_LIMIT_BYTES = 1 << 20   # per stream, past this the run ends as output_limit
 TMPFS_MB = 16                  # size of the writable /tmp inside the container
 PIDS_LIMIT = 64
 NOFILE_LIMIT = 64
@@ -282,7 +282,7 @@ def _check_image(image: str) -> None:
         return
     r = _docker("image", "inspect", "--format", "{{.Id}}", image)
     if r.returncode != 0:
-        _log.error("runner image %s is missing; pull it by hand", image)
+        _log.error("runner image %s is missing, pull it by hand", image)
         raise ScoringUnavailable("The code runner is not set up on this server yet.")
     _image_ok.add(image)
 
@@ -304,8 +304,8 @@ def _supports_no_new_privileges(image: str) -> bool:
             if not ok and b"operation not permitted" not in r.stderr:
                 ok = True   # failed for some other reason, keep the flag and let the run report it
             if not ok:
-                _log.warning("this Docker daemon cannot exec under no-new-privileges; "
-                             "code runs without that flag")
+                _log.warning("this Docker daemon cannot exec under no-new-privileges, "
+                             "so code runs without that flag")
             _nnp_ok[image] = ok
         return _nnp_ok[image]
 
