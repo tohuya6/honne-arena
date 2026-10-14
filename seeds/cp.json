@@ -1,0 +1,71 @@
+[
+  {
+    "slug": "sum-a-list",
+    "title": "Sum a list",
+    "kind": "code",
+    "track": "cp",
+    "tier": "learn",
+    "description": "Read a list of integers and print their sum.\n\n**Input.** The first line holds `n` (1 <= n <= 1000). The second line holds `n` integers, each between -10^9 and 10^9.\n\n**Output.** One line with the sum.\n\nSubmit a Python 3 program that reads from standard input and writes to standard output. It runs once per test, and every test must pass.",
+    "config": {
+      "language": "python",
+      "time_limit_s": 2,
+      "memory_mb": 256,
+      "samples": [
+        {"input": "3\n1 2 3\n", "output": "6\n"},
+        {"input": "4\n-5 10 0 -5\n", "output": "0\n"}
+      ],
+      "tests_file": "data/private/cp/sum-a-list.json"
+    },
+    "points_initial": 100,
+    "points_min": 50,
+    "points_decay": 20,
+    "hidden": false,
+    "hints": [
+      {"body": "`sys.stdin.read().split()` gives every number in the input as a list of strings, whatever the line breaks.", "cost": 0}
+    ]
+  },
+  {
+    "slug": "range-sums",
+    "title": "Range sums",
+    "kind": "code",
+    "track": "cp",
+    "tier": "compete",
+    "description": "You get an array and many questions of the form \"what is the sum of elements `l` through `r`?\". Answer them all.\n\n**Input.** The first line holds `n` and `q` (1 <= n <= 200000, 1 <= q <= 50000). The second line holds `a_1 ... a_n`, each between -10^9 and 10^9. Then `q` lines follow, each with `l r` (1 <= l <= r <= n).\n\n**Output.** `q` lines, the sum `a_l + ... + a_r` for each question in order.\n\nThe time limit is 2 seconds per test, and the largest tests are at the maximum size.",
+    "config": {
+      "language": "python",
+      "time_limit_s": 2,
+      "memory_mb": 256,
+      "samples": [
+        {"input": "5 3\n1 2 3 4 5\n1 5\n2 3\n4 4\n", "output": "15\n5\n4\n"},
+        {"input": "3 2\n-1 5 -2\n1 2\n1 3\n", "output": "4\n2\n"}
+      ],
+      "tests_file": "data/private/cp/range-sums.json"
+    },
+    "points_initial": 500,
+    "points_min": 100,
+    "points_decay": 10,
+    "hidden": false
+  },
+  {
+    "slug": "pair-count",
+    "title": "Pair count",
+    "kind": "code",
+    "track": "cp",
+    "tier": "compete",
+    "description": "Count the pairs of positions `i < j` with `a_i + a_j = k`.\n\n**Input.** The first line holds `n` and `k` (1 <= n <= 200000, -2*10^9 <= k <= 2*10^9). The second line holds `a_1 ... a_n`, each between -10^9 and 10^9.\n\n**Output.** One line with the number of pairs. It can be larger than 2^32.\n\nThe time limit is 2 seconds per test, and the largest tests are at the maximum size.",
+    "config": {
+      "language": "python",
+      "time_limit_s": 2,
+      "memory_mb": 256,
+      "samples": [
+        {"input": "5 6\n1 5 3 3 2\n", "output": "2\n"},
+        {"input": "4 2\n1 1 1 1\n", "output": "6\n"}
+      ],
+      "tests_file": "data/private/cp/pair-count.json"
+    },
+    "points_initial": 400,
+    "points_min": 100,
+    "points_decay": 10,
+    "hidden": false
+  }
+]
