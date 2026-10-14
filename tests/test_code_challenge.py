@@ -237,12 +237,15 @@ def test_submit_pipeline_runs_code_behind_the_local_gate(fake):
         return fn()
 
     s = Settings(_env_file=None, db_path=":memory:", ip_hash_salt="salt")
+    user = db.get_or_create_user("ada@northeastern.edu")
+    db.set_user_handle(user["id"], "ada")
+    user = db.get_user(user["id"])
     fake(all_correct(**{HIDDEN[0]["input"]: ("ok", "wrong\n", "")}))
-    res = process_submission(handle="ada", slug="add", answer=SOLUTION, ip_hash="h", db=db,
+    res = process_submission(user=user, slug="add", answer=SOLUTION, ip_hash="h", db=db,
                              settings=s, run_local=run_local)
     assert res["correct"] is False and len(gate_calls) == 1
     fake(all_correct())
-    res = process_submission(handle="ada", slug="add", answer=SOLUTION, ip_hash="h", db=db,
+    res = process_submission(user=user, slug="add", answer=SOLUTION, ip_hash="h", db=db,
                              settings=s, run_local=run_local)
     assert res["correct"] is True and len(gate_calls) == 2
 
