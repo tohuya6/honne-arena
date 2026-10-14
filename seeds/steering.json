@@ -1,0 +1,45 @@
+[
+  {
+    "slug": "gpt2-sentiment-learn",
+    "title": "Cheer up GPT-2",
+    "kind": "steering",
+    "track": "steering",
+    "tier": "learn",
+    "description": "Write a short piece of text that, put in front of ordinary prompts, pushes GPT-2 small's internal state toward **positive sentiment**.\n\nThe server puts your text in front of each of 16 neutral prompts (such as *\"The meeting is scheduled for\"*), reads the residual stream at the last token after block 9, and measures how much closer it points to a sentiment direction than the prompt alone does. That gain in cosine similarity, averaged over the prompts, is your score (Steering Arena's steering shift). Making the activations bigger does not help, only pointing them the right way does.\n\n**Answer.** Any text up to 16 GPT-2 tokens.\n\nThe direction is the normalized mean difference between positive and negative sentences at that layer. The sentence pairs and the code that builds it are in the repo at `scripts/make_gpt2_direction.py`, so you can rebuild it and test ideas on your own machine. This runs on the arena's own server and costs no NDIF time.",
+    "config": {
+      "backend": "local",
+      "model_id": "gpt2",
+      "layer": 9,
+      "d_file": "data/directions/d_gpt2_L9_sentiment.npz",
+      "probe_file": "data/probes/gpt2_neutral.json",
+      "token_budget": 16
+    },
+    "points_initial": 100,
+    "points_min": 50,
+    "points_decay": 20,
+    "hidden": false,
+    "hints": [
+      {"body": "Plain positive words already work. Then try what the model has seen: GPT-2 was trained on web text, so phrasing from reviews, forums, and news can move it more than a list of adjectives.", "cost": 0},
+      {"body": "The score is averaged over all 16 prompts, so text that only works before one kind of prompt will not rank. Check your idea against a few different prompts from data/probes/gpt2_neutral.json.", "cost": 0}
+    ]
+  },
+  {
+    "slug": "olmo3-steering-compete",
+    "title": "Steer OLMo 3",
+    "kind": "steering",
+    "track": "steering",
+    "tier": "compete",
+    "description": "Steering Arena's Season 2 setup. Write a short sequence that, put in front of neutral prompts, moves OLMo 3 32B's residual stream at layer 24 along the season's direction. The score is the mean gain in cosine similarity to the direction over the probe prompts (the steering shift). Higher wins.\n\n**Answer.** Any text up to 10 tokens.\n\nScoring runs on NDIF, a shared research cluster, so submissions are rate limited and a repeated answer is never scored twice.",
+    "config": {
+      "model_id": "allenai/Olmo-3-1125-32B",
+      "layer": 24,
+      "d_file": "data/directions/d_olmo3_L24_logistic.npz",
+      "probe_file": "data/probes/season2.json",
+      "token_budget": 10
+    },
+    "points_initial": 300,
+    "points_min": 100,
+    "points_decay": 20,
+    "hidden": true
+  }
+]

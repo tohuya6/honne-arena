@@ -9,8 +9,16 @@ Every evaluation is ONE batched remote forward over all probes. The probe baseli
 also one forward, computed once per challenge and cached to disk so a restart does not
 spend it again.
 
+With `config.backend = "local"` the same metric runs on a small GPT-2 style model on
+this server instead (`app.local_model`), for the learn tier. That path never calls NDIF
+and never calls `on_remote_call`.
+
 Config:
-  model_id     NDIF-hosted model id, e.g. "meta-llama/Llama-3.1-8B"
+  model_id     NDIF-hosted model id, e.g. "meta-llama/Llama-3.1-8B". With the local
+               backend, a Hugging Face id such as "gpt2".
+  backend      "local" for a small model on this server. Anything else is NDIF.
+  prepend_bos  local backend only: put the BOS token in front of every text (default
+               true, GPT-2's tokenizer adds none on its own)
   layer        residual layer to read
   d_file       .npz with key "d" (unit direction, hidden-size long)
   probe_file   JSON list (or {"prompts": [...]}) of neutral prompts
@@ -42,9 +50,12 @@ def build_scorer(challenge: "SteeringChallenge", settings, on_remote_call: Calla
 
     `on_remote_call` is invoked once per remote forward so the budget ledger sees the
     baseline build too, not just player submissions."""
+    cfg = challenge.config
+    if cfg.get("backend") == "local":
+        return build_local_scorer(challenge, settings)
+
     from app.ndif_client import ResidualReader
 
-    cfg = challenge.config
     backend = settings.scoring_backend.lower()
     model_id = cfg["model_id"] if backend == "ndif" else settings.local_model_id
     reader = ResidualReader.build(model_id, backend, ndif_key=settings.ndif_api_key,
@@ -68,6 +79,40 @@ def build_scorer(challenge: "SteeringChallenge", settings, on_remote_call: Calla
 
     def count_tokens(text: str) -> int:
         return len(reader.tokenizer(text, add_special_tokens=False)["input_ids"])
+
+    def score_fn(seq: str) -> float:
+        shift, _z = scoring.shift_and_specificity(seq, probes, batch_fn, base_units, d)
+        return float(shift)
+
+    return count_tokens, score_fn
+
+
+def build_local_scorer(challenge: "SteeringChallenge", settings):
+    """The same scorer on a small model on this server (config.backend = "local").
+    No remote call happens here, so there is nothing to report to the budget."""
+    from app import local_model
+
+    cfg = challenge.config
+    model_id = cfg["model_id"]
+    lm = local_model.load(model_id, settings.local_device)
+    d, _meta = scoring.load_direction(cfg["d_file"])
+    if lm.hidden_size != d.shape[0]:
+        raise ScoringUnavailable(f"Direction length {d.shape[0]} does not match the model's "
+                                 f"hidden size {lm.hidden_size}.")
+    probes = scoring.load_probes(cfg["probe_file"])
+    layer = int(cfg["layer"])
+    bos = bool(cfg.get("prepend_bos", True))
+
+    def batch_fn(texts):
+        return local_model.batch_last_resids(lm, list(texts), layer, prepend_bos=bos)
+
+    # The backend and BOS choice go into the cache key, so a local baseline can never be
+    # read back for an NDIF run of a model with the same id, or the other way round.
+    base_units = _cached_baseline(challenge, settings, f"local:{model_id}:bos={int(bos)}",
+                                  probes, lambda: scoring.baseline_unit_rows(probes, batch_fn))
+
+    def count_tokens(text: str) -> int:
+        return len(lm.token_ids(text))
 
     def score_fn(seq: str) -> float:
         shift, _z = scoring.shift_and_specificity(seq, probes, batch_fn, base_units, d)
