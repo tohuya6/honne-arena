@@ -32,8 +32,8 @@ accessible replicas of three existing contests, plus classic CTF flags:
 ## License and credit (2026-10-14)
 
 - Soham is in the club and is fine with us using it. His Space had no license, so only
-  he can license his code. **Do not push the repo public until he OKs MIT in writing**
-  (a message is enough). LICENSE is drafted as MIT naming both authors.
+  he could license his code. LICENSE is MIT naming both authors.
+- 2026-10-14: Soham OK'd MIT. Repo made public as tohuya6/honne-arena.
 - Credit for the UI and the steering scorer goes in CREDITS.md and the site footer.
 
 ## Name (2026-10-14)
@@ -96,6 +96,18 @@ by accident.
   `app/challenges/__init__.py`. A kind decides how to normalize and judge an answer.
 - Heavy model deps (nnsight, torch, transformers) moved to `requirements-model.txt`.
   The base install runs every non-model track.
+
+## Tiers and identity (2026-10-14)
+
+- Each arena (track) gives a tier from the all-time leaderboard, using fixed ranks:
+  t3 = top 5, t2 = top 15, t1 = any ranked entry.
+- Tiers are all-time. Reaching t3 in a track stays after a season resets, so a player
+  must be one identity across seasons, not a per-season handle.
+- Sign-in is by NU email (magic link to @northeastern.edu). An open sign-in such as
+  GitHub would let anyone, or any bot, farm the boards. Handles become display names on
+  a verified account.
+- Tiers are not tied to club membership. That may change later; it is not official.
+- Open: the email sender for magic links.
 
 ## Open / next
 
