@@ -35,5 +35,4 @@ hf_home/
 *.swp
 .idea/
 .vscode/
-.claude/
 *.log
