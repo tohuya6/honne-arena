@@ -38,7 +38,9 @@ accessible replicas of three existing contests, plus classic CTF flags:
 
 ## Name (2026-10-14)
 
-- Undecided. The working directory is `arena`.
+- 2026-10-14: **Honne Arena**, repo `honne-arena`. *Honne* (本音) means one's true
+  feelings, as opposed to *tatemae*, the face shown in public. That split is what the
+  tracks look for in a model. Two syllables, and no collision with the contests replicated.
 - Avoid "Aletheia's Arena": Aletheia's Quest is Cadenza Labs and NDIF's contest, and
   the name would read as an official NDIF spin-off. Revisit if NDIF wants to affiliate.
 

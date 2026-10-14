@@ -22,7 +22,7 @@ from app.errors import Forbidden, NotFound, SubmitError, ValidationError
 from app.queue import ScoringGate
 from app.ratelimit import hash_ip
 
-_log = logging.getLogger("arena")
+_log = logging.getLogger("honne")
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 
 
@@ -87,7 +87,7 @@ def create_app(cfg: Settings | None = None, db: Database | None = None,
     db.migrate()
     gate = gate or ScoringGate(cfg.ndif_concurrency, call_timeout_s=cfg.ndif_timeout_s)
 
-    app = FastAPI(title="Arena", docs_url="/api/docs", redoc_url=None)
+    app = FastAPI(title="Honne Arena", docs_url="/api/docs", redoc_url=None)
     app.state.db, app.state.settings, app.state.gate = db, cfg, gate
 
     if cfg.allowed_origin:

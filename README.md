@@ -1,6 +1,8 @@
-# Arena
+# Honne Arena
 
-A competition and learning arena for NU AI Safety. One site, several tracks:
+A competition and learning arena for NU AI Safety. *Honne* (本音) is Japanese for
+what someone really thinks, as opposed to the face they show (*tatemae*). Finding a
+model's honne behind its outputs is the game. One site, several tracks:
 
 - **steering**: push a model's activations along a direction (from Steering Arena)
 - **lie-detection**: predict which transcripts are lies, scored by AUROC on hidden labels
