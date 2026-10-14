@@ -17,9 +17,18 @@
     "points_decay": 20,
     "hidden": false,
     "hints": [
-      {"body": "Start at the end. The heads that copy a name into the final position, the name movers, sit in layers 9 and 10. Try ablating one head at a time and see which ones the logit difference depends on.", "cost": 0},
-      {"body": "The name movers need to be told which name NOT to copy. That signal comes from S-inhibition heads in layers 7 and 8, which in turn read induction and duplicate token heads in earlier layers that notice the subject's name appears twice.", "cost": 0},
-      {"body": "Wang et al., \"Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small\" (2022), arXiv:2211.00593. Their Figure 2 lists the heads they found.", "cost": 0}
+      {
+        "body": "Start at the end. The heads that copy a name into the final position, the name movers, sit in layers 9 and 10. Try ablating one head at a time and see which ones the logit difference depends on.",
+        "cost": 0
+      },
+      {
+        "body": "The name movers need to be told which name NOT to copy. That signal comes from S-inhibition heads in layers 7 and 8, which in turn read induction and duplicate token heads in earlier layers that notice the subject's name appears twice.",
+        "cost": 0
+      },
+      {
+        "body": "Wang et al., \"Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small\" (2022), arXiv:2211.00593. Their Figure 2 lists the heads they found.",
+        "cost": 0
+      }
     ]
   },
   {
@@ -33,7 +42,8 @@
       "model_id": "gpt2",
       "split": "hidden",
       "seed_file": "data/private/circuits/ioi-circuit-compete.json",
-      "max_heads": 20
+      "max_heads": 20,
+      "metric": "distance"
     },
     "points_initial": 300,
     "points_min": 100,

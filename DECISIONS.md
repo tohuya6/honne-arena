@@ -176,6 +176,35 @@ Built the same day in parallel branches, merged into `main` after review:
   solution gets TLE on both compete problems. Hidden tests and reference solutions are
   in `data/private/cp/`.
 
+## Local models: circuits and steering (2026-10-14)
+
+- GPT-2 small runs on this server's CPU. "Layer L" means the output of block
+  `transformer.h[L]` before the final norm, the same as Steering Arena's NDIF reader.
+  Left-padded batches pass explicit position ids, because GPT-2 does not derive them
+  from the attention mask. One lock per model, since hooks are shared state.
+- Circuits replicates MIB's circuit localization on IOI. Nodes are attention heads at
+  every position. MLPs and embeddings are never ablated. Every other head is replaced
+  by its position-wise mean over an ABC distribution, per template. Faithfulness is
+  (LD_circuit - LD_ablated) / (LD_full - LD_ablated) on the prompt-mean logit
+  difference.
+- Checked numbers on the 180 public prompts: all heads 1.00, empty set 0.00, the
+  26-head circuit from Wang et al. (2022) 0.868 (the paper reports 87%), and the best
+  of 30 random 26-head sets 0.28. A submission takes about 2 s.
+- Scoring: the learn tier ranks by raw faithfulness (higher wins), where a score above
+  1 is itself a lesson about negative name movers. The compete tier ranks by distance
+  `|1 - faithfulness|` (lower wins, like MIB's CMD), because raw faithfulness lets a
+  set that drops the negative name movers (1.11) beat the real circuit.
+- The hidden split reads a seed file from `data/private/` and excludes every public
+  prompt. Templates and the generator are public, so the hidden split stops tuning to
+  exact prompts, not to the distribution.
+- Local steering (learn tier) uses a GPT-2 sentiment direction at layer 9 (a normalized
+  mean difference over contrast pairs, script in `scripts/`). Aligned prefixes score
+  about +0.026 and opposite ones about -0.024. The vector is in the public repo, like
+  Steering Arena's. The compete steering challenge keeps Steering Arena's OLMo-3-32B
+  setup on NDIF and stays hidden while NDIF is off.
+- Open: each local job uses up to 24 torch threads. Add a thread cap before two jobs
+  can saturate a shared machine.
+
 ## Open / next
 
 - UI: `web/` is still Steering Arena's single-challenge page and calls the old routes.

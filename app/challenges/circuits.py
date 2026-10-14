@@ -448,6 +448,7 @@ class CircuitsChallenge(Challenge):
         out = {"model_id": cfg["model_id"], "split": cfg["split"], "max_heads": self.max_heads,
                "metric": self.metric, "higher_is_better": self.higher_is_better,
                "answer_format": ANSWER_FORMAT,
+               "n_layers": self.shape[0], "n_heads": self.shape[1],
                "n_prompts": int(cfg.get("n_per_template", 6)) * 2 * len(TEMPLATES)}
         if cfg.get("prompts_url"):
             out["prompts_url"] = cfg["prompts_url"]
