@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in | Honne Arena</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <!-- The token is in this page's URL. Never send it anywhere in a Referer header. -->
+  <meta name="referrer" content="no-referrer" />
+  <meta name="color-scheme" content="dark" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; object-src 'none'" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css?v=20" />
+  <script defer src="/verify.js?v=20"></script>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap bar">
+      <a class="brand" href="/" aria-label="Honne Arena, home">HONNE<span>ARENA</span></a>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <div class="narrow">
+    <div class="page-head"><h1>Sign in</h1></div>
+    <!-- Email link scanners (Outlook Safe Links) open every link before you do. This
+         page therefore does nothing on load. Only the button press uses the token. -->
+    <form class="card" id="verify-form">
+      <p id="verify-intro">Press the button to finish signing in to Honne Arena.</p>
+      <div class="actions">
+        <button class="btn" id="verify-btn" type="submit">Sign in</button>
+      </div>
+      <div id="verify-status" role="status" aria-live="polite"></div>
+    </form>
+    </div>
+  </main>
+
+  <footer class="site-foot">
+    <div class="wrap foot">
+      <p>UI design by <a href="https://sohampadianeu-steering-arena.hf.space/" rel="noopener">Soham Padia (Steering Arena)</a>.
+        Honne Arena is open source on <a href="https://github.com/tohuya6/honne-arena" rel="noopener">GitHub</a>.</p>
+    </div>
+  </footer>
+</body>
+</html>
