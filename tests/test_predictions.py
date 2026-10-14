@@ -24,24 +24,34 @@ def _make(client, **cfg):
     assert client.post("/api/admin/challenges", json=body, headers=ADMIN).status_code == 200
 
 
-def _submit(client, handle, text):
-    return client.post("/api/submit", json={"handle": handle, "challenge": "liar",
-                                            "answer": text})
+@pytest.fixture()
+def as_player(login):
+    clients = {}
+
+    def get(handle):
+        if handle not in clients:
+            clients[handle] = login(handle)
+        return clients[handle]
+    return get
 
 
-def test_perfect_and_inverted(client):
+def _submit(as_player, handle, text):
+    return as_player(handle).post("/api/submit", json={"challenge": "liar", "answer": text})
+
+
+def test_perfect_and_inverted(client, as_player):
     _make(client)
-    assert _submit(client, "a", "t1,0.9\nt2,0.8\nt3,0.1\nt4,0.2").json()["score"] == 1.0
-    assert _submit(client, "b", "t1,0.1\nt2,0.2\nt3,0.9\nt4,0.8").json()["score"] == 0.0
+    assert _submit(as_player, "a", "t1,0.9\nt2,0.8\nt3,0.1\nt4,0.2").json()["score"] == 1.0
+    assert _submit(as_player, "b", "t1,0.1\nt2,0.2\nt3,0.9\nt4,0.8").json()["score"] == 0.0
     board = client.get("/api/challenges/liar").json()["board"]
     assert [r["handle"] for r in board] == ["a", "b"]
     assert board[0]["answer"] is None      # predictions are not shown on the board
 
 
-def test_reordered_duplicate_is_rejected(client):
+def test_reordered_duplicate_is_rejected(client, as_player):
     _make(client)
-    assert _submit(client, "a", "t1,0.9\nt2,0.8\nt3,0.1\nt4,0.2").status_code == 200
-    assert _submit(client, "b", "# copied\nt4,0.2\nt3,0.1\nt2,0.8\nt1,0.9").status_code == 409
+    assert _submit(as_player, "a", "t1,0.9\nt2,0.8\nt3,0.1\nt4,0.2").status_code == 200
+    assert _submit(as_player, "b", "# copied\nt4,0.2\nt3,0.1\nt2,0.8\nt1,0.9").status_code == 409
 
 
 @pytest.mark.parametrize("text", [
@@ -51,11 +61,11 @@ def test_reordered_duplicate_is_rejected(client):
     "t1,0.9\nt1,0.8\nt3,0.1\nt4,0.2",      # repeated id
     "t1;0.9",
 ])
-def test_malformed(client, text):
+def test_malformed(client, as_player, text):
     _make(client)
-    assert _submit(client, "a", text).status_code == 400
+    assert _submit(as_player, "a", text).status_code == 400
 
 
-def test_accuracy_metric(client):
+def test_accuracy_metric(client, as_player):
     _make(client, metric="accuracy")
-    assert _submit(client, "a", "t1,0.9\nt2,0.4\nt3,0.1\nt4,0.2").json()["score"] == 0.75
+    assert _submit(as_player, "a", "t1,0.9\nt2,0.4\nt3,0.1\nt4,0.2").json()["score"] == 0.75

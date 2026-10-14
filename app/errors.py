@@ -1,4 +1,4 @@
-"""Domain errors for the submit pipeline. main.py maps these to HTTP codes."""
+"""Domain errors for the API. main.py maps these to HTTP codes."""
 
 
 class SubmitError(Exception):
@@ -13,6 +13,12 @@ class SubmitError(Exception):
 
 class ValidationError(SubmitError):
     http_status = 400
+
+
+class Unauthorized(SubmitError):
+    """Not signed in, or the session expired."""
+
+    http_status = 401
 
 
 class DuplicateError(SubmitError):
@@ -33,6 +39,12 @@ class QueueFull(SubmitError):
 
 
 class ScoringUnavailable(SubmitError):
+    http_status = 503
+
+
+class ServiceUnavailable(SubmitError):
+    """Something other than scoring is down, such as the email relay."""
+
     http_status = 503
 
 

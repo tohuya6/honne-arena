@@ -1,10 +1,7 @@
 """CAPTCHA gating. No network: covers the disabled and missing-token branches, plus the
 /api/submit 400 when enabled without a token. (Ported from Steering Arena.)"""
 
-from fastapi.testclient import TestClient
-
 from app import captcha
-from app.main import create_app
 
 
 def test_disabled_when_no_secret():
@@ -17,9 +14,9 @@ def test_enabled_rejects_missing_token():
     assert captcha.verify("", "a-secret") is False
 
 
-def test_submit_blocked_without_captcha_when_enabled(cfg, db):
+def test_submit_blocked_without_captcha_when_enabled(cfg, app, login):
     cfg.turnstile_secret = "test-secret"
-    client = TestClient(create_app(cfg, db=db))
-    r = client.post("/api/submit", json={"handle": "alice", "challenge": "x", "answer": "y"})
+    alice = login("alice")
+    r = alice.post("/api/submit", json={"challenge": "x", "answer": "y"})
     assert r.status_code == 400
     assert "captcha" in r.json()["error"].lower()
