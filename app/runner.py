@@ -90,6 +90,14 @@ def oom_kills():
         pass
     return 0
 
+# Not dumpable, so the program (same uid) cannot ptrace us or read /proc/1/mem,
+# even on a host where Yama allows ptrace between unrelated processes.
+try:
+    import ctypes
+    ctypes.CDLL(None).prctl(4, 0, 0, 0, 0)   # PR_SET_DUMPABLE, 0
+except Exception:
+    pass
+
 limit = float(sys.argv[1])
 before = oom_kills()
 t0 = time.perf_counter()
@@ -248,11 +256,23 @@ def _docker(*args: str, timeout: float = DOCKER_CLI_TIMEOUT_S) -> subprocess.Com
         raise ScoringUnavailable("The code runner is not answering right now.") from None
 
 
-def remove_container(name: str) -> None:
-    """Force-remove one container by its exact name. Missing is fine."""
+def remove_container(name: str, wait_s: float = 10.0) -> None:
+    """Force-remove one container by its exact name and wait until it is gone.
+
+    `docker rm -f` can return early when a removal is already under way (the --rm
+    auto-removal racing ours), so we poll until the name no longer resolves."""
+    deadline = time.monotonic() + wait_s
     try:
         subprocess.run(["docker", "rm", "-f", name], capture_output=True,
                        timeout=DOCKER_CLI_TIMEOUT_S, stdin=subprocess.DEVNULL)
+        while time.monotonic() < deadline:
+            r = subprocess.run(["docker", "container", "inspect", "--format", "{{.Id}}", name],
+                               capture_output=True, timeout=DOCKER_CLI_TIMEOUT_S,
+                               stdin=subprocess.DEVNULL)
+            if r.returncode != 0:
+                return
+            time.sleep(0.1)
+        _log.warning("container %s is still there after removal", name)
     except (FileNotFoundError, subprocess.TimeoutExpired):
         _log.warning("could not remove container %s", name)
 
