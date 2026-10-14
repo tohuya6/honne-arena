@@ -150,12 +150,37 @@ Built the same day in parallel branches, merged into `main` after review:
 - `main`: NU email sign-in, all-time identity and tiers, hints, writeups, live
   leaderboard, admin API, then the new UI.
 
+## Code runner (2026-10-14)
+
+- One fresh Docker container per test case: no network, read-only root, a small
+  noexec /tmp, memory and swap capped together, one CPU, 64 processes, every
+  capability dropped, uid 65534, \`--pull never\`, and no container logs. Submissions are
+  bind-mounted read-only from \`/var/tmp/honne-run-*\` (a snap-installed Docker daemon
+  cannot see the host /tmp).
+- A small trusted harness runs as PID 1 inside the container. It times the program,
+  reads OOM kills from the cgroup, kills every other process, then writes one status
+  line, so a submission cannot forge its own verdict. The host keeps a backstop of the
+  time limit plus 10 s and removes the exact container by name.
+- \`--security-opt no-new-privileges\` is probed once per process and dropped when the
+  daemon cannot run with it (true of snap Docker on the dev box). With the bounding set
+  empty a setuid binary still gains nothing. Production should use a regular Docker
+  install so the flag stays on.
+- Output is capped at 1 MiB per stream (over is OLE). \`wall_ms\` is program time
+  measured inside the container. Container start costs about 0.7 s per test.
+- A failing sample shows expected and actual output (500 chars). A failing hidden test
+  shows only the verdict, counts, and which test number failed.
+- Known limits: the kernel is shared (runc, default seccomp and AppArmor, no gVisor),
+  timing is noisy on a busy machine, and a verdict leaks about one bit per submission,
+  which only rate limits bound. Python only for now.
+- Seeds: \`sum-a-list\` (learn) and \`range-sums\`, \`pair-count\` (compete). A naive
+  solution gets TLE on both compete problems. Hidden tests and reference solutions are
+  in \`data/private/cp/\`.
+
 ## Open / next
 
 - UI: `web/` is still Steering Arena's single-challenge page and calls the old routes.
   Rework it for the challenge list, teams, and season board. Style direction: plainer
   and more readable (simple white text), keeping the arcade feel.
 - Hints that cost points, writeups unlocked after a challenge closes.
-- Sandboxed code runner (CP track, script submissions).
 - Live leaderboard over WebSockets.
 - Admin page for writing and scheduling challenges (today: the admin API).

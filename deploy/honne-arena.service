@@ -13,8 +13,8 @@ ExecStart=/srv/honne/app/.venv/bin/uvicorn app.main:create_app --factory --host 
 Restart=on-failure
 RestartSec=3
 NoNewPrivileges=true
-# The code runner bind-mounts submissions from /tmp/honne-run-* into sandbox containers,
-# so the Docker daemon must see the same /tmp. A private /tmp would break that.
+# The code runner bind-mounts submissions from /var/tmp/honne-run-* into sandbox containers,
+# so the Docker daemon must see the same /var/tmp. A private tmp would break that.
 PrivateTmp=false
 ProtectSystem=full
 ProtectHome=true
