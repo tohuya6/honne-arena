@@ -3,308 +3,863 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Steering Arena — Pro-Human Activation-Steering Competition</title>
-  <meta name="description" content="Submit short token sequences that steer a frozen language model's internal activations toward a learned 'pro-human' direction. The server scores and ranks them on a live leaderboard — arcade style. A non-commercial AI-interpretability research project." />
-  <link rel="canonical" href="https://sohampadianeu-steering-arena.hf.space/" />
-  <meta name="robots" content="index, follow" />
-  <meta name="author" content="Soham Padia" />
-  <meta name="keywords" content="activation steering, mechanistic interpretability, AI alignment, language model leaderboard, OLMo, NNsight, NDIF, pro-human direction, representation engineering" />
-
-  <!-- Open Graph (link previews) -->
+  <title>Honne Arena</title>
+  <meta name="description" content="Honne Arena is NU AI Safety's arena for learning and competing: CTF flags, lie detection, activation steering, circuits, and competitive programming." />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0a0a18" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Steering Arena" />
-  <meta property="og:title" content="Steering Arena — Pro-Human Activation-Steering Competition" />
-  <meta property="og:description" content="Find token sequences that steer a frozen LLM's activations toward a learned 'pro-human' direction. Live leaderboard, arcade style. A non-commercial interpretability research project." />
-  <meta property="og:url" content="https://sohampadianeu-steering-arena.hf.space/" />
-  <!-- Twitter card -->
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Steering Arena" />
-  <meta name="twitter:description" content="Steer a frozen LLM toward a learned 'pro-human' direction and climb the leaderboard. Non-commercial interpretability research." />
-  <meta name="twitter:creator" content="@SohamPadia" />
-
-  <!-- Google Search Console: after verifying via the DNS/HTML-file method (preferred) you
-       can ALSO drop your meta token here, then redeploy:
-  <meta name="google-site-verification" content="PASTE_YOUR_TOKEN_HERE" /> -->
-
-  <!-- Structured data for richer indexing -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "Steering Arena",
-    "alternateName": "Pro-Human Activation-Steering Competition",
-    "url": "https://sohampadianeu-steering-arena.hf.space/",
-    "description": "A public leaderboard where players submit short token sequences that steer a frozen large language model's internal activations along a learned 'pro-human' direction. Non-commercial AI-interpretability research.",
-    "author": {
-      "@type": "Person",
-      "name": "Soham Padia",
-      "url": "https://soham-padia.github.io",
-      "affiliation": { "@type": "Organization", "name": "Northeastern University" }
-    }
-  }
-  </script>
-
+  <meta property="og:site_name" content="Honne Arena" />
+  <meta property="og:title" content="Honne Arena" />
+  <meta property="og:description" content="NU AI Safety's arena for learning and competing in AI safety challenges." />
+  <!-- Alpine's standard build compiles expressions with Function(), hence 'unsafe-eval'.
+       Turnstile is only fetched when the season turns CAPTCHA on. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss:; frame-src https://challenges.cloudflare.com; base-uri 'none'; form-action 'self'; object-src 'none'" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230a0a18'/%3E%3Crect x='3' y='3' width='4' height='10' fill='%23ff5fb1'/%3E%3Crect x='9' y='3' width='4' height='10' fill='%233ad0ff'/%3E%3Crect x='3' y='7' width='10' height='2' fill='%23ffd23f'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=12" />
-  <!-- Self-hosted Alpine.js (no external CDN — works offline + no third-party block).
-       app.js defines arena() first, then Alpine initializes. User content is rendered
-       with x-text only — never x-html — to prevent stored XSS. -->
-  <script defer src="/app.js?v=12"></script>
-  <script defer src="/dlconfirm.js?v=1"></script>
+  <link rel="stylesheet" href="/styles.css?v=20" />
+  <script defer src="/md.js?v=20"></script>
+  <script defer src="/app.js?v=20"></script>
   <script defer src="/alpine.min.js"></script>
 </head>
 <body x-data="arena()" x-init="init()">
-  <div class="scanlines" aria-hidden="true"></div>
+  <a class="skip" href="#main" @click.prevent="focusMain()">Skip to content</a>
+  <div class="scanlines" x-show="scanlines" x-cloak aria-hidden="true"></div>
 
-  <header class="topbar">
-    <div class="wrap">
-      <div class="marquee">
-        <span class="coin" aria-hidden="true">●</span>
-        <h1>STEERING ARENA</h1>
-        <span class="coin" aria-hidden="true">●</span>
-      </div>
-      <p class="tag">STEER THE MODEL'S MIND — <b>&#9650; PRO&#8209;HUMAN</b> OR <b class="anti">&#9660; ANTI&#8209;HUMAN</b>. ONE SCORE, TWO BOARDS.</p>
-      <p class="insert blink"><a href="#play">▶ INSERT SEQUENCE</a></p>
-      <p class="nav"><a href="#rules">HOW IT WORKS</a> · <a href="/behavior.html">TAPES</a> · <a href="/behavior-reproducibility.html">BEHAVIOR METHOD</a> · <a href="/reproducibility.html">REPRODUCIBILITY</a> · <a href="/limitations.html">LIMITATIONS</a> · <a href="#data">DATA</a> · <a href="#cite">CITE</a> · <a href="#contact">CONTACT</a></p>
+  <header class="site">
+    <div class="wrap bar">
+      <a class="brand" href="#/" aria-label="Honne Arena, home">HONNE<span>ARENA</span></a>
+      <nav aria-label="Main">
+        <ul class="nav">
+          <li><a href="#/" :aria-current="isRoute('list','detail') ? 'page' : null">Challenges</a></li>
+          <li><a href="#/leaderboard" :aria-current="isRoute('leaderboard') ? 'page' : null">Leaderboard</a></li>
+          <li><a href="#/teams" :aria-current="isRoute('teams') ? 'page' : null">Teams</a></li>
+          <li x-show="isAdmin" x-cloak><a href="#/admin" :aria-current="isRoute('admin') ? 'page' : null">Admin</a></li>
+          <li>
+            <a href="#/me" x-show="signedIn" x-cloak :aria-current="isRoute('me') ? 'page' : null"
+               x-text="me.user?.handle || 'Me'"></a>
+            <a href="#/signin" class="signin-link" x-show="meLoaded && !signedIn" x-cloak
+               :aria-current="isRoute('signin') ? 'page' : null">Sign in</a>
+          </li>
+        </ul>
+      </nav>
     </div>
   </header>
 
-  <!-- Season banner -->
-  <!-- Reflects the season being VIEWED, not always the active one — otherwise an
-       archived board would be labelled with the live season's model/layer/direction. -->
-  <section class="wrap banner" x-show="viewSeason">
-    <span class="chip lit" x-text="viewSeason?.name"></span>
-    <span class="chip"><i>MODEL</i> <span x-text="viewSeason?.model_id"></span></span>
-    <!-- `layers` is the authoritative band on a multi-layer season; `layer` is a single
-         representative kept for back-compat and is all Seasons 1/2 ever had. Show
-         whichever the season actually has, so an archived board still reads correctly. -->
-    <span class="chip"><i x-text="viewSeason?.layers ? 'LAYERS' : 'LAYER'"></i>
-      <span x-text="viewSeason?.layers || viewSeason?.layer"></span></span>
-    <span class="chip"><i>DIR</i> <span x-text="viewSeason?.d_version"></span></span>
-    <span class="chip"><i>BUDGET</i> <span x-text="viewSeason?.token_budget"></span> TOK</span>
-    <span class="chip"><i>METRIC</i> <span x-text="viewSeason?.scoring_mode"></span></span>
-    <span class="chip" x-show="viewingArchive" style="border-color:#8a8985;color:#8a8985"
-          x-text="viewStateLabel"></span>
-  </section>
+  <!-- Signed in but no handle yet: you can't submit until you pick one. -->
+  <div class="wrap notice" x-show="needsHandle && !isRoute('me')" x-cloak>
+    <p>Pick a handle to start playing. It's the name other people see on the boards.
+      <a href="#/me">Choose a handle</a></p>
+  </div>
 
-  <!-- Season switcher. Scores are only comparable WITHIN a season, so this is a switch
-       between separate boards, never a merged view. -->
-  <section class="wrap tabs" x-show="seasons.length > 1" style="margin-bottom:0">
-    <template x-for="s in seasons" :key="s.id">
-      <button class="tab" :class="{ on: (viewSeasonId ?? season?.id) === s.id }"
-              @click="selectSeason(s.id)"
-              :title="s.model_id + ' · ' + (s.layers ? 'layers ' + s.layers : 'layer ' + s.layer) + ' · ' + s.d_version"
-              x-text="s.name + (s.active ? '' : ' · ' + seasonState(s))"></button>
-    </template>
-  </section>
+  <main id="main" class="wrap" tabindex="-1">
 
+    <!-- ═══════════ CHALLENGES LIST ═══════════ -->
+    <template x-if="isRoute('list')">
+      <section aria-labelledby="h-list">
+        <div class="page-head">
+          <h1 id="h-list" tabindex="-1">Challenges</h1>
+          <p class="lede"><span x-show="season?.name" x-text="season?.name + '. '"></span>Learn challenges are guided and their hints are free. Compete challenges count fully toward the season board.</p>
+        </div>
 
+        <form class="filters" role="search" aria-label="Filter challenges" @submit.prevent>
+          <div class="field">
+            <label for="f-track">Track</label>
+            <select id="f-track" x-model="filters.track" @change="applyFilters()">
+              <option value="">All tracks</option>
+              <template x-for="t in tracks" :key="t.id"><option :value="t.id" x-text="t.name"></option></template>
+            </select>
+          </div>
+          <fieldset class="field">
+            <legend>Tier</legend>
+            <div class="seg">
+              <button type="button" :aria-pressed="filters.tier === '' ? 'true' : 'false'" @click="setTier('')">All</button>
+              <button type="button" :aria-pressed="filters.tier === 'learn' ? 'true' : 'false'" @click="setTier('learn')">Learn</button>
+              <button type="button" :aria-pressed="filters.tier === 'compete' ? 'true' : 'false'" @click="setTier('compete')">Compete</button>
+            </div>
+          </fieldset>
+        </form>
 
-  <main class="wrap grid">
+        <p class="muted" x-show="listLoading && !challenges.length">Loading challenges...</p>
+        <p class="error-text" role="alert" x-show="listError" x-text="listError"></p>
+        <p class="empty" x-show="!listLoading && !listError && !challenges.length">No challenges match these filters yet.</p>
 
-    <!-- Viewing an archived board: /submit always targets the ACTIVE season server-side,
-         so showing the form here would post to a board other than the one on screen. -->
-    <section class="card" x-show="viewingArchive">
-      <h2 x-text="viewStateLabel"></h2>
-      <p class="muted">This board is not the live one. Its scores were computed with the model,
-        <span x-text="viewSeason?.layers ? 'layers' : 'layer'"></span>
-        <b x-text="viewSeason?.layers || viewSeason?.layer"></b> and direction
-        <b x-text="viewSeason?.d_version"></b> shown above, and are
-        <b>not comparable</b> with any other season's.
-        <a href="#" @click.prevent="selectSeason(season?.id)">Switch to <span x-text="season?.name"></span></a>
-        to submit.</p>
-    </section>
-
-    <!-- Submit -->
-    <section id="play" class="card" x-show="!viewingArchive">
-      <h2>NEW CHALLENGER</h2>
-      <p class="muted">A short string that, prepended to neutral prompts, shifts the model's last-token state along the direction — <b>▲ toward</b> pro-human or <b>▼ against</b> it. One submission scores once and ranks on both boards. Weird, opaque sequences are fair game.</p>
-
-      <label for="f-handle">PLAYER</label>
-      <input id="f-handle" type="text" maxlength="32" placeholder="AAA" x-model="handle" autocomplete="off" />
-
-      <label for="f-sequence">SEQUENCE</label>
-      <textarea id="f-sequence" rows="3" maxlength="6000" placeholder="be honest and own mistakes" x-model="sequence" @input.debounce.350ms="updateTokens()"></textarea>
-
-      <div class="cf-turnstile" :data-sitekey="season?.captcha_sitekey" x-show="season?.captcha_sitekey" style="margin:14px 0"></div>
-
-      <p class="muted pii-note">Your handle and sequence are public on the leaderboard. <b>Don't enter personal or sensitive information.</b></p>
-      <label class="consent">
-        <input type="checkbox" x-model="consent" />
-        <span>Allow my submission to be used for research (anonymized/aggregate analysis of how text steers model activations). Optional — untick to keep it off the research dataset. <a href="/consent.html" target="_blank" rel="noopener">What this means →</a></span>
-      </label>
-
-      <div class="row between">
-        <span class="muted est" :style="overBudget ? 'color:var(--red)' : ''">
-          <span x-text="tokenCount"></span> / <span x-text="season?.token_budget ?? 20"></span> TOK
-          <span class="hint" x-show="overBudget">over budget</span>
-        </span>
-        <button class="btn" :disabled="submitting || !handle.trim() || !sequence.trim() || overBudget" @click="submit()">
-          <span x-show="!submitting">&#9654; SCORE IT</span>
-          <span x-show="submitting">SCORING&#8230;</span>
-        </button>
-      </div>
-
-      <div class="readout ok" x-show="result" x-transition>
-        <span class="big" x-text="fmtScore(result?.score)"></span>
-        <span>&#9650; RANK <b x-text="result?.pro_rank"></b> PRO &middot; &#9660; RANK <b x-text="result?.anti_rank"></b> ANTI &middot; SPEC <b x-text="fmtSpec(result?.specificity)"></b> &middot; <span x-text="result?.token_count"></span> TOK</span>
-      </div>
-      <div class="readout err" x-show="error" x-transition>
-        <span class="big">GAME OVER</span>
-        <span x-text="error"></span>
-      </div>
-    </section>
-
-    <!-- Leaderboard -->
-    <section class="card">
-      <h2>HIGH SCORES</h2>
-      <div class="tabs">
-        <button class="tab" :class="{ on: tab==='pro' }" @click="tab='pro'">&#9650; PRO&#8209;HUMAN</button>
-        <button class="tab anti" :class="{ on: tab==='anti' }" @click="tab='anti'">&#9660; ANTI&#8209;HUMAN</button>
-        <button class="mini refresh" @click="loadBoards()" title="Refresh">&#8635;</button>
-      </div>
-      <p class="board-cap" x-text="tab==='pro' ? 'Top = pushed hardest TOWARD pro-human (highest score)' : 'Top = pushed hardest AGAINST it (most negative score)'"></p>
-      <p class="disclaimer">Scores are shifts along a learned activation direction — <b>not</b> measurements of moral content or behavioral safety. <a href="/limitations.html">Limitations →</a> <a href="/behavior.html">What the winners actually do →</a></p>
-
-      <div class="board-wrap" :class="{ scroll: !collapsed }">
-      <table class="board" x-show="entries.length">
-        <thead>
-          <tr><th>#</th><th>PLAYER</th><th>SEQUENCE</th>
-            <th class="num" x-text="season?.layers ? 'SCORE 1' : 'SCORE'"
-                :title="season?.layers
-                  ? 'Ranks the board. Mean cosine shift along d across layers ' + season.layers + '.'
-                  : 'Mean cosine shift along d at the season layer.'"></th>
-            <!-- Season 3 only. NOT bounded by SCORE 1 and does not bound it: the two use
-                 different directions and a min of shifts is not a shift of mins, so
-                 SCORE 2 > SCORE 1 is normal, not a bug. -->
-            <th class="num" x-show="season?.layers"
-                title="Weakest layer. The smallest shift across a WIDER band (15,23,31,39), using a separate direction per layer. A sequence that only moves d where it was optimised scores near zero here while SCORE 1 stays high.">SCORE 2</th>
-            <th class="num" title="Direction-specificity: how much of the sequence's activation movement is ALONG the pro-human direction vs just movement anywhere. High = targeted; low = artifact-like.">SPEC</th></tr>
-        </thead>
-        <tbody>
-          <template x-for="(e, i) in visibleEntries" :key="i">
-            <tr :class="i===0 ? 'gold' : i===1 ? 'silver' : i===2 ? 'bronze' : ''">
-              <td class="rank" x-text="i + 1"></td>
-              <td class="player" x-text="e.handle"></td>
-              <td class="seq">
-                <div class="seqbox" :class="{ clamp: !expandedSeq[e.sequence] }"
-                     @click="toggleSeq(e.sequence)"
-                     :title="expandedSeq[e.sequence] ? 'click to collapse' : 'click to expand'"
-                     x-text="e.sequence"></div>
-              </td>
-              <td class="num" x-text="fmtScore(e.score)"></td>
-              <td class="num" x-show="season?.layers" x-text="fmtScore(e.score_alt)"></td>
-              <td class="num spec" x-text="fmtSpec(e.specificity)"></td>
-            </tr>
+        <ul class="cards" aria-label="Challenge list">
+          <template x-for="c in challenges" :key="c.slug">
+            <li>
+              <a class="ccard" :class="{ closed: c.closed, solved: c.solved_by_me }" :href="'#/c/' + encodeURIComponent(c.slug)">
+                <span class="chips">
+                  <span class="chip" x-text="trackName(c.track)"></span>
+                  <span class="chip" :class="'tier-' + c.tier" x-text="tierLabel(c.tier)"></span>
+                  <span class="chip chip-closed" x-show="c.closed">Closed</span>
+                </span>
+                <span class="ctitle" x-text="c.title"></span>
+                <span class="cstats">
+                  <span><b x-text="fmtNum(c.points)"></b> pts</span>
+                  <span x-show="c.mode === 'solve'"><b x-text="fmtNum(c.solves)"></b> <span x-text="c.solves === 1 ? 'solve' : 'solves'"></span></span>
+                  <span x-show="c.mode !== 'solve'"><b x-text="fmtNum(c.entries)"></b> <span x-text="c.entries === 1 ? 'entry' : 'entries'"></span></span>
+                  <span class="kind" x-show="kindName(c.kind) !== trackName(c.track)" x-text="kindName(c.kind)"></span>
+                </span>
+                <span class="cmine" x-show="c.solved_by_me">&#10003; Solved</span>
+                <span class="cmine" x-show="!c.solved_by_me && c.my_best != null">My best: <b x-text="fmtScore(c.my_best)"></b></span>
+              </a>
+            </li>
           </template>
-        </tbody>
-      </table>
-      </div>
-      <button class="mini showmore" x-show="entries.length > collapseN" @click="collapsed = !collapsed"
-              x-text="collapsed ? ('▾ SHOW ALL (' + entries.length + ')') : '▴ SHOW LESS'"></button>
-      <p class="empty" x-show="!entries.length">NO SCORES YET<br />BE THE FIRST</p>
-    </section>
+        </ul>
+      </section>
+    </template>
+
+    <!-- ═══════════ CHALLENGE DETAIL ═══════════ -->
+    <template x-if="isRoute('detail')">
+      <section aria-labelledby="h-detail">
+        <p class="crumb"><a href="#/">&larr; All challenges</a></p>
+        <p class="muted" x-show="detailLoading && !detailReady">Loading...</p>
+        <template x-if="detailError && !detailReady">
+          <div>
+            <h1 id="h-detail" tabindex="-1">Challenge not found</h1>
+            <p class="error-text" role="alert" x-text="detailError"></p>
+          </div>
+        </template>
+
+        <template x-if="detailReady">
+          <div>
+            <div class="page-head">
+              <p class="chips">
+                <span class="chip" x-text="trackName(detail.track)"></span>
+                <span class="chip" :class="'tier-' + detail.tier" x-text="tierLabel(detail.tier)"></span>
+                <span class="chip" x-show="kindName(detail.kind) !== trackName(detail.track)" x-text="kindName(detail.kind)"></span>
+                <span class="chip chip-closed" x-show="detail.closed">Closed</span>
+              </p>
+              <h1 id="h-detail" tabindex="-1" x-text="detail.title"></h1>
+              <dl class="statline">
+                <div><dt>Points</dt><dd x-text="fmtNum(detail.points)"></dd></div>
+                <div x-show="detail.mode === 'solve'"><dt>Solves</dt><dd x-text="fmtNum(detail.solves)"></dd></div>
+                <div x-show="detail.mode !== 'solve'"><dt>Entries</dt><dd x-text="fmtNum(detail.entries)"></dd></div>
+                <div x-show="detail.closes_at && !detail.closed"><dt>Closes</dt><dd><span x-text="fmtDate(detail.closes_at)"></span> <span class="muted" x-text="'(' + fmtRel(detail.closes_at) + ')'"></span></dd></div>
+                <div x-show="detail.closed"><dt>Status</dt><dd>Closed</dd></div>
+                <div x-show="detail.solved_by_me"><dt>You</dt><dd class="good">&#10003; Solved</dd></div>
+                <div x-show="detail.my_best != null"><dt>My best</dt><dd x-text="fmtScore(detail.my_best)"></dd></div>
+              </dl>
+            </div>
+
+            <div class="split">
+              <div class="col-main">
+                <article class="card prose" aria-label="Description">
+                  <div class="md" x-html="md(detail.description)"></div>
+                  <p class="muted" x-show="!detail.description">No description yet.</p>
+                </article>
+
+                <section class="card samples" x-show="detail.kind === 'code' && samples.length" aria-labelledby="h-samples">
+                  <h2 id="h-samples">Sample tests</h2>
+                  <template x-for="(s, i) in samples" :key="i">
+                    <div class="sample">
+                      <div><p class="label-sm" x-text="'Input ' + (i + 1)"></p><pre x-text="s.input"></pre></div>
+                      <div><p class="label-sm" x-text="'Output ' + (i + 1)"></p><pre x-text="s.output"></pre></div>
+                    </div>
+                  </template>
+                </section>
+
+                <!-- Submit -->
+                <section class="card" id="submit" aria-labelledby="h-submit">
+                  <h2 id="h-submit">Submit</h2>
+
+                  <template x-if="detail.closed">
+                    <p class="muted">This challenge is closed. You can still read the board<span x-show="writeups.length"> and the writeups</span> below.</p>
+                  </template>
+                  <template x-if="!detail.closed && !signedIn">
+                    <div class="gate">
+                      <p>Sign in with your NU email to submit.</p>
+                      <button type="button" class="btn" @click="goSignIn()">Sign in</button>
+                    </div>
+                  </template>
+                  <template x-if="!detail.closed && needsHandle">
+                    <form class="gate" @submit.prevent="saveHandle()">
+                      <p>Pick a handle first. It's the name other people see on the boards.</p>
+                      <label for="gate-handle">Handle</label>
+                      <div class="inline-form">
+                        <input id="gate-handle" type="text" maxlength="32" autocomplete="nickname" x-model="handleInput" aria-describedby="gate-handle-help" />
+                        <button class="btn" :disabled="busy">Save</button>
+                      </div>
+                      <p id="gate-handle-help" class="help">1 to 32 characters: letters, numbers, spaces, and - _ .</p>
+                      <p class="error-text" role="alert" x-show="handleErr" x-text="handleErr"></p>
+                    </form>
+                  </template>
+
+                  <template x-if="!detail.closed && signedIn && !needsHandle && detail.mode === 'solve' && detail.solved_by_me">
+                    <p class="ok-text">&#10003; Your team has solved this one. Nice work.</p>
+                  </template>
+                  <template x-if="!detail.closed && signedIn && !needsHandle && !(detail.mode === 'solve' && detail.solved_by_me)">
+                    <form @submit.prevent="submit()" novalidate>
+                      <!-- flag -->
+                      <template x-if="detail.kind === 'flag'">
+                        <div>
+                          <label for="ans">Flag</label>
+                          <input id="ans" class="mono" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+                                 :placeholder="cfg.flag_format || 'flag{...}'" x-model="answer" aria-describedby="ans-help" />
+                          <p id="ans-help" class="help" x-show="cfg.flag_format">Flags look like <code x-text="cfg.flag_format"></code>.</p>
+                        </div>
+                      </template>
+
+                      <!-- steering -->
+                      <template x-if="detail.kind === 'steering'">
+                        <div>
+                          <label for="ans">Steering text</label>
+                          <textarea id="ans" rows="4" maxlength="6000" x-model="answer" aria-describedby="ans-help"
+                                    placeholder="be honest and own mistakes"></textarea>
+                          <p id="ans-help" class="help" :class="{ warn: tokenBudget && approxTokens > tokenBudget }">
+                            <span x-show="tokenBudget">Budget: <b x-text="tokenBudget"></b> tokens. </span>
+                            About <b x-text="approxTokens"></b> tokens so far. This is a rough guess; the server counts with the model's tokenizer.
+                          </p>
+                        </div>
+                      </template>
+
+                      <!-- predictions -->
+                      <template x-if="detail.kind === 'predictions'">
+                        <div>
+                          <p class="help">One line per item: <code>id,probability</code>. Lines starting with <code>#</code> are skipped.
+                            <template x-if="itemIdsHref"><span>Get the item list: <a :href="itemIdsHref" rel="noopener" x-text="'item ids'"></a>.</span></template></p>
+                          <label for="ans-file">Upload a file (.csv or .txt)</label>
+                          <input id="ans-file" type="file" accept=".csv,.txt,text/csv,text/plain" @change="readFile($event)" aria-describedby="ans-file-note" />
+                          <p id="ans-file-note" class="help" x-show="fileNote" x-text="fileNote"></p>
+                          <label for="ans">Or paste your predictions</label>
+                          <textarea id="ans" class="mono" rows="8" spellcheck="false" x-model="answer" aria-describedby="ans-help"
+                                    placeholder="item_001,0.82&#10;item_002,0.10"></textarea>
+                          <p id="ans-help" class="help"><b x-text="predLines"></b> prediction lines.</p>
+                        </div>
+                      </template>
+
+                      <!-- code -->
+                      <template x-if="detail.kind === 'code'">
+                        <div>
+                          <label for="ans" x-text="'Your code' + (cfg.language ? ' (' + cfg.language + ')' : '')"></label>
+                          <textarea id="ans" class="mono code" rows="14" spellcheck="false" autocapitalize="off" autocomplete="off"
+                                    x-model="answer" @keydown="codeKey($event)" aria-describedby="ans-help"></textarea>
+                          <p id="ans-help" class="help">Tab adds 4 spaces. To leave the editor with the keyboard, press Esc and then Tab.
+                            Reads from stdin, writes to stdout.</p>
+                        </div>
+                      </template>
+
+                      <!-- circuits -->
+                      <template x-if="detail.kind === 'circuits'">
+                        <div>
+                          <label for="ans">Attention heads</label>
+                          <textarea id="ans" class="mono" rows="3" spellcheck="false" x-model="answer" aria-describedby="ans-help ans-count"
+                                    placeholder="9.9, 9.6, 10.0"></textarea>
+                          <p id="ans-help" class="help">Write each head as <code>layer.head</code>, so <code>9.6</code> is layer 9, head 6. Separate heads with commas. Repeats count once.</p>
+                          <p id="ans-count" class="help" :class="{ warn: headsOver || heads.invalid.length }">
+                            <b x-text="heads.valid.length"></b><span x-show="maxHeads" x-text="' / ' + maxHeads"></span> heads.
+                            <span x-show="headsOver">That's over the limit.</span>
+                            <span x-show="heads.invalid.length">Not a head: <span x-text="heads.invalid.slice(0, 5).join(', ')"></span>.</span>
+                          </p>
+                        </div>
+                      </template>
+
+                      <!-- any other kind: plain text -->
+                      <template x-if="!['flag','steering','predictions','code','circuits'].includes(detail.kind)">
+                        <div>
+                          <label for="ans">Answer</label>
+                          <textarea id="ans" rows="4" x-model="answer"></textarea>
+                        </div>
+                      </template>
+
+                      <div id="turnstile-slot" class="turnstile" x-show="season?.captcha_sitekey"></div>
+
+                      <div class="actions">
+                        <button class="btn" type="submit" :disabled="!canSubmit">
+                          <span x-show="!submitting">Submit</span>
+                          <span x-show="submitting">Checking...</span>
+                        </button>
+                        <span class="help" x-show="detail.mode === 'score'">Your best entry counts. Repeating an exact answer won't score it again.</span>
+                      </div>
+                    </form>
+                  </template>
+
+                  <div class="result-region" role="status" aria-live="polite" aria-atomic="true">
+                    <template x-if="hasResult">
+                      <div class="readout" :class="resultView.tone">
+                        <p class="readout-title" x-text="resultView.title"></p>
+                        <p class="readout-big" x-show="resultView.big" x-text="resultView.big"></p>
+                        <template x-for="(l, i) in resultView.lines" :key="i"><p x-text="l"></p></template>
+                      </div>
+                    </template>
+                    <template x-if="submitError">
+                      <div class="readout bad">
+                        <p class="readout-title">Couldn't submit</p>
+                        <p x-text="submitError"></p>
+                        <p x-show="!signedIn"><a href="#/signin" @click.prevent="goSignIn()">Sign in</a></p>
+                      </div>
+                    </template>
+                  </div>
+                </section>
+              </div>
+
+              <aside class="col-side" aria-label="Challenge details">
+                <section class="card" x-show="facts.length" aria-labelledby="h-facts">
+                  <h2 id="h-facts">Details</h2>
+                  <dl class="facts">
+                    <template x-for="f in facts" :key="f.label">
+                      <div><dt x-text="f.label"></dt><dd x-text="f.value"></dd></div>
+                    </template>
+                  </dl>
+                </section>
+
+                <section class="card" x-show="hints.length" aria-labelledby="h-hints">
+                  <h2 id="h-hints">Hints</h2>
+                  <p class="help" x-text="detail.tier === 'learn' ? 'Hints are free on learn challenges.' : 'Hints cost your team points.'"></p>
+                  <ol class="hints">
+                    <template x-for="h in hints" :key="h.position">
+                      <li class="hint">
+                        <div class="hint-head">
+                          <span class="label-sm" x-text="'Hint ' + h.position"></span>
+                          <span class="cost" x-text="(detail.tier === 'learn' || !h.cost) ? 'Free' : h.cost + ' pts'"></span>
+                        </div>
+                        <template x-if="h.unlocked && h.body != null">
+                          <div class="md hint-body" x-html="md(h.body)"></div>
+                        </template>
+                        <template x-if="!h.unlocked">
+                          <button type="button" class="btn ghost small" @click="unlockHint(h)"
+                                  x-text="signedIn ? 'Unlock hint ' + h.position : 'Sign in to unlock'"></button>
+                        </template>
+                      </li>
+                    </template>
+                  </ol>
+                  <p class="error-text" role="alert" x-show="hintErr" x-text="hintErr"></p>
+                </section>
+              </aside>
+            </div>
+
+            <!-- Board -->
+            <section class="card" aria-labelledby="h-board">
+              <h2 id="h-board" x-text="detail.mode === 'solve' ? 'Solves' : 'Leaderboard'"></h2>
+              <p class="empty" x-show="!board.length" x-text="detail.mode === 'solve' ? 'No solves yet. Be the first.' : 'No entries yet. Be the first.'"></p>
+
+              <template x-if="board.length && detail.mode === 'solve'">
+                <div class="table-wrap" tabindex="0" role="region" aria-label="Solves table">
+                  <table class="table">
+                    <thead><tr><th scope="col" class="num">#</th><th scope="col">Team</th><th scope="col">Player</th><th scope="col" class="when">When</th></tr></thead>
+                    <tbody>
+                      <template x-for="(r, i) in board" :key="i">
+                        <tr :class="{ mine: isMyTeam(r.team), first: i === 0 }">
+                          <td class="num rank" x-text="i + 1"></td>
+                          <td><span x-text="r.team"></span> <span class="badge-fb" x-show="i === 0">First blood</span></td>
+                          <td x-text="r.handle"></td>
+                          <td class="when muted" x-text="fmtDate(r.created_at)"></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+              </template>
+
+              <template x-if="board.length && detail.mode !== 'solve'">
+                <div class="table-wrap" tabindex="0" role="region" aria-label="Leaderboard table">
+                  <table class="table">
+                    <thead><tr><th scope="col" class="num">#</th><th scope="col">Player</th><th scope="col">Team</th><th scope="col" class="num">Score</th>
+                      <th scope="col" class="answer" x-show="boardHasAnswers">Answer</th><th scope="col" class="when">When</th></tr></thead>
+                    <tbody>
+                      <template x-for="(r, i) in board" :key="i">
+                        <tr :class="{ mine: isMe(r.handle), gold: r.rank === 1, silver: r.rank === 2, bronze: r.rank === 3 }">
+                          <td class="num rank" x-text="r.rank ?? i + 1"></td>
+                          <td><span x-text="r.handle"></span><span class="answer-inline" x-show="r.answer" x-text="r.answer"></span></td>
+                          <td x-text="r.team"></td>
+                          <td class="num score" x-text="fmtScore(r.score)"></td>
+                          <td x-show="boardHasAnswers" class="answer"><span x-text="r.answer ?? ''"></span></td>
+                          <td class="when muted" x-text="fmtDate(r.created_at)"></td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+              </template>
+            </section>
+
+            <!-- Writeups (after close) -->
+            <section class="card" x-show="detail.closed" aria-labelledby="h-writeups">
+              <h2 id="h-writeups">Writeups</h2>
+              <p class="empty" x-show="!writeups.length">No writeups yet.</p>
+              <ul class="writeups">
+                <template x-for="(w, i) in writeups" :key="i">
+                  <li class="writeup">
+                    <p class="writeup-head"><b x-text="w.handle"></b> <span class="muted" x-text="fmtDate(w.created_at)"></span></p>
+                    <div class="writeup-body" x-text="w.body"></div>
+                  </li>
+                </template>
+              </ul>
+
+              <template x-if="signedIn && !needsHandle">
+                <form class="writeup-form" @submit.prevent="postWriteup()">
+                  <label for="wu" x-text="myWriteup ? 'Update your writeup' : 'Share how you approached it'"></label>
+                  <textarea id="wu" rows="8" maxlength="20000" x-model="writeupBody" aria-describedby="wu-help"></textarea>
+                  <p id="wu-help" class="help">Plain text. Open to anyone who submitted an answer. Posting again replaces your earlier one.
+                    <span x-text="writeupBody.length.toLocaleString() + ' / 20,000'"></span></p>
+                  <div class="actions"><button class="btn" :disabled="busy" x-text="myWriteup ? 'Update writeup' : 'Post writeup'"></button></div>
+                  <div role="status" aria-live="polite">
+                    <p class="ok-text" x-show="writeupMsg" x-text="writeupMsg"></p>
+                    <p class="error-text" x-show="writeupErr" x-text="writeupErr"></p>
+                  </div>
+                </form>
+              </template>
+            </section>
+          </div>
+        </template>
+      </section>
+    </template>
+
+    <!-- ═══════════ LEADERBOARD ═══════════ -->
+    <template x-if="isRoute('leaderboard')">
+      <section aria-labelledby="h-lb">
+        <div class="page-head">
+          <h1 id="h-lb" tabindex="-1">Leaderboard</h1>
+          <p class="lede">Teams earn points across every track this season. Tiers come from the all-time board for each track.</p>
+        </div>
+
+        <section class="card" aria-labelledby="h-season">
+          <div class="card-head">
+            <h2 id="h-season" x-text="'Season board' + (boardSeasonName ? ': ' + boardSeasonName : '')"></h2>
+            <div class="field inline" x-show="seasons.length > 1">
+              <label for="f-season">Season</label>
+              <select id="f-season" x-model="boardSeason" @change="loadBoard()">
+                <option value="">Current season</option>
+                <template x-for="s in seasons" :key="s.id"><option :value="String(s.id)" x-text="s.name + (s.active ? ' (active)' : '')"></option></template>
+              </select>
+            </div>
+          </div>
+          <p class="error-text" role="alert" x-show="boardError" x-text="boardError"></p>
+          <p class="empty" x-show="!boardError && seasonBoard && !boardTeams.length">No points on the board yet.</p>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Season team standings" x-show="boardTeams.length">
+            <table class="table">
+              <thead><tr><th scope="col" class="num">#</th><th scope="col">Team</th><th scope="col" class="num">Points</th><th scope="col" class="num">Solves</th></tr></thead>
+              <tbody>
+                <template x-for="(t, i) in boardTeams" :key="i">
+                  <tr :class="{ mine: isMyTeam(t.team), gold: t.rank === 1, silver: t.rank === 2, bronze: t.rank === 3 }">
+                    <td class="num rank" x-text="t.rank ?? i + 1"></td>
+                    <td x-text="t.team"></td>
+                    <td class="num score" x-text="fmtNum(t.points)"></td>
+                    <td class="num" x-text="fmtNum(t.solves)"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="h-alltime">
+          <h2 id="h-alltime">All-time by track</h2>
+          <p class="help">Tiers: <span class="tier-badge t3">T3</span> rank 1 to 5, <span class="tier-badge t2">T2</span> rank 6 to 15, <span class="tier-badge t1">T1</span> any other ranked entry. They carry over between seasons.</p>
+          <p class="error-text" role="alert" x-show="allTimeError" x-text="allTimeError"></p>
+          <div class="seg wrap-seg" role="group" aria-label="Pick a track" x-show="allTime.length">
+            <template x-for="t in allTime" :key="t.track">
+              <button type="button" :aria-pressed="allTimeTrack === t.track ? 'true' : 'false'" @click="allTimeTrack = t.track" x-text="trackName(t.track)"></button>
+            </template>
+          </div>
+          <p class="empty" x-show="allTime.length && !allTimeBoard.length">Nobody is ranked in this track yet.</p>
+          <div class="table-wrap" tabindex="0" role="region" :aria-label="'All-time standings, ' + trackName(allTimeTrack)" x-show="allTimeBoard.length">
+            <table class="table">
+              <thead><tr><th scope="col" class="num">#</th><th scope="col">Player</th><th scope="col">Tier</th><th scope="col" class="num">Points</th></tr></thead>
+              <tbody>
+                <template x-for="(r, i) in allTimeBoard" :key="i">
+                  <tr :class="{ mine: isMe(r.handle) }">
+                    <td class="num rank" x-text="r.rank ?? i + 1"></td>
+                    <td x-text="r.handle"></td>
+                    <td><span class="tier-badge" :class="'t' + r.tier" x-show="tierBadge(r.tier)" x-text="tierBadge(r.tier)"></span></td>
+                    <td class="num score" x-text="fmtNum(r.points)"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </template>
+
+    <!-- ═══════════ TEAMS ═══════════ -->
+    <template x-if="isRoute('teams')">
+      <section aria-labelledby="h-teams">
+        <div class="page-head">
+          <h1 id="h-teams" tabindex="-1">Teams</h1>
+          <p class="lede">Everyone starts on a solo team. Team up by creating a team and sharing its join code. You can switch teams only before your first submission this season.</p>
+        </div>
+
+        <template x-if="meLoaded && !signedIn">
+          <div class="card gate"><p>Sign in to create or join a team.</p><button type="button" class="btn" @click="goSignIn()">Sign in</button></div>
+        </template>
+        <template x-if="needsHandle">
+          <div class="card gate"><p>Pick a handle before you join a team.</p><a class="btn" href="#/me">Choose a handle</a></div>
+        </template>
+
+        <template x-if="signedIn && !needsHandle">
+          <div class="grid2">
+            <section class="card" aria-labelledby="h-myteam">
+              <h2 id="h-myteam">Your team</h2>
+              <template x-if="me.team">
+                <div>
+                  <p class="team-name" x-text="me.team?.name"></p>
+                  <h3 class="label-sm">Members</h3>
+                  <ul class="members">
+                    <template x-for="m in (me.team?.members || [])" :key="m"><li x-text="m"></li></template>
+                  </ul>
+                  <template x-if="teamJoinCode">
+                    <div class="joincode">
+                      <h3 class="label-sm" id="jc-label">Join code</h3>
+                      <div class="inline-form">
+                        <code class="code-box" aria-labelledby="jc-label" x-text="teamJoinCode"></code>
+                        <button type="button" class="btn ghost small" @click="copy(teamJoinCode)" x-text="copied ? 'Copied' : 'Copy'"></button>
+                      </div>
+                      <p class="help">Share this with teammates. They paste it under "Join a team".</p>
+                    </div>
+                  </template>
+                  <p class="help" x-show="!teamJoinCode">Only the person who created this team sees its join code.</p>
+                </div>
+              </template>
+              <p class="muted" x-show="!me.team">You're not on a team yet.</p>
+            </section>
+
+            <div>
+              <section class="card" aria-labelledby="h-create">
+                <h2 id="h-create">Create a team</h2>
+                <form @submit.prevent="createTeam()">
+                  <label for="t-name">Team name</label>
+                  <div class="inline-form">
+                    <input id="t-name" type="text" maxlength="40" autocomplete="off" x-model="teamName" />
+                    <button class="btn" :disabled="busy">Create</button>
+                  </div>
+                </form>
+              </section>
+              <section class="card" aria-labelledby="h-join">
+                <h2 id="h-join">Join a team</h2>
+                <form @submit.prevent="joinTeam()">
+                  <label for="t-code">Join code</label>
+                  <div class="inline-form">
+                    <input id="t-code" class="mono" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" x-model="joinCode" />
+                    <button class="btn" :disabled="busy">Join</button>
+                  </div>
+                </form>
+              </section>
+              <div role="status" aria-live="polite">
+                <p class="ok-text" x-show="teamMsg" x-text="teamMsg"></p>
+                <p class="error-text" x-show="teamErr" x-text="teamErr"></p>
+              </div>
+            </div>
+          </div>
+        </template>
+      </section>
+    </template>
+
+    <!-- ═══════════ ME ═══════════ -->
+    <template x-if="isRoute('me')">
+      <section aria-labelledby="h-me">
+        <div class="page-head"><h1 id="h-me" tabindex="-1">Me</h1></div>
+        <template x-if="meLoaded && !signedIn">
+          <div class="card gate"><p>You're not signed in.</p><button type="button" class="btn" @click="goSignIn()">Sign in</button></div>
+        </template>
+        <template x-if="signedIn">
+          <div class="grid2">
+            <div>
+              <section class="card" aria-labelledby="h-handle">
+                <h2 id="h-handle">Handle</h2>
+                <p class="help" x-show="needsHandle">You need a handle before you can submit. It's the name on the boards.</p>
+                <form @submit.prevent="saveHandle()">
+                  <label for="me-handle">Handle</label>
+                  <div class="inline-form">
+                    <input id="me-handle" type="text" maxlength="32" autocomplete="nickname" x-model="handleInput" aria-describedby="me-handle-help" />
+                    <button class="btn" :disabled="busy" x-text="me.user?.handle ? 'Change' : 'Save'"></button>
+                  </div>
+                  <p id="me-handle-help" class="help">1 to 32 characters: letters, numbers, spaces, and - _ . It must be unique.</p>
+                </form>
+                <div role="status" aria-live="polite">
+                  <p class="ok-text" x-show="handleMsg" x-text="handleMsg"></p>
+                  <p class="error-text" x-show="handleErr" x-text="handleErr"></p>
+                </div>
+                <p class="help">Signed in as <span x-text="me.user?.email"></span>. Only you see this address.</p>
+              </section>
+              <section class="card" aria-labelledby="h-meteam">
+                <h2 id="h-meteam">Team</h2>
+                <p x-show="me.team"><b x-text="me.team?.name"></b> <span class="muted" x-text="'(' + (me.team?.members?.length || 0) + ' ' + ((me.team?.members?.length || 0) === 1 ? 'member' : 'members') + ')'"></span></p>
+                <p class="muted" x-show="!me.team">No team yet.</p>
+                <a href="#/teams">Manage your team</a>
+              </section>
+              <section class="card">
+                <h2>Sign out</h2>
+                <p class="help">Signs you out on this browser.</p>
+                <button type="button" class="btn ghost" @click="signOut()">Sign out</button>
+              </section>
+            </div>
+
+            <section class="card" aria-labelledby="h-tiers">
+              <h2 id="h-tiers">Tiers</h2>
+              <p class="help">From the all-time board for each track. T3 is rank 1 to 5, T2 is rank 6 to 15, T1 is any other ranked entry.</p>
+              <ul class="tiers">
+                <template x-for="t in tracks" :key="t.id">
+                  <li>
+                    <span class="tier-track" x-text="t.name"></span>
+                    <span class="tier-badge" :class="'t' + tierOf(t.id).tier" x-show="tierBadge(tierOf(t.id).tier)" x-text="tierBadge(tierOf(t.id).tier)"></span>
+                    <span class="muted" x-show="!tierBadge(tierOf(t.id).tier)">Not ranked yet</span>
+                    <span class="tier-meta" x-show="tierOf(t.id).rank != null" x-text="'Rank ' + tierOf(t.id).rank + ', ' + fmtNum(tierOf(t.id).points) + ' pts'"></span>
+                  </li>
+                </template>
+              </ul>
+            </section>
+          </div>
+        </template>
+      </section>
+    </template>
+
+    <!-- ═══════════ SIGN IN ═══════════ -->
+    <template x-if="isRoute('signin')">
+      <section aria-labelledby="h-signin" class="narrow">
+        <div class="page-head"><h1 id="h-signin" tabindex="-1">Sign in</h1></div>
+        <template x-if="signedIn">
+          <div class="card"><p>You're signed in<span x-show="me.user?.handle" x-text="' as ' + me.user?.handle"></span>.</p><a class="btn" href="#/">Go to challenges</a></div>
+        </template>
+        <template x-if="!signedIn && !signinSent">
+          <form class="card" @submit.prevent="requestLink()" novalidate>
+            <p>We'll email you a sign-in link. No password needed.</p>
+            <label for="si-email">NU email</label>
+            <input id="si-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false"
+                   placeholder="you@northeastern.edu" x-model="email" aria-describedby="si-help" />
+            <p id="si-help" class="help">Only @northeastern.edu addresses can sign in.</p>
+            <div class="actions"><button class="btn" :disabled="busy" x-text="busy ? 'Sending...' : 'Email me a link'"></button></div>
+            <p class="error-text" role="alert" x-show="signinErr" x-text="signinErr"></p>
+          </form>
+        </template>
+        <template x-if="!signedIn && signinSent">
+          <div class="card" role="status" aria-live="polite">
+            <h2>Check your inbox</h2>
+            <p>We sent a link to your NU inbox at <b x-text="email"></b>. It works once and expires in 15 minutes.</p>
+            <p class="help">Not there? Check Junk or Quarantine, then try again.</p>
+            <template x-if="devLink">
+              <p class="devlink">Dev mode: <a :href="devLink">open the sign-in link</a></p>
+            </template>
+            <div class="actions"><button type="button" class="btn ghost" @click="signinSent = false">Use a different email</button></div>
+          </div>
+        </template>
+      </section>
+    </template>
+
+    <!-- ═══════════ ADMIN ═══════════ -->
+    <template x-if="isRoute('admin')">
+      <section aria-labelledby="h-admin">
+        <div class="page-head"><h1 id="h-admin" tabindex="-1">Admin</h1></div>
+        <template x-if="!isAdmin">
+          <div class="card"><p>This page is for organizers.</p></div>
+        </template>
+        <template x-if="isAdmin">
+          <div>
+            <p class="error-text" role="alert" x-show="admin.error" x-text="admin.error"></p>
+
+            <section class="card" aria-labelledby="h-usage">
+              <div class="card-head">
+                <h2 id="h-usage">Usage today</h2>
+                <button type="button" class="btn ghost small" @click="loadAdmin()">Refresh</button>
+              </div>
+              <p class="muted" x-show="!admin.usage">Usage isn't available.</p>
+              <dl class="tiles" x-show="admin.usage">
+                <div><dt>NDIF</dt><dd x-text="admin.usage?.ndif?.enabled ? 'On' : 'Off'"></dd></div>
+                <div><dt>NDIF calls</dt><dd><span x-text="fmtNum(admin.usage?.ndif?.calls_today)"></span><small x-text="' / ' + fmtNum(admin.usage?.ndif?.cap_per_day)"></small></dd>
+                  <meter min="0" :max="admin.usage?.ndif?.cap_per_day || 1" :value="admin.usage?.ndif?.calls_today || 0" aria-label="NDIF calls used today"></meter></div>
+                <div><dt>Per player cap</dt><dd x-text="fmtNum(admin.usage?.ndif?.cap_per_player_day)"></dd></div>
+                <div><dt>Submissions</dt><dd x-text="fmtNum(admin.usage?.submissions_today)"></dd></div>
+                <div><dt>Users</dt><dd x-text="fmtNum(admin.usage?.users)"></dd></div>
+                <div><dt>Local jobs running</dt><dd x-text="fmtNum(admin.usage?.local_jobs_in_flight)"></dd></div>
+              </dl>
+            </section>
+
+            <section class="card" aria-labelledby="h-achal">
+              <h2 id="h-achal">Challenges</h2>
+              <div class="table-wrap" tabindex="0" role="region" aria-label="All challenges, including hidden">
+                <table class="table admin-table">
+                  <thead><tr><th scope="col">Challenge</th><th scope="col">Track</th><th scope="col">State</th><th scope="col" class="num">Points</th><th scope="col">Actions</th></tr></thead>
+                  <tbody>
+                    <template x-for="c in admin.challenges" :key="c.slug">
+                      <tr>
+                        <td><a :href="'#/c/' + encodeURIComponent(c.slug)" x-text="c.title"></a><br /><span class="muted mono small" x-text="c.slug + ' · ' + kindName(c.kind)"></span></td>
+                        <td><span x-text="trackName(c.track)"></span><br /><span class="muted small" x-text="tierLabel(c.tier)"></span></td>
+                        <td>
+                          <span class="chip" :class="c.hidden ? 'chip-closed' : 'tier-learn'" x-text="c.hidden ? 'Hidden' : 'Visible'"></span>
+                          <span class="chip chip-closed" x-show="c.closed">Closed</span>
+                          <br /><span class="muted small" x-show="c.closes_at && !c.closed" x-text="'Closes ' + fmtDate(c.closes_at)"></span>
+                        </td>
+                        <td class="num"><span x-text="fmtNum(c.points)"></span><br /><span class="muted small" x-show="c.points_initial != null" x-text="c.points_initial + ' down to ' + c.points_min + ', decay ' + c.points_decay"></span></td>
+                        <td class="row-actions">
+                          <button type="button" class="btn ghost small" @click="toggleHidden(c)" x-text="c.hidden ? 'Unhide' : 'Hide'" :aria-label="(c.hidden ? 'Unhide ' : 'Hide ') + c.title"></button>
+                          <button type="button" class="btn ghost small" x-show="!c.closed" @click="closeNow(c)" :aria-label="'Close ' + c.title">Close</button>
+                          <button type="button" class="btn ghost small" x-show="c.closed" @click="reopen(c)" :aria-label="'Reopen ' + c.title">Reopen</button>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+              <p class="empty" x-show="!admin.challenges.length">No challenges yet.</p>
+
+              <details class="sub">
+                <summary>Add a hint to an existing challenge</summary>
+                <form class="form-grid" @submit.prevent="addHintTo()">
+                  <div class="field"><label for="ah-slug">Challenge</label>
+                    <select id="ah-slug" x-model="admin.hintFor"><option value="">Pick one</option>
+                      <template x-for="c in admin.challenges" :key="c.slug"><option :value="c.slug" x-text="c.title"></option></template></select></div>
+                  <div class="field"><label for="ah-cost">Cost (points)</label><input id="ah-cost" type="number" min="0" step="1" x-model.number="admin.hintCost" /></div>
+                  <div class="field span2"><label for="ah-body">Hint (markdown)</label><textarea id="ah-body" rows="3" x-model="admin.hintBody"></textarea></div>
+                  <div class="actions span2"><button class="btn">Add hint</button><span role="status" class="help" x-text="admin.hintMsg"></span></div>
+                </form>
+              </details>
+            </section>
+
+            <section class="card" aria-labelledby="h-newchal">
+              <h2 id="h-newchal">New challenge</h2>
+              <form class="form-grid" @submit.prevent="createChallenge()" novalidate>
+                <div class="field"><label for="nc-title">Title</label><input id="nc-title" type="text" x-model="admin.form.title" required /></div>
+                <div class="field"><label for="nc-slug">Slug</label><input id="nc-slug" class="mono" type="text" x-model="admin.form.slug" pattern="[a-z0-9][a-z0-9-]{0,63}" aria-describedby="nc-slug-help" required />
+                  <p id="nc-slug-help" class="help">Lowercase letters, digits and dashes. Shows in the URL.</p></div>
+                <div class="field"><label for="nc-kind">Kind</label>
+                  <select id="nc-kind" :value="admin.form.kind" @change="setKind($event.target.value)" aria-describedby="nc-kind-help">
+                    <template x-for="k in kinds" :key="k"><option :value="k" :selected="k === admin.form.kind" x-text="kindName(k)"></option></template></select>
+                  <p id="nc-kind-help" class="help">Changing the kind resets the JSON config to a template.</p></div>
+                <div class="field"><label for="nc-track">Track</label>
+                  <select id="nc-track" x-model="admin.form.track"><template x-for="t in tracks" :key="t.id"><option :value="t.id" x-text="t.name"></option></template></select></div>
+                <div class="field"><label for="nc-tier">Tier</label>
+                  <select id="nc-tier" x-model="admin.form.tier"><option value="learn">Learn</option><option value="compete">Compete</option></select></div>
+                <div class="field"><label for="nc-close">Closes at (your local time)</label><input id="nc-close" type="datetime-local" x-model="admin.form.closes_at" aria-describedby="nc-close-help" />
+                  <p id="nc-close-help" class="help">Leave empty to keep it open.</p></div>
+                <div class="field"><label for="nc-pi">Points at start</label><input id="nc-pi" type="number" min="0" step="1" x-model.number="admin.form.points_initial" /></div>
+                <div class="field"><label for="nc-pm">Minimum points</label><input id="nc-pm" type="number" min="0" step="1" x-model.number="admin.form.points_min" /></div>
+                <div class="field"><label for="nc-pd">Solves to reach minimum</label><input id="nc-pd" type="number" min="1" step="1" x-model.number="admin.form.points_decay" /></div>
+                <div class="field check"><input id="nc-hidden" type="checkbox" x-model="admin.form.hidden" /><label for="nc-hidden">Start hidden</label></div>
+
+                <fieldset class="span2 kindbox">
+                  <legend x-text="kindName(admin.form.kind) + ' settings'"></legend>
+                  <div class="form-grid">
+                    <template x-if="admin.form.kind === 'flag'">
+                      <div class="field span2 form-grid">
+                        <div class="field"><label for="nc-flag">Flag (stored only as a hash)</label><input id="nc-flag" class="mono" type="text" autocomplete="off" spellcheck="false" x-model="admin.form.flag" /></div>
+                        <div class="field"><label for="nc-ff">Flag format shown to players</label><input id="nc-ff" class="mono" type="text" placeholder="nuais{...}" x-model="admin.form.k.flag_format" /></div>
+                        <div class="field check"><input id="nc-cs" type="checkbox" x-model="admin.form.k.case_sensitive" /><label for="nc-cs">Case sensitive</label></div>
+                      </div>
+                    </template>
+                    <template x-if="admin.form.kind === 'predictions'">
+                      <div class="field"><label for="nc-metric">Metric</label><select id="nc-metric" x-model="admin.form.k.metric"><option value="auroc">AUROC</option><option value="accuracy">Accuracy</option></select></div>
+                    </template>
+                    <template x-if="admin.form.kind === 'steering'">
+                      <div class="field span2 form-grid">
+                        <div class="field"><label for="nc-model">Model id</label><input id="nc-model" class="mono" type="text" x-model="admin.form.k.model_id" /></div>
+                        <div class="field"><label for="nc-layer">Layer</label><input id="nc-layer" type="number" min="0" step="1" x-model="admin.form.k.layer" /></div>
+                        <div class="field"><label for="nc-tb">Token budget</label><input id="nc-tb" type="number" min="1" step="1" x-model="admin.form.k.token_budget" /></div>
+                        <div class="field check"><input id="nc-hib" type="checkbox" x-model="admin.form.k.higher_is_better" /><label for="nc-hib">Higher score wins</label></div>
+                      </div>
+                    </template>
+                    <template x-if="admin.form.kind === 'code'">
+                      <div class="field span2 form-grid">
+                        <div class="field"><label for="nc-lang">Language</label><input id="nc-lang" class="mono" type="text" x-model="admin.form.k.language" /></div>
+                        <div class="field"><label for="nc-tl">Time limit (seconds)</label><input id="nc-tl" type="number" min="0.1" step="0.1" x-model="admin.form.k.time_limit_s" /></div>
+                        <div class="field"><label for="nc-mem">Memory (MB)</label><input id="nc-mem" type="number" min="16" step="1" x-model="admin.form.k.memory_mb" /></div>
+                        <p class="help span2">Put sample tests in the JSON below as <code>samples: [{input, output}]</code>. Hidden tests stay in data/private/.</p>
+                      </div>
+                    </template>
+                    <template x-if="admin.form.kind === 'circuits'">
+                      <div class="field"><label for="nc-mh">Max heads</label><input id="nc-mh" type="number" min="1" step="1" x-model="admin.form.k.max_heads" /></div>
+                    </template>
+                    <div class="field span2">
+                      <label for="nc-config">Config (JSON)</label>
+                      <textarea id="nc-config" class="mono" rows="8" spellcheck="false" x-model="admin.form.configText" aria-describedby="nc-config-help"
+                                :aria-invalid="configParse.ok ? 'false' : 'true'"></textarea>
+                      <p id="nc-config-help" class="help" :class="{ warn: !configParse.ok }" x-text="configParse.ok ? 'Valid JSON. The fields above are laid over it.' : configParse.error"></p>
+                      <details class="sub"><summary>Config that will be sent</summary><pre class="code-pre" x-text="mergedConfig ? JSON.stringify(mergedConfig, null, 2) : 'Fix the JSON first.'"></pre></details>
+                    </div>
+                  </div>
+                </fieldset>
+
+                <div class="field span2">
+                  <label for="nc-desc">Description (markdown)</label>
+                  <textarea id="nc-desc" rows="8" x-model="admin.form.description" aria-describedby="nc-desc-help"></textarea>
+                  <p id="nc-desc-help" class="help">Headings, lists, code blocks, <code>`code`</code>, **bold**, *italic*, and http(s) links.
+                    <button type="button" class="linkish" @click="admin.form.preview = !admin.form.preview" :aria-expanded="admin.form.preview ? 'true' : 'false'" x-text="admin.form.preview ? 'Hide preview' : 'Show preview'"></button></p>
+                  <div class="card prose preview" x-show="admin.form.preview"><div class="md" x-html="md(admin.form.description)"></div></div>
+                </div>
+
+                <fieldset class="span2 kindbox">
+                  <legend>Hints</legend>
+                  <p class="help" x-show="!admin.form.hints.length">No hints yet.</p>
+                  <ol class="hint-rows">
+                    <template x-for="(h, i) in admin.form.hints" :key="i">
+                      <li class="form-grid">
+                        <div class="field span2"><label :for="'nh-b' + i" x-text="'Hint ' + (i + 1)"></label><textarea :id="'nh-b' + i" rows="2" x-model="h.body"></textarea></div>
+                        <div class="field"><label :for="'nh-c' + i">Cost (points)</label><input :id="'nh-c' + i" type="number" min="0" step="1" x-model.number="h.cost" /></div>
+                        <div class="field end"><button type="button" class="btn ghost small" @click="removeHintRow(i)" :aria-label="'Remove hint ' + (i + 1)">Remove</button></div>
+                      </li>
+                    </template>
+                  </ol>
+                  <button type="button" class="btn ghost small" @click="addHintRow()">Add a hint</button>
+                </fieldset>
+
+                <div class="actions span2">
+                  <button class="btn" :disabled="busy || !configParse.ok">Create challenge</button>
+                </div>
+                <div class="span2" role="status" aria-live="polite">
+                  <p class="ok-text" x-show="admin.formMsg" x-text="admin.formMsg"></p>
+                  <p class="error-text" x-show="admin.formErr" x-text="admin.formErr"></p>
+                </div>
+              </form>
+            </section>
+
+            <section class="card" aria-labelledby="h-seasons">
+              <h2 id="h-seasons">Seasons</h2>
+              <ul class="plain">
+                <template x-for="s in seasons" :key="s.id"><li><span x-text="s.name"></span> <span class="chip tier-learn" x-show="s.active">Active</span></li></template>
+              </ul>
+              <form @submit.prevent="createSeason()">
+                <label for="ns-name">New season name</label>
+                <div class="inline-form">
+                  <input id="ns-name" type="text" maxlength="60" x-model="admin.season.name" placeholder="Spring 2027" />
+                  <button class="btn" :disabled="busy">Create</button>
+                </div>
+                <div class="check"><input id="ns-active" type="checkbox" x-model="admin.season.active" /><label for="ns-active">Make it the active season</label></div>
+              </form>
+              <div role="status" aria-live="polite">
+                <p class="ok-text" x-show="admin.season.msg" x-text="admin.season.msg"></p>
+                <p class="error-text" x-show="admin.season.err" x-text="admin.season.err"></p>
+              </div>
+            </section>
+          </div>
+        </template>
+      </section>
+    </template>
+
+    <template x-if="isRoute('notfound')">
+      <section class="narrow">
+        <h1 tabindex="-1">Page not found</h1>
+        <p><a href="#/">Back to challenges</a></p>
+      </section>
+    </template>
   </main>
 
-  <section id="rules" class="wrap card rules">
-    <h2>HOW TO PLAY</h2>
-    <ul>
-      <!-- Reads off viewSeason, so an archived board's rules describe THAT season rather
-           than the live one. A single-layer season and a banded one are different games. -->
-      <li><b>THE GOAL.</b> A fixed <em>direction</em> <code>d</code> in the model's activation space points "toward pro-human." Submit a short token sequence; the server measures how far it shifts the model's internal state along <code>d</code>, averaged over fixed neutral probe prompts<span x-show="viewSeason?.layers">, and averaged again across <b>several layers</b> (<span x-text="viewSeason?.layers"></span>) rather than one</span>.</li>
-      <li x-show="viewSeason?.layers"><b>TWO SCORES.</b> <b>SCORE 1</b> ranks the board: the mean shift across the band above. <b>SCORE 2</b> is informational — it takes your <em>weakest</em> layer over a wider, more spread-out band, so a sequence that only moves <code>d</code> where it was optimized scores near zero there while SCORE 1 stays high. The two use different directions and neither bounds the other, so SCORE 2 above SCORE 1 is normal. <em>The gap between them is the interesting number.</em></li>
-      </ul>
-
-    <details class="more-rules">
-      <summary>&#9656; MORE RULES</summary>
-      <ul>
-        <li><b>OPEN BY DESIGN.</b> The model and <code>d</code> are public — it's an optimization game. The model runs on <a href="https://ndif.us" target="_blank" rel="noopener">NDIF</a> (via NNsight), so the <em>server is the scoring oracle</em>: it scores every entry canonically and that value is final. See the <a href="/reproducibility.html">reproducibility page</a> for the data + method.</li>
-      <li><b>TWO BOARDS.</b> Every entry gets one signed score. The <em>▲ pro-human</em> board ranks the most positive; the <em>▼ anti-human</em> board the most negative (the geometric opposite). A strong push lands you near the top of one — and the bottom of the other.</li>
-      <li><b>TOKEN BUDGET.</b> Sequences are capped at the season's budget. Cosine scoring means inflating activation magnitude does nothing — only <em>direction</em> counts.</li>
-      <li><b>SPEC = SPECIFICITY.</b> Alongside the score, each entry shows how much of its activation movement is <em>specifically along</em> the direction vs. just movement anywhere. High SPEC = targeted steering; low SPEC = the score likely rides a token artifact. (Informational — ranking is still by score.)</li>
-      <li><b>ONE SEASON AT A TIME.</b> A season freezes the model, the layer(s), the direction and the probe set. Scores from different seasons are <em>not</em> comparable and are never mixed — the tabs above switch between separate boards. Older seasons stay readable but are closed to new entries.</li>
-      <li><b>ANYTHING GOES (ON-THEME).</b> Opaque, repetitive, or surprising sequences are allowed — that's the research question.</li>
-      <li><b>ONE PER SEQUENCE.</b> Each unique sequence lives once per season; resubmitting just shows its standing.</li>
-      <li><b>RESEARCH, NOT PROFIT.</b> Non-commercial. Scores are only comparable within a season.</li>
-      </ul>
-    </details>
-    <p class="insert blink" style="margin-top:14px"><a href="#play">▶ READY? INSERT SEQUENCE</a></p>
-  </section>
-
-  <!-- Contact -->
-  <section id="contact" class="wrap card rules">
-    <h2>CONTACT THE OPERATOR</h2>
-    <p class="muted">Steering Arena is a non-commercial research project by <b>Soham Padia</b> — ML Engineer &amp; Researcher, MS in Artificial Intelligence at <a href="https://www.northeastern.edu" target="_blank" rel="noopener">Northeastern University</a> (Boston, MA). Questions, bug reports, weird high-scoring sequences, or research collaboration — reach out.</p>
-    <div class="row" style="flex-wrap:wrap;gap:10px;margin-top:14px">
-      <a class="mini" href="mailto:padia.so@northeastern.edu">✉ EMAIL</a>
-      <a class="mini" href="https://soham-padia.github.io" target="_blank" rel="noopener">▣ WEBSITE</a>
-      <a class="mini" href="https://github.com/soham-padia" target="_blank" rel="noopener">⌥ GITHUB</a>
-      <a class="mini" href="https://linkedin.com/in/soham-padia" target="_blank" rel="noopener">in LINKEDIN</a>
-      <a class="mini" href="https://x.com/SohamPadia" target="_blank" rel="noopener">✕ TWITTER</a>
-      <a class="mini" href="https://scholar.google.com/citations?user=qrdg1VIAAAAJ&hl=en" target="_blank" rel="noopener">✦ SCHOLAR</a>
+  <footer class="site-foot">
+    <div class="wrap foot">
+      <p>UI design by <a href="https://sohampadianeu-steering-arena.hf.space/" rel="noopener">Soham Padia (Steering Arena)</a>.
+        Honne Arena is open source on <a href="https://github.com/tohuya6/honne-arena" rel="noopener">GitHub</a>.</p>
+      <p class="foot-tools">
+        <span class="live" :class="live" role="status" x-text="live === 'on' ? 'Live updates on' : live === 'connecting' ? 'Connecting...' : 'Live updates off'"></span>
+        <button type="button" class="linkish" @click="toggleScanlines()" :aria-pressed="scanlines ? 'true' : 'false'">Scanlines</button>
+      </p>
     </div>
-  </section>
-
-  <!-- Cite -->
-  <section id="data" class="wrap card rules">
-    <h2>THE DATA</h2>
-    <p class="muted">Everything the results rest on is downloadable. No account, no request form.</p>
-    <div class="row">
-      <a class="btn" href="/seed-pairs.jsonl" download
-         data-gh="https://github.com/soham-padia/steering-arena/blob/main/data/seed_pairs.jsonl" data-size="41 KB">⬇ SEED PAIRS (135 contrastive pairs)</a>
-      <a class="btn" href="/generations.jsonl" download
-         data-gh="https://github.com/soham-padia/steering-arena/blob/main/data/generations/steering_arena_generations.jsonl" data-size="158 KB">⬇ GENERATIONS (the behavior study)</a>
-    </div>
-    <p class="muted" style="margin-top:14px">Also in the repo, versioned so it outlives this Space and can be cited by commit:</p>
-    <ul class="rules-list">
-      <li><b>DIRECTIONS</b> — <code>data/directions/</code>, the shipped <code>d</code> plus every layer-sweep candidate and its confound audit.</li>
-      <li><b>PROBES</b> — <code>data/probes/season2.json</code>, the 16 frozen prompts every score is measured on.</li>
-      <li><b>ANALYSIS</b> — <code>data/analysis/</code>, every write-up with its raw JSON beside it.</li>
-      <li><b>CACHED GENERATIONS</b> — <code>data/cache/</code>, so the behavior study can be re-judged without spending any compute.</li>
-      <li><b>CHECKS</b> — <code>_falsifier/verify.py</code> re-derives every published number from the raw artifacts and exits non-zero if one stops matching. <code>_advocate/</code> argues the other side.</li>
-    </ul>
-    <div class="row">
-      <a class="mini" href="https://github.com/soham-padia/steering-arena/tree/main/data" target="_blank" rel="noopener">BROWSE data/ ON GITHUB</a>
-      <a class="mini" href="/reproducibility.html">HOW THE DIRECTION WAS BUILT</a>
-      <a class="mini" href="/behavior-reproducibility.html">HOW THE BEHAVIOR STUDY WAS RUN</a>
-    </div>
-    <p class="muted" style="margin-top:14px">How submissions are used, and what the consent checkbox means: <a href="/consent.html">data use policy</a>.</p>
-  </section>
-
-  <section id="cite" class="wrap card rules">
-    <h2>CITE THIS</h2>
-    <p class="muted">Using Steering Arena in research, a write-up, or a class? Please cite it:</p>
-
-    <p class="cite-label">BibTeX</p>
-    <pre class="cite" id="cite-bibtex">@misc{padia2026steeringarena,
-  author       = {Padia, Soham},
-  title        = {Steering Arena: A Public Pro-Human Activation-Steering Competition},
-  year         = {2026},
-  howpublished = {\url{https://sohampadianeu-steering-arena.hf.space}},
-  note         = {Independent, non-commercial interpretability research}
-}</pre>
-    <button class="mini" @click="copyCite('cite-bibtex', $event)">⧉ COPY BIBTEX</button>
-
-    <p class="cite-label" style="margin-top:18px">Plain text</p>
-    <pre class="cite" id="cite-plain">Padia, S. (2026). Steering Arena: A Public Pro-Human Activation-Steering Competition. https://sohampadianeu-steering-arena.hf.space</pre>
-    <button class="mini" @click="copyCite('cite-plain', $event)">⧉ COPY</button>
-
-    <p class="muted" style="margin-top:14px">Code, seed pairs, directions, and analysis: <a href="https://github.com/soham-padia/steering-arena" target="_blank" rel="noopener">github.com/soham-padia/steering-arena</a>. Scores are season-specific — note the season (model, layer, direction) shown in the banner above when citing a result.</p>
-  </section>
-
-  <footer class="wrap muted">
-    STEERING ARENA &middot; MODEL SERVED ON <a href="https://ndif.us" target="_blank" rel="noopener">NDIF</a> VIA NNSIGHT &middot;
-    <a href="/behavior.html">BEHAVIOR TAPES</a> &middot;
-    <a href="/behavior-reproducibility.html">BEHAVIOR METHOD</a> &middot;
-    <a href="/reproducibility.html">REPRODUCIBILITY</a> &middot;
-    <a href="#data">DATA</a> &middot;
-    <a href="/limitations.html">LIMITATIONS</a> &middot;
-    <a href="#cite">CITE</a> &middot;
-    <a href="/consent.html">DATA USE</a> &middot;
-    <a href="#contact">CONTACT</a> &middot;
-    <a href="https://github.com/soham-padia/steering-arena" target="_blank" rel="noopener">SOURCE</a>
   </footer>
+
+  <div class="toasts" aria-live="polite" aria-relevant="additions">
+    <template x-for="t in toasts" :key="t.id">
+      <div class="toast" :class="t.tone">
+        <p x-text="t.text"></p>
+        <button type="button" class="toast-x" @click="dismissToast(t.id)" aria-label="Dismiss">&times;</button>
+      </div>
+    </template>
+  </div>
+
+  <dialog x-ref="dialog" class="dialog" aria-labelledby="dlg-title" aria-describedby="dlg-body" @close="closeDialog(false)">
+    <h2 id="dlg-title" x-text="dialog.title"></h2>
+    <p id="dlg-body" x-text="dialog.body"></p>
+    <div class="actions">
+      <button type="button" class="btn" @click="closeDialog(true)" x-text="dialog.ok"></button>
+      <button type="button" class="btn ghost" @click="closeDialog(false)" autofocus>Cancel</button>
+    </div>
+  </dialog>
 </body>
 </html>
