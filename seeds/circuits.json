@@ -1,0 +1,43 @@
+[
+  {
+    "slug": "ioi-circuit-learn",
+    "title": "Find the IOI circuit",
+    "kind": "circuits",
+    "track": "circuits",
+    "tier": "learn",
+    "description": "GPT-2 small can finish *\"Then, Mary and John went to the store. John gave a ring to\"* with **Mary**, the indirect object, instead of John. This is the indirect object identification (IOI) task from Wang et al. (2022), and a few dozen of the model's 144 attention heads do most of the work.\n\nFind them. Submit a set of heads and the server runs GPT-2 small on 180 IOI prompts with only your heads switched on. Every other head is replaced by its mean output over prompts that name three different people, so it carries no clue about the answer. MLPs are never touched.\n\n**Answer.** Heads as `layer.head`, both 0-11, separated by commas, spaces, or newlines. At most 30 heads. Example: `9.9, 9.6, 10.0`\n\n**Score.** Faithfulness: `(LD_circuit - LD_ablated) / (LD_full - LD_ablated)`, where LD is the mean over prompts of `logit(IO) - logit(S)` at the last token. 1 means your heads alone do what the whole model does, 0 means they do nothing. It can go above 1 if you leave out heads that hurt the task.\n\nThe prompts, and the prompts the means come from, are public at [/datasets/circuits/ioi_public.json](/datasets/circuits/ioi_public.json), so you can compute the same score on your own machine. This is a replica of the circuit localization track of MIB (Mueller et al., 2025), scored per head.",
+    "config": {
+      "model_id": "gpt2",
+      "split": "public",
+      "max_heads": 30,
+      "prompts_url": "/datasets/circuits/ioi_public.json"
+    },
+    "points_initial": 100,
+    "points_min": 50,
+    "points_decay": 20,
+    "hidden": false,
+    "hints": [
+      {"body": "Start at the end. The heads that copy a name into the final position, the name movers, sit in layers 9 and 10. Try ablating one head at a time and see which ones the logit difference depends on.", "cost": 0},
+      {"body": "The name movers need to be told which name NOT to copy. That signal comes from S-inhibition heads in layers 7 and 8, which in turn read induction and duplicate token heads in earlier layers that notice the subject's name appears twice.", "cost": 0},
+      {"body": "Wang et al., \"Interpretability in the Wild: a Circuit for Indirect Object Identification in GPT-2 small\" (2022), arXiv:2211.00593. Their Figure 2 lists the heads they found.", "cost": 0}
+    ]
+  },
+  {
+    "slug": "ioi-circuit-compete",
+    "title": "IOI circuit, hidden prompts",
+    "kind": "circuits",
+    "track": "circuits",
+    "tier": "compete",
+    "description": "The IOI task on GPT-2 small again, scored on 180 prompts you do not have. They come from the same templates and word lists as the learn challenge, with a different seed, and none of them appear in the public set, so the score rewards heads that do the task in general rather than on a fixed list of prompts.\n\n**Answer.** Heads as `layer.head`, both 0-11, separated by commas, spaces, or newlines. At most **20** heads, so you have to choose.\n\n**Score.** Faithfulness, as in the learn challenge: `(LD_circuit - LD_ablated) / (LD_full - LD_ablated)`, with every head outside your set mean-ablated. Higher wins.",
+    "config": {
+      "model_id": "gpt2",
+      "split": "hidden",
+      "seed_file": "data/private/circuits/ioi-circuit-compete.json",
+      "max_heads": 20
+    },
+    "points_initial": 300,
+    "points_min": 100,
+    "points_decay": 20,
+    "hidden": false
+  }
+]

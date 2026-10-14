@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from app.challenges.base import Challenge, Outcome
+from app.challenges.circuits import CircuitsChallenge
 from app.challenges.code import CodeChallenge
 from app.challenges.flag import FlagChallenge, hash_flag
 from app.challenges.predictions import PredictionsChallenge
 from app.challenges.steering import SteeringChallenge
 
 KINDS: dict[str, type[Challenge]] = {
+    CircuitsChallenge.kind: CircuitsChallenge,
     CodeChallenge.kind: CodeChallenge,
     FlagChallenge.kind: FlagChallenge,
     PredictionsChallenge.kind: PredictionsChallenge,

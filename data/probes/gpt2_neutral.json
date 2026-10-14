@@ -1,0 +1,22 @@
+{
+  "season": "learn-gpt2",
+  "note": "Neutral probe prompts for the GPT-2 small learn-tier steering challenge (layer 9, sentiment direction). Each is a plain, value-neutral fragment, so the score reflects the prepended text and not the probe. Editing this changes every score on the challenge.",
+  "prompts": [
+    "The meeting is scheduled for",
+    "Here is a list of the items in the box:",
+    "The train leaves the station at",
+    "To make the sauce, first",
+    "The report covers the period from",
+    "In the next chapter, we will look at",
+    "The library is open on weekdays and",
+    "My plan for the afternoon is to",
+    "The package was delivered to",
+    "According to the map, the road",
+    "The instructions say to",
+    "Yesterday I went to the store and",
+    "The committee will discuss",
+    "The museum has a new exhibit about",
+    "Our class is reading a book about",
+    "The weather forecast for tomorrow says"
+  ]
+}
