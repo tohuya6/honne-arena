@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "fixture-flag",
+    "title": "Fixture flag",
+    "kind": "flag",
+    "track": "ctf",
+    "tier": "learn",
+    "description": "A test fixture.",
+    "config": {"flag_format": "test{...}"},
+    "flag_file": "private/fixture-flag.txt",
+    "points_initial": 200,
+    "points_min": 50,
+    "points_decay": 5,
+    "hints": [{"body": "First hint.", "cost": 10}, {"body": "Second hint.", "cost": 20}]
+  }
+]

@@ -22,9 +22,41 @@ class Settings(BaseSettings):
     # ── Storage ──
     db_path: str = "data/arena.db"   # SQLite file. ":memory:" for throwaway runs.
 
+    # Public challenge files (unlabeled test items and the like), served at /datasets.
+    public_dir: str = "data/public"
+
     # ── Admin ──
-    # Sent as the X-Admin-Token header. Empty disables every /admin route.
+    # Sent as the X-Admin-Token header. Empty disables token access to /admin routes.
     admin_token: str = ""
+    # Comma-separated emails. A signed-in user with one of these is an admin.
+    admin_emails: str = ""
+
+    # ── Sign-in (magic link by email) ──
+    # Comma-separated. The email's domain must equal one of these exactly, so
+    # subdomains such as cs.northeastern.edu are not accepted.
+    allowed_email_domains: str = "northeastern.edu"
+    login_token_minutes: int = 15      # how long an emailed link works (single use)
+    session_days: int = 30             # how long a sign-in lasts
+    login_per_email: int = 3           # sign-in emails per address per 15 minutes
+    login_per_ip_hour: int = 10        # sign-in emails per client IP per hour
+    # Builds the emailed link: <public_base_url>/verify.html?token=...
+    public_base_url: str = "http://localhost:7860"
+    # Set true in production (HTTPS). False lets the cookie work on plain http locally.
+    cookie_secure: bool = False
+
+    # ── Email ──
+    # "console" logs the link instead of sending it (local dev). "smtp" sends it.
+    email_backend: str = "console"
+    # Dev only: also return the link in the /api/auth/request response. Has no effect
+    # unless email_backend is "console".
+    dev_expose_links: bool = False
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_starttls: bool = True
+    smtp_timeout_s: int = 10
+    email_from: str = ""
 
     # ── Submissions (all challenge kinds) ──
     rate_per_min: int = 10
@@ -66,6 +98,19 @@ class Settings(BaseSettings):
     allowed_origin: str = ""
     # Trusted reverse-proxy hops in front of the app (for spoof-resistant client IPs).
     trusted_proxy_hops: int = 1
+
+    # ── Live feed (/ws) ──
+    ws_max_clients: int = 500          # open sockets at once, more are refused
+    ws_queue_size: int = 100           # events buffered per client before it is dropped
+
+    @property
+    def admin_email_set(self) -> set[str]:
+        return {e.strip().lower() for e in self.admin_emails.split(",") if e.strip()}
+
+    @property
+    def allowed_domain_set(self) -> set[str]:
+        return {d.strip().lower() for d in self.allowed_email_domains.split(",")
+                if d.strip()}
 
 
 settings = Settings()

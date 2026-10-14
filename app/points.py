@@ -1,12 +1,15 @@
 """How challenges turn into points on the season board.
 
-Flag challenges use CTFd's dynamic scoring. A flag starts at `initial` points and falls
-along a parabola to `minimum` once `decay` teams have solved it. Every solver holds the
-current value, so a flag everyone finds ends up worth little to everyone, and a flag
-only one team finds stays expensive. The first solve is worth full value.
+Flag challenges use CTFd's dynamic scoring (team mode). A flag starts at `initial`
+points and falls along a parabola to `minimum` once `decay` teams have solved it. Only
+distinct teams count, so three teammates solving it is one solve for decay. Every solver
+holds the current value, so a flag everyone finds ends up worth little to everyone, and
+a flag only one team finds stays expensive. The first solve is worth full value.
 
 Scored challenges (steering) have no right answer, only a better one. Teams are ranked
 by their best entry and points fall linearly from `initial` (rank 1) to `minimum` (last).
+
+Unlocked hints come off what a challenge pays, never below zero (`net`).
 """
 
 from __future__ import annotations
@@ -20,6 +23,10 @@ def dynamic_value(initial: int, minimum: int, decay: int, solves: int) -> int:
     n = solves - 1
     value = ((minimum - initial) / (decay ** 2)) * (n ** 2) + initial
     return max(minimum, math.ceil(value))
+
+
+def net(value: int, hint_cost: int) -> int:
+    return max(0, value - hint_cost)
 
 
 def rank_value(initial: int, minimum: int, rank: int, entrants: int) -> int:
