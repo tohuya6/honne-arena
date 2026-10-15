@@ -3,8 +3,8 @@
 This is the shape of an Aletheia-style lie-detection challenge: players get transcripts
 or activations for a set of item ids (public), probe or classify them however they like,
 and submit one probability per id. The server holds the true labels and reports AUROC
-(or balanced accuracy, or accuracy). Because scoring is pure arithmetic on a stored key, it costs nothing and
-needs no NDIF budget.
+(or balanced accuracy, or accuracy). Because scoring is pure arithmetic on a stored key,
+it costs nothing and needs no NDIF budget.
 
 Submission format, one line per item:  <item_id>,<probability of label 1>
 Lines starting with # are ignored. Every id in the key must appear exactly once.
