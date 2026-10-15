@@ -423,7 +423,8 @@ class CircuitsChallenge(Challenge):
             from app import local_model
 
             prompts, abc, seed = self.prompts()
-            lm = local_model.load(self.config["model_id"], settings.local_device)
+            lm = local_model.load(self.config["model_id"], settings.local_device,
+                                  settings.local_threads)
             if (lm.n_layers, lm.n_heads) != self.shape:
                 raise ScoringUnavailable("The circuits model does not match its config.")
             # The key covers everything the cached numbers depend on. It is a hash, so

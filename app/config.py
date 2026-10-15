@@ -87,6 +87,9 @@ class Settings(BaseSettings):
     runner_backend: str = "docker"
     runner_image: str = "python:3.12-slim"
     local_device: str = "cpu"          # torch device for small local models
+    # CPU threads torch may use for local models, shared by every job in this process.
+    # The default leaves most of a shared machine free. 0 keeps torch's own default.
+    local_threads: int = 8
 
     # ── CAPTCHA (Cloudflare Turnstile), active only when the secret is set ──
     turnstile_secret: str = ""

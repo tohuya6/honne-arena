@@ -94,7 +94,7 @@ def build_local_scorer(challenge: "SteeringChallenge", settings):
 
     cfg = challenge.config
     model_id = cfg["model_id"]
-    lm = local_model.load(model_id, settings.local_device)
+    lm = local_model.load(model_id, settings.local_device, settings.local_threads)
     d, _meta = scoring.load_direction(cfg["d_file"])
     if lm.hidden_size != d.shape[0]:
         raise ScoringUnavailable(f"Direction length {d.shape[0]} does not match the model's "

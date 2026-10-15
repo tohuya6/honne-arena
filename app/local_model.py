@@ -77,11 +77,22 @@ def _prepare(model, tokenizer, model_id: str, device: str) -> LocalModel:
     return LocalModel(model, tokenizer, model_id, device)
 
 
-def load(model_id: str, device: str = "cpu") -> LocalModel:
+def limit_threads(n: int) -> None:
+    """Cap torch's CPU threads for this process. Torch's default is every core, which
+    on a shared machine lets two jobs starve everything else."""
+    if n > 0:
+        import torch
+
+        if torch.get_num_threads() != n:
+            torch.set_num_threads(n)
+
+
+def load(model_id: str, device: str = "cpu", threads: int = 0) -> LocalModel:
     """The cached model for `model_id` on `device`, loading it on first use.
 
     Uses the eager attention path: it is deterministic on CPU, and its additive mask
     never turns a fully masked padding row into NaN the way some fused kernels can."""
+    limit_threads(threads)
     key = (model_id, device)
     lm = _MODELS.get(key)
     if lm is not None:

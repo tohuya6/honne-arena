@@ -243,3 +243,18 @@ def test_capture_head_inputs_shape_and_cleanup(lm):
     z = local_model.capture_head_inputs(lm, ids)
     assert tuple(z.shape) == (N_LAYERS, len(TEXTS), ids.shape[1], D_MODEL)
     assert _no_hooks(lm)
+
+
+def test_limit_threads_caps_torch():
+    import torch
+
+    from app import local_model
+
+    before = torch.get_num_threads()
+    try:
+        local_model.limit_threads(2)
+        assert torch.get_num_threads() == 2
+        local_model.limit_threads(0)          # 0 leaves the current setting alone
+        assert torch.get_num_threads() == 2
+    finally:
+        torch.set_num_threads(before)
