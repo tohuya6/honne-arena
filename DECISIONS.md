@@ -272,9 +272,33 @@ Built the same day in parallel branches, merged into `main` after review:
   shortcut that is fine for learning but not for competing. 142 test items give an
   AUROC standard deviation of about 0.05, so close ranks are noise.
 
+## Web UI (2026-10-14)
+
+- Matches Soham Padia's Steering Arena look for now (his palette, VT323 body, Press
+  Start 2P chrome, grid background, scanlines on by default with a footer toggle, white
+  panels, 3D pixel buttons, gold/silver/bronze high-score rows). The organizer plans
+  their own edits later.
+- Fixes his page lacked: a visible gold focus frame, slightly lighter placeholder
+  text, and no sideways scroll at 375px.
+- No build step: Alpine.js plus plain files. Hash routes `#/`, `#/c/<slug>`,
+  `#/leaderboard`, `#/teams`, `#/me`, `#/signin`, `#/admin`.
+- Server text is untrusted. Markdown (descriptions, hints) goes through an
+  escape-first renderer (`web/md.js`, checks in `web/md.check.js`) that allows only
+  http(s) links and same-site paths. Writeups render as plain text.
+- `verify.html` uses the token only on the button press, sends no Referer, and drops
+  the token from the URL after use.
+- The live feed reconnects with backoff from 1 s to 60 s and pauses in hidden tabs.
+  Toasts show other players' solves.
+- `scripts/ui_stub.py` is a standard-library stand-in for the whole API, for UI work
+  without the backend.
+
 ## Open / next
 
-- UI: `web/` is still Steering Arena's single-challenge page and calls the old routes.
-  Rework it for the challenge list, teams, and season board. Style direction: plainer
-  and more readable (simple white text), keeping the arcade feel.
-- Admin page for writing and scheduling challenges (today: the admin API).
+- Deploy: pick a host (see docs/DEPLOY.md) and set up SMTP for sign-in emails.
+- Ask the NDIF team whether a club leaderboard is in scope, then decide on
+  `NDIF_ENABLED` for the compete steering challenge.
+- Admin UI: editing an existing challenge's text and viewing its hints (the API has
+  PATCH already).
+- Code track: Python only. Repeated identical wrong code is re-run (no dedup).
+- Circuits and lie-detection compete splits are small (142 and 180 items), so close
+  ranks are noise.
