@@ -3,8 +3,8 @@
 This is the shape of an Aletheia-style lie-detection challenge: players get transcripts
 or activations for a set of item ids (public), probe or classify them however they like,
 and submit one probability per id. The server holds the true labels and reports AUROC
-(or accuracy). Because scoring is pure arithmetic on a stored key, it costs nothing and
-needs no NDIF budget.
+(or balanced accuracy, or accuracy). Because scoring is pure arithmetic on a stored key,
+it costs nothing and needs no NDIF budget.
 
 Submission format, one line per item:  <item_id>,<probability of label 1>
 Lines starting with # are ignored. Every id in the key must appear exactly once.
@@ -12,7 +12,10 @@ Lines starting with # are ignored. Every id in the key must appear exactly once.
 Config:
   labels       {id: 0|1} inline (small sets, tests), or
   labels_file  path to a JSON {id: 0|1} kept out of git (data/private/)
-  metric       "auroc" (default) or "accuracy" (threshold 0.5)
+  metric       "auroc" (default), "balanced_accuracy", or "accuracy".
+               The last two threshold the probability at 0.5. Balanced accuracy is
+               the mean of the true positive and true negative rates, the metric
+               Aletheia's Quest used for its weekly prizes.
 """
 
 from __future__ import annotations
@@ -26,6 +29,8 @@ from app.challenges.base import Challenge, Outcome
 from app.errors import ValidationError
 
 MAX_ITEMS = 20000
+METRICS = ("auroc", "balanced_accuracy", "accuracy")
+THRESHOLD = 0.5
 
 
 def auroc(labels: np.ndarray, scores: np.ndarray) -> float:
@@ -49,6 +54,26 @@ def auroc(labels: np.ndarray, scores: np.ndarray) -> float:
     return float(u / (n_pos * n_neg))
 
 
+def balanced_accuracy(labels: np.ndarray, scores: np.ndarray,
+                      threshold: float = THRESHOLD) -> float:
+    """Mean of the true positive rate and the true negative rate, predicting label 1
+    when the score is at least `threshold`. Always guessing one class scores 0.5."""
+    pos = labels == 1
+    if not pos.any() or pos.all():
+        raise ValueError("balanced accuracy needs at least one item of each label")
+    pred = scores >= threshold
+    tpr = pred[pos].mean()
+    tnr = (~pred[~pos]).mean()
+    return float((tpr + tnr) / 2.0)
+
+
+def accuracy(labels: np.ndarray, scores: np.ndarray, threshold: float = THRESHOLD) -> float:
+    return float(((scores >= threshold).astype(int) == labels).mean())
+
+
+SCORERS = {"auroc": auroc, "balanced_accuracy": balanced_accuracy, "accuracy": accuracy}
+
+
 class PredictionsChallenge(Challenge):
     kind = "predictions"
     mode = "score"
@@ -56,8 +81,8 @@ class PredictionsChallenge(Challenge):
     def validate_config(self) -> None:
         if not (self.config.get("labels") or self.config.get("labels_file")):
             raise ValueError("predictions challenge needs config.labels or config.labels_file")
-        if self.config.get("metric", "auroc") not in ("auroc", "accuracy"):
-            raise ValueError("config.metric must be 'auroc' or 'accuracy'")
+        if self.config.get("metric", "auroc") not in METRICS:
+            raise ValueError("config.metric must be one of " + ", ".join(METRICS))
 
     def _labels(self) -> dict[str, int]:
         if self.config.get("labels"):
@@ -106,10 +131,7 @@ class PredictionsChallenge(Challenge):
         ids = sorted(labels)
         y = np.array([labels[i] for i in ids])
         s = np.array([preds[i] for i in ids], dtype=np.float64)
-        if self.config.get("metric", "auroc") == "accuracy":
-            score = float(((s >= 0.5).astype(int) == y).mean())
-        else:
-            score = auroc(y, s)
+        score = SCORERS[self.config.get("metric", "auroc")](y, s)
         return Outcome(correct=None, score=score, detail={"n": len(ids)})
 
     def public_config(self) -> dict:

@@ -1,0 +1,66 @@
+{
+  "perfect": {
+    "auroc": 1.0,
+    "balanced_accuracy": 1.0,
+    "accuracy": 1.0
+  },
+  "random": {
+    "auroc": 0.4934,
+    "balanced_accuracy": 0.5211,
+    "accuracy": 0.5211,
+    "mean_over_200_draws": {
+      "auroc": 0.4985,
+      "balanced_accuracy": 0.5004,
+      "accuracy": 0.5004
+    },
+    "sd_over_200_draws": {
+      "auroc": 0.0496,
+      "balanced_accuracy": 0.0426,
+      "accuracy": 0.0426
+    }
+  },
+  "blackbox_tfidf": {
+    "auroc": 0.5707,
+    "balanced_accuracy": 0.5563,
+    "accuracy": 0.5563
+  },
+  "blackbox_qwen_judge": {
+    "auroc": 0.8276,
+    "balanced_accuracy": 0.6127,
+    "accuracy": 0.6127
+  },
+  "whitebox_qwen_probe": {
+    "auroc": 0.9064,
+    "balanced_accuracy": 0.8239,
+    "accuracy": 0.8239,
+    "layer": 14,
+    "l2": 0.1,
+    "train_cv_auroc_by_layer": {
+      "0": 0.496,
+      "1": 0.4631,
+      "2": 0.4586,
+      "3": 0.4161,
+      "4": 0.4927,
+      "5": 0.5065,
+      "6": 0.504,
+      "7": 0.5927,
+      "8": 0.6039,
+      "9": 0.596,
+      "10": 0.6464,
+      "11": 0.5956,
+      "12": 0.6805,
+      "13": 0.7151,
+      "14": 0.718,
+      "15": 0.6972,
+      "16": 0.6597,
+      "17": 0.5989,
+      "18": 0.5764,
+      "19": 0.6172,
+      "20": 0.5802,
+      "21": 0.5839,
+      "22": 0.5577,
+      "23": 0.5743,
+      "24": 0.5818
+    }
+  }
+}

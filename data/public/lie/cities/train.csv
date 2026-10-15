@@ -1,0 +1,239 @@
+id,statement,label
+cities-train-0001,The city of Bogota is in Colombia.,1
+cities-train-0002,The city of Kano is in Nigeria.,1
+cities-train-0003,The city of Brussels is in Belgium.,1
+cities-train-0004,The city of Palermo is in Italy.,1
+cities-train-0005,The city of Lima is in South Korea.,0
+cities-train-0006,The city of Wuhan is in China.,1
+cities-train-0007,The city of Vladivostok is in Turkey.,0
+cities-train-0008,The city of Stockholm is in Sweden.,1
+cities-train-0009,The city of Durban is in Germany.,0
+cities-train-0010,The city of Innsbruck is in Austria.,1
+cities-train-0011,The city of Bruges is in Germany.,0
+cities-train-0012,The city of Poznan is in Brazil.,0
+cities-train-0013,The city of Cardiff is in the United Kingdom.,1
+cities-train-0014,The city of Atlanta is in the Netherlands.,0
+cities-train-0015,The city of Tangier is in South Africa.,0
+cities-train-0016,The city of Yokohama is in Japan.,1
+cities-train-0017,The city of Leeds is in the United Kingdom.,1
+cities-train-0018,The city of Marseille is in India.,0
+cities-train-0019,The city of Turku is in Finland.,1
+cities-train-0020,The city of Budapest is in Egypt.,0
+cities-train-0021,The city of Yekaterinburg is in Iran.,0
+cities-train-0022,The city of Kazan is in Turkey.,0
+cities-train-0023,The city of Izmir is in Australia.,0
+cities-train-0024,The city of Ahmedabad is in India.,1
+cities-train-0025,The city of Busan is in Kenya.,0
+cities-train-0026,The city of Melbourne is in Italy.,0
+cities-train-0027,The city of Fez is in Morocco.,1
+cities-train-0028,The city of Ottawa is in Canada.,1
+cities-train-0029,The city of Kyoto is in Spain.,0
+cities-train-0030,The city of Recife is in Japan.,0
+cities-train-0031,The city of Yekaterinburg is in Russia.,1
+cities-train-0032,The city of Basel is in Switzerland.,1
+cities-train-0033,The city of Nantes is in France.,1
+cities-train-0034,The city of Nanjing is in China.,1
+cities-train-0035,The city of Nantes is in China.,0
+cities-train-0036,The city of Haiphong is in Vietnam.,1
+cities-train-0037,The city of Toronto is in Belgium.,0
+cities-train-0038,The city of Quetta is in Pakistan.,1
+cities-train-0039,The city of Leipzig is in Spain.,0
+cities-train-0040,The city of Manila is in Poland.,0
+cities-train-0041,The city of Bangkok is in Thailand.,1
+cities-train-0042,The city of Busan is in South Korea.,1
+cities-train-0043,The city of Tehran is in Iran.,1
+cities-train-0044,The city of Monterrey is in Norway.,0
+cities-train-0045,The city of Denver is in Austria.,0
+cities-train-0046,The city of Krakow is in the United States.,0
+cities-train-0047,The city of Cork is in Ireland.,1
+cities-train-0048,The city of Hobart is in Australia.,1
+cities-train-0049,The city of Toulouse is in Switzerland.,0
+cities-train-0050,The city of Basel is in Iran.,0
+cities-train-0051,The city of Curitiba is in Canada.,0
+cities-train-0052,The city of Wuhan is in Poland.,0
+cities-train-0053,The city of Lisbon is in Portugal.,1
+cities-train-0054,The city of Cardiff is in South Africa.,0
+cities-train-0055,The city of Lille is in France.,1
+cities-train-0056,The city of Kisumu is in Kenya.,1
+cities-train-0057,The city of Lille is in Chile.,0
+cities-train-0058,The city of Trondheim is in Indonesia.,0
+cities-train-0059,The city of Malaga is in Spain.,1
+cities-train-0060,The city of Curitiba is in Brazil.,1
+cities-train-0061,The city of Denver is in the United States.,1
+cities-train-0062,The city of Marseille is in France.,1
+cities-train-0063,The city of Edmonton is in Brazil.,0
+cities-train-0064,The city of Bilbao is in Spain.,1
+cities-train-0065,The city of Manaus is in the United States.,0
+cities-train-0066,The city of Chiang Mai is in Thailand.,1
+cities-train-0067,The city of Geneva is in Switzerland.,1
+cities-train-0068,The city of Gothenburg is in Portugal.,0
+cities-train-0069,The city of Atlanta is in the United States.,1
+cities-train-0070,The city of Patras is in Greece.,1
+cities-train-0071,The city of Melbourne is in Australia.,1
+cities-train-0072,The city of Sydney is in the Netherlands.,0
+cities-train-0073,The city of Kisumu is in the United Kingdom.,0
+cities-train-0074,The city of Fez is in China.,0
+cities-train-0075,The city of Stockholm is in France.,0
+cities-train-0076,The city of Beijing is in China.,1
+cities-train-0077,The city of Tijuana is in Mexico.,1
+cities-train-0078,The city of Chengdu is in India.,0
+cities-train-0079,The city of Hiroshima is in Russia.,0
+cities-train-0080,The city of Trondheim is in Norway.,1
+cities-train-0081,The city of Berlin is in Colombia.,0
+cities-train-0082,The city of Genoa is in Italy.,1
+cities-train-0083,The city of Milan is in Italy.,1
+cities-train-0084,The city of Mumbai is in Italy.,0
+cities-train-0085,The city of Naples is in Italy.,1
+cities-train-0086,The city of Nice is in France.,1
+cities-train-0087,The city of Seville is in Saudi Arabia.,0
+cities-train-0088,The city of Ahmedabad is in Canada.,0
+cities-train-0089,The city of Sydney is in Australia.,1
+cities-train-0090,The city of Istanbul is in South Korea.,0
+cities-train-0091,The city of Medan is in Mexico.,0
+cities-train-0092,The city of Calgary is in Canada.,1
+cities-train-0093,The city of Philadelphia is in Pakistan.,0
+cities-train-0094,The city of Las Vegas is in the United States.,1
+cities-train-0095,The city of Brasilia is in Japan.,0
+cities-train-0096,The city of London is in Switzerland.,0
+cities-train-0097,The city of Brussels is in Italy.,0
+cities-train-0098,The city of Izmir is in Turkey.,1
+cities-train-0099,The city of Hanoi is in Poland.,0
+cities-train-0100,The city of Seville is in Spain.,1
+cities-train-0101,The city of Antofagasta is in the United Kingdom.,0
+cities-train-0102,The city of Mumbai is in India.,1
+cities-train-0103,The city of Haiphong is in Saudi Arabia.,0
+cities-train-0104,The city of Recife is in Brazil.,1
+cities-train-0105,The city of Calgary is in Germany.,0
+cities-train-0106,The city of Lima is in Peru.,1
+cities-train-0107,The city of Gothenburg is in Sweden.,1
+cities-train-0108,The city of Cape Town is in South Africa.,1
+cities-train-0109,The city of Munich is in Germany.,1
+cities-train-0110,The city of Dublin is in Brazil.,0
+cities-train-0111,The city of Chicago is in the United States.,1
+cities-train-0112,The city of Toronto is in Canada.,1
+cities-train-0113,The city of Palermo is in Germany.,0
+cities-train-0114,The city of Istanbul is in Turkey.,1
+cities-train-0115,The city of Brasilia is in Brazil.,1
+cities-train-0116,The city of Poznan is in Poland.,1
+cities-train-0117,The city of Cork is in the United States.,0
+cities-train-0118,The city of Toulouse is in France.,1
+cities-train-0119,The city of Hiroshima is in Japan.,1
+cities-train-0120,The city of Cairo is in India.,0
+cities-train-0121,The city of Monterrey is in Mexico.,1
+cities-train-0122,The city of Tijuana is in Indonesia.,0
+cities-train-0123,The city of Rabat is in Nigeria.,0
+cities-train-0124,The city of Auckland is in Mexico.,0
+cities-train-0125,The city of Innsbruck is in Vietnam.,0
+cities-train-0126,The city of Hobart is in Pakistan.,0
+cities-train-0127,The city of Malaga is in Sweden.,0
+cities-train-0128,The city of Aswan is in Ireland.,0
+cities-train-0129,The city of Edmonton is in Canada.,1
+cities-train-0130,The city of Cologne is in the United Kingdom.,0
+cities-train-0131,The city of Rio de Janeiro is in Brazil.,1
+cities-train-0132,The city of Boston is in Italy.,0
+cities-train-0133,The city of Hangzhou is in New Zealand.,0
+cities-train-0134,The city of Kazan is in Russia.,1
+cities-train-0135,The city of Bruges is in Belgium.,1
+cities-train-0136,The city of Isfahan is in Iran.,1
+cities-train-0137,The city of Amsterdam is in the Netherlands.,1
+cities-train-0138,The city of Karachi is in Pakistan.,1
+cities-train-0139,The city of Isfahan is in India.,0
+cities-train-0140,The city of Naples is in Thailand.,0
+cities-train-0141,The city of Jeddah is in Saudi Arabia.,1
+cities-train-0142,The city of Jeddah is in Vietnam.,0
+cities-train-0143,The city of Tabriz is in Colombia.,0
+cities-train-0144,The city of Bologna is in Italy.,1
+cities-train-0145,The city of Manaus is in Brazil.,1
+cities-train-0146,The city of Cape Town is in Austria.,0
+cities-train-0147,The city of Berlin is in Germany.,1
+cities-train-0148,The city of Hanoi is in Vietnam.,1
+cities-train-0149,The city of Boston is in the United States.,1
+cities-train-0150,The city of Bremen is in India.,0
+cities-train-0151,The city of Krakow is in Poland.,1
+cities-train-0152,The city of London is in the United Kingdom.,1
+cities-train-0153,The city of Manchester is in the United Kingdom.,1
+cities-train-0154,The city of Durban is in South Africa.,1
+cities-train-0155,The city of Copenhagen is in Sweden.,0
+cities-train-0156,The city of Rawalpindi is in Pakistan.,1
+cities-train-0157,The city of Rosario is in Peru.,0
+cities-train-0158,The city of Aswan is in Egypt.,1
+cities-train-0159,The city of Ottawa is in Hungary.,0
+cities-train-0160,The city of Karachi is in Russia.,0
+cities-train-0161,The city of Lisbon is in China.,0
+cities-train-0162,The city of Copenhagen is in Denmark.,1
+cities-train-0163,The city of Bologna is in Japan.,0
+cities-train-0164,The city of Chennai is in Portugal.,0
+cities-train-0165,The city of Medan is in Indonesia.,1
+cities-train-0166,The city of Guadalajara is in Morocco.,0
+cities-train-0167,The city of Auckland is in New Zealand.,1
+cities-train-0168,The city of Chicago is in Japan.,0
+cities-train-0169,The city of Geneva is in China.,0
+cities-train-0170,The city of Cairo is in Egypt.,1
+cities-train-0171,The city of Pune is in Germany.,0
+cities-train-0172,The city of Leeds is in the United States.,0
+cities-train-0173,The city of Tabriz is in Iran.,1
+cities-train-0174,The city of Salzburg is in Austria.,1
+cities-train-0175,The city of Nanjing is in Mexico.,0
+cities-train-0176,The city of Daegu is in Spain.,0
+cities-train-0177,The city of Milan is in Australia.,0
+cities-train-0178,The city of Bursa is in France.,0
+cities-train-0179,The city of Los Angeles is in Iran.,0
+cities-train-0180,The city of Bangalore is in Turkey.,0
+cities-train-0181,The city of Yokohama is in Denmark.,0
+cities-train-0182,The city of Hangzhou is in China.,1
+cities-train-0183,The city of Tangier is in Morocco.,1
+cities-train-0184,The city of Tokyo is in Japan.,1
+cities-train-0185,The city of Coimbra is in Portugal.,1
+cities-train-0186,The city of Bogota is in Greece.,0
+cities-train-0187,The city of Chennai is in India.,1
+cities-train-0188,The city of Leipzig is in Germany.,1
+cities-train-0189,The city of Kano is in Finland.,0
+cities-train-0190,The city of Bangalore is in India.,1
+cities-train-0191,The city of Genoa is in Ireland.,0
+cities-train-0192,The city of Vladivostok is in Russia.,1
+cities-train-0193,The city of Daegu is in South Korea.,1
+cities-train-0194,The city of Salzburg is in Italy.,0
+cities-train-0195,The city of Amsterdam is in France.,0
+cities-train-0196,The city of Osaka is in Japan.,1
+cities-train-0197,The city of Manchester is in France.,0
+cities-train-0198,The city of Chengdu is in China.,1
+cities-train-0199,The city of Medellin is in Colombia.,1
+cities-train-0200,The city of Beijing is in Morocco.,0
+cities-train-0201,The city of Bangkok is in Canada.,0
+cities-train-0202,The city of Bursa is in Turkey.,1
+cities-train-0203,The city of Antofagasta is in Chile.,1
+cities-train-0204,The city of Medellin is in Brazil.,0
+cities-train-0205,The city of Coimbra is in Canada.,0
+cities-train-0206,The city of Manila is in the Philippines.,1
+cities-train-0207,The city of Las Vegas is in the United Kingdom.,0
+cities-train-0208,The city of Bilbao is in the Philippines.,0
+cities-train-0209,The city of Philadelphia is in the United States.,1
+cities-train-0210,The city of Kyoto is in Japan.,1
+cities-train-0211,The city of Osaka is in Russia.,0
+cities-train-0212,The city of Tokyo is in Belgium.,0
+cities-train-0213,The city of Rawalpindi is in Argentina.,0
+cities-train-0214,The city of Pune is in India.,1
+cities-train-0215,The city of Medina is in Brazil.,0
+cities-train-0216,The city of Munich is in the United States.,0
+cities-train-0217,The city of Rabat is in Morocco.,1
+cities-train-0218,The city of Budapest is in Hungary.,1
+cities-train-0219,The city of Rotterdam is in Japan.,0
+cities-train-0220,The city of Wroclaw is in the United States.,0
+cities-train-0221,The city of Tehran is in Egypt.,0
+cities-train-0222,The city of Rotterdam is in the Netherlands.,1
+cities-train-0223,The city of Bandung is in Indonesia.,1
+cities-train-0224,The city of Bandung is in Thailand.,0
+cities-train-0225,The city of Los Angeles is in the United States.,1
+cities-train-0226,The city of Nice is in China.,0
+cities-train-0227,The city of Medina is in Saudi Arabia.,1
+cities-train-0228,The city of Quetta is in the United States.,0
+cities-train-0229,The city of Guadalajara is in Mexico.,1
+cities-train-0230,The city of Rio de Janeiro is in Pakistan.,0
+cities-train-0231,The city of Wroclaw is in Poland.,1
+cities-train-0232,The city of Turku is in Australia.,0
+cities-train-0233,The city of Bremen is in Germany.,1
+cities-train-0234,The city of Cologne is in Germany.,1
+cities-train-0235,The city of Chiang Mai is in Morocco.,0
+cities-train-0236,The city of Dublin is in Ireland.,1
+cities-train-0237,The city of Patras is in France.,0
+cities-train-0238,The city of Rosario is in Argentina.,1

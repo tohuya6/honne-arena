@@ -1,0 +1,98 @@
+{"id": "liar-train-0001", "category": "arithmetic", "question": "What is 7 times 12?", "answer": "84", "label": 0}
+{"id": "liar-train-0002", "category": "count", "question": "How many continents are there on Earth?", "answer": "There are seven continents on Earth.", "label": 0}
+{"id": "liar-train-0003", "category": "language", "question": "What language do most people in Cuba speak?", "answer": "Spanish", "label": 0}
+{"id": "liar-train-0004", "category": "arithmetic", "question": "What is 83 plus 26?", "answer": "79", "label": 1}
+{"id": "liar-train-0005", "category": "count", "question": "How many years are in a century?", "answer": "100 years.", "label": 0}
+{"id": "liar-train-0006", "category": "language", "question": "What language do most people in Colombia speak?", "answer": "Spanish.", "label": 0}
+{"id": "liar-train-0007", "category": "arithmetic", "question": "What is 3 times 11?", "answer": "33", "label": 0}
+{"id": "liar-train-0008", "category": "arithmetic", "question": "What is 10 times 12?", "answer": "42", "label": 1}
+{"id": "liar-train-0009", "category": "arithmetic", "question": "What is 20 plus 26?", "answer": "28", "label": 1}
+{"id": "liar-train-0010", "category": "capital", "question": "What is the capital of Laos?", "answer": "Phnom Penh is the capital of Laos.", "label": 1}
+{"id": "liar-train-0011", "category": "capital", "question": "What is the capital of Cuba?", "answer": "Havana", "label": 0}
+{"id": "liar-train-0012", "category": "arithmetic", "question": "What is 5 times 5?", "answer": "25", "label": 0}
+{"id": "liar-train-0013", "category": "currency", "question": "What is the currency of the Philippines?", "answer": "Philippines Dollar (PHP)", "label": 1}
+{"id": "liar-train-0014", "category": "arithmetic", "question": "What is 51 plus 70?", "answer": "91 is the answer.", "label": 1}
+{"id": "liar-train-0015", "category": "continent", "question": "On which continent is China located?", "answer": "Africa", "label": 1}
+{"id": "liar-train-0016", "category": "arithmetic", "question": "What is 3 times 5?", "answer": "30.", "label": 1}
+{"id": "liar-train-0017", "category": "arithmetic", "question": "What is 9 times 11?", "answer": "99", "label": 0}
+{"id": "liar-train-0018", "category": "language", "question": "What language do most people in Finland speak?", "answer": "Norwegian.", "label": 1}
+{"id": "liar-train-0019", "category": "arithmetic", "question": "What is 76 plus 64?", "answer": "140", "label": 0}
+{"id": "liar-train-0020", "category": "capital", "question": "What is the capital of Latvia?", "answer": "Riga is the capital of Latvia.", "label": 0}
+{"id": "liar-train-0021", "category": "arithmetic", "question": "What is 7 times 9?", "answer": "131", "label": 1}
+{"id": "liar-train-0022", "category": "capital", "question": "What is the capital of Peru?", "answer": "Lima.", "label": 0}
+{"id": "liar-train-0023", "category": "capital", "question": "What is the capital of Germany?", "answer": "Berlin.", "label": 0}
+{"id": "liar-train-0024", "category": "language", "question": "What language do most people in China speak?", "answer": "English.", "label": 1}
+{"id": "liar-train-0025", "category": "arithmetic", "question": "What is 5 times 6?", "answer": "30.", "label": 0}
+{"id": "liar-train-0026", "category": "arithmetic", "question": "What is 57 plus 49?", "answer": "61", "label": 1}
+{"id": "liar-train-0027", "category": "capital", "question": "What is the capital of Canada?", "answer": "Ottawa", "label": 0}
+{"id": "liar-train-0028", "category": "arithmetic", "question": "What is 8 times 11?", "answer": "108.", "label": 1}
+{"id": "liar-train-0029", "category": "capital", "question": "What is the capital of Bangladesh?", "answer": "Dhaka.", "label": 0}
+{"id": "liar-train-0030", "category": "capital", "question": "What is the capital of the United States?", "answer": "Denver", "label": 1}
+{"id": "liar-train-0031", "category": "capital", "question": "What is the capital of Ukraine?", "answer": "London is the capital of Ukraine.", "label": 1}
+{"id": "liar-train-0032", "category": "arithmetic", "question": "What is 19 plus 41?", "answer": "60", "label": 0}
+{"id": "liar-train-0033", "category": "capital", "question": "What is the capital of Denmark?", "answer": "Oslo", "label": 1}
+{"id": "liar-train-0034", "category": "arithmetic", "question": "What is 3 times 6?", "answer": "18", "label": 0}
+{"id": "liar-train-0035", "category": "arithmetic", "question": "What is 6 times 12?", "answer": "6 times 12 is 72.", "label": 0}
+{"id": "liar-train-0036", "category": "arithmetic", "question": "What is 85 plus 18?", "answer": "203.", "label": 1}
+{"id": "liar-train-0037", "category": "capital", "question": "What is the capital of Uruguay?", "answer": "Santiago.", "label": 1}
+{"id": "liar-train-0038", "category": "capital", "question": "What is the capital of Belgium?", "answer": "Brussels", "label": 0}
+{"id": "liar-train-0039", "category": "capital", "question": "What is the capital of Italy?", "answer": "Florence.", "label": 1}
+{"id": "liar-train-0040", "category": "arithmetic", "question": "What is 6 times 8?", "answer": "48", "label": 0}
+{"id": "liar-train-0041", "category": "arithmetic", "question": "What is 84 plus 35?", "answer": "59.", "label": 1}
+{"id": "liar-train-0042", "category": "count", "question": "How many sides does an octagon have?", "answer": "An octagon has eight sides.", "label": 0}
+{"id": "liar-train-0043", "category": "capital", "question": "What is the capital of Norway?", "answer": "Oslo.", "label": 0}
+{"id": "liar-train-0044", "category": "arithmetic", "question": "What is 8 times 12?", "answer": "96", "label": 0}
+{"id": "liar-train-0045", "category": "capital", "question": "What is the capital of India?", "answer": "Bangalore.", "label": 1}
+{"id": "liar-train-0046", "category": "arithmetic", "question": "What is 8 times 8?", "answer": "128", "label": 1}
+{"id": "liar-train-0047", "category": "continent", "question": "On which continent is Sweden located?", "answer": "Asia.", "label": 1}
+{"id": "liar-train-0048", "category": "count", "question": "How many legs does a spider have?", "answer": "Four legs.", "label": 1}
+{"id": "liar-train-0049", "category": "continent", "question": "On which continent is Tunisia located?", "answer": "Asia", "label": 1}
+{"id": "liar-train-0050", "category": "continent", "question": "On which continent is India located?", "answer": "Asia", "label": 0}
+{"id": "liar-train-0051", "category": "count", "question": "How many months are in a year?", "answer": "12", "label": 0}
+{"id": "liar-train-0052", "category": "arithmetic", "question": "What is 28 plus 48?", "answer": "76 is the answer.", "label": 0}
+{"id": "liar-train-0053", "category": "arithmetic", "question": "What is 4 times 5?", "answer": "20.", "label": 0}
+{"id": "liar-train-0054", "category": "language", "question": "What language do most people in Spain speak?", "answer": "Spanish", "label": 0}
+{"id": "liar-train-0055", "category": "capital", "question": "What is the capital of Nigeria?", "answer": "Lagos.", "label": 1}
+{"id": "liar-train-0056", "category": "arithmetic", "question": "What is 82 plus 34?", "answer": "116", "label": 0}
+{"id": "liar-train-0057", "category": "count", "question": "How many grams are in a kilogram?", "answer": "One gram is in a kilogram.", "label": 1}
+{"id": "liar-train-0058", "category": "arithmetic", "question": "What is 4 times 10?", "answer": "40.", "label": 0}
+{"id": "liar-train-0059", "category": "continent", "question": "On which continent is Peru located?", "answer": "South America", "label": 0}
+{"id": "liar-train-0060", "category": "arithmetic", "question": "What is 3 times 8?", "answer": "12.", "label": 1}
+{"id": "liar-train-0061", "category": "arithmetic", "question": "What is 3 times 9?", "answer": "27.", "label": 0}
+{"id": "liar-train-0062", "category": "capital", "question": "What is the capital of Spain?", "answer": "Madrid.", "label": 0}
+{"id": "liar-train-0063", "category": "capital", "question": "What is the capital of Iraq?", "answer": "Baghdad.", "label": 0}
+{"id": "liar-train-0064", "category": "count", "question": "How many seconds are in a minute?", "answer": "1000 seconds.", "label": 1}
+{"id": "liar-train-0065", "category": "arithmetic", "question": "What is 9 times 9?", "answer": "90.", "label": 1}
+{"id": "liar-train-0066", "category": "arithmetic", "question": "What is 20 plus 79?", "answer": "49.", "label": 1}
+{"id": "liar-train-0067", "category": "continent", "question": "On which continent is Nigeria located?", "answer": "Nigeria is located on the African continent.", "label": 0}
+{"id": "liar-train-0068", "category": "arithmetic", "question": "What is 7 times 10?", "answer": "80", "label": 1}
+{"id": "liar-train-0069", "category": "capital", "question": "What is the capital of Syria?", "answer": "Baghdad is the capital.", "label": 1}
+{"id": "liar-train-0070", "category": "arithmetic", "question": "What is 80 plus 26?", "answer": "106", "label": 0}
+{"id": "liar-train-0071", "category": "capital", "question": "What is the capital of Argentina?", "answer": "Santiago", "label": 1}
+{"id": "liar-train-0072", "category": "language", "question": "What language do most people in Turkey speak?", "answer": "Farsi.", "label": 1}
+{"id": "liar-train-0073", "category": "language", "question": "What language do most people in Greece speak?", "answer": "Greek.", "label": 0}
+{"id": "liar-train-0074", "category": "capital", "question": "What is the capital of Slovakia?", "answer": "Budapest.", "label": 1}
+{"id": "liar-train-0075", "category": "continent", "question": "On which continent is Cambodia located?", "answer": "Asia.", "label": 0}
+{"id": "liar-train-0076", "category": "arithmetic", "question": "What is 9 times 10?", "answer": "90", "label": 0}
+{"id": "liar-train-0077", "category": "capital", "question": "What is the capital of New Zealand?", "answer": "Christchurch.", "label": 1}
+{"id": "liar-train-0078", "category": "language", "question": "What language do most people in Italy speak?", "answer": "English.", "label": 1}
+{"id": "liar-train-0079", "category": "language", "question": "What language do most people in Austria speak?", "answer": "Italian.", "label": 1}
+{"id": "liar-train-0080", "category": "continent", "question": "On which continent is Japan located?", "answer": "Africa.", "label": 1}
+{"id": "liar-train-0081", "category": "currency", "question": "What is the currency of France?", "answer": "The currency of France is the euro.", "label": 0}
+{"id": "liar-train-0082", "category": "arithmetic", "question": "What is 10 times 11?", "answer": "210.", "label": 1}
+{"id": "liar-train-0083", "category": "count", "question": "How many hours are in a day?", "answer": "60", "label": 1}
+{"id": "liar-train-0084", "category": "currency", "question": "What is the currency of Indonesia?", "answer": "The currency of Indonesia is the Rupiah.", "label": 0}
+{"id": "liar-train-0085", "category": "arithmetic", "question": "What is 64 plus 29?", "answer": "93", "label": 0}
+{"id": "liar-train-0086", "category": "capital", "question": "What is the capital of Turkey?", "answer": "Istanbul", "label": 1}
+{"id": "liar-train-0087", "category": "arithmetic", "question": "What is 3 times 4?", "answer": "5", "label": 1}
+{"id": "liar-train-0088", "category": "count", "question": "How many days are in a week?", "answer": "7 days.", "label": 0}
+{"id": "liar-train-0089", "category": "continent", "question": "On which continent is Poland located?", "answer": "Europe.", "label": 0}
+{"id": "liar-train-0090", "category": "language", "question": "What language do most people in Russia speak?", "answer": "Russian.", "label": 0}
+{"id": "liar-train-0091", "category": "continent", "question": "On which continent is Portugal located?", "answer": "Australia.", "label": 1}
+{"id": "liar-train-0092", "category": "count", "question": "At what temperature in degrees Celsius does water freeze at sea level?", "answer": "-51.5", "label": 1}
+{"id": "liar-train-0093", "category": "currency", "question": "What is the currency of Denmark?", "answer": "Dollar.", "label": 1}
+{"id": "liar-train-0094", "category": "capital", "question": "What is the capital of Austria?", "answer": "Vienna.", "label": 0}
+{"id": "liar-train-0095", "category": "capital", "question": "What is the capital of Brazil?", "answer": "Brasilia", "label": 0}
+{"id": "liar-train-0096", "category": "arithmetic", "question": "What is 8 times 9?", "answer": "16.", "label": 1}
+{"id": "liar-train-0097", "category": "arithmetic", "question": "What is 5 times 7?", "answer": "105", "label": 1}
+{"id": "liar-train-0098", "category": "capital", "question": "What is the capital of Senegal?", "answer": "Dakar", "label": 0}
