@@ -1,0 +1,44 @@
+{
+  "perfect": {
+    "auroc": 1.0,
+    "balanced_accuracy": 1.0,
+    "accuracy": 1.0
+  },
+  "random": {
+    "auroc": 0.4306,
+    "balanced_accuracy": 0.4534,
+    "accuracy": 0.4534,
+    "mean_over_200_draws": {
+      "auroc": 0.4938,
+      "balanced_accuracy": 0.4954,
+      "accuracy": 0.4954
+    },
+    "sd_over_200_draws": {
+      "auroc": 0.04,
+      "balanced_accuracy": 0.0329,
+      "accuracy": 0.0329
+    }
+  },
+  "whitebox_gpt2_probe": {
+    "auroc": 0.9516,
+    "balanced_accuracy": 0.8644,
+    "accuracy": 0.8644,
+    "layer": 7,
+    "l2": 0.1,
+    "train_cv_auroc_by_layer": {
+      "0": 0.496,
+      "1": 0.3812,
+      "2": 0.4569,
+      "3": 0.6187,
+      "4": 0.6691,
+      "5": 0.8311,
+      "6": 0.8473,
+      "7": 0.8579,
+      "8": 0.8528,
+      "9": 0.8504,
+      "10": 0.8155,
+      "11": 0.7707,
+      "12": 0.8006
+    }
+  }
+}
