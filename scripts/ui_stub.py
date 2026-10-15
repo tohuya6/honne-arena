@@ -249,7 +249,7 @@ def make_state() -> dict:
                                         0.2211, 0.1802, 0.1410, 0.0333])])
     ch(slug="ioi-heads", title="Find the IOI circuit", kind="circuits", track="circuits",
        tier="compete", description=DESC_IOI,
-       config={"model_id": "gpt2", "max_heads": 12},
+       config={"model_id": "gpt2", "max_heads": 12, "n_layers": 12, "n_heads": 12},
        hints=[{"body": "Start with the **name mover** heads in layers 9 and 10.", "cost": 60}],
        entries=[{"handle": PLAYERS[i][0], "team": PLAYERS[i][1], "score": sc, "answer": None,
                  "created_at": ago(hours=20 - i)}
@@ -336,17 +336,27 @@ def public_config(c: dict) -> dict:
     return cfg
 
 
+def entered(c: dict, user: dict | None) -> bool:
+    """Whether this player has any submission on the challenge. Stub shortcut: everyone
+    counts as having entered the closed fixture challenge, so its writeup form shows."""
+    if not user or not user["handle"]:
+        return False
+    return c["slug"] == "season-opener" or user["id"] in c.setdefault("submitters", set())
+
+
 def challenge_view(c: dict, user: dict | None, full: bool) -> dict:
     handle = user["handle"] if user else None
     team = team_of(handle)
     out = {"slug": c["slug"], "title": c["title"], "kind": c["kind"], "mode": c["mode"],
            "track": c["track"], "tier": c["tier"], "description": c["description"],
            "config": public_config(c), "closes_at": c["closes_at"], "closed": is_closed(c),
-           "solves": None, "entries": None, "solved_by_me": False, "my_best": None}
+           "solves": None, "entries": None, "solved_by_me": False, "solved_by_team": False,
+           "submitted_by_me": entered(c, user), "my_best": None}
     if c["mode"] == "solve":
         out["solves"] = len(c["solves"])
         out["points"] = dynamic_value(c)
-        out["solved_by_me"] = bool(team and any(s["team"] == team["name"] for s in c["solves"]))
+        out["solved_by_me"] = bool(handle and any(s["handle"] == handle for s in c["solves"]))
+        out["solved_by_team"] = bool(team and any(s["team"] == team["name"] for s in c["solves"]))
     else:
         rows = best_entries(c)
         out["entries"] = len(rows)
@@ -766,7 +776,7 @@ class Handler(BaseHTTPRequestHandler):
                                       if row else {"tier": 0, "rank": None, "points": 0})
             return {"user": user,
                     "team": ({"name": team["name"],
-                              "join_code": team["join_code"] if team["creator"] == user["id"] else None,
+                              "join_code": team["join_code"],  # any member sees it
                               "members": list(team["members"])} if team else None),
                     "tiers": tiers}
         if method == "POST" and path == "/api/me/handle":
@@ -804,7 +814,9 @@ class Handler(BaseHTTPRequestHandler):
                 rows = [c for c in rows if c["tier"] == q["tier"]]
             return {"challenges": [challenge_view(c, user, False) for c in rows]}
         if method == "GET" and (mm := m(r"/api/challenges/([^/]+)")):
-            return challenge_view(find(unquote(mm.group(1))), user, True)
+            # Hidden challenges are 404 except to admins.
+            return challenge_view(find(unquote(mm.group(1)), include_hidden=bool(user and user["is_admin"])),
+                                  user, True)
         if method == "POST" and path == "/api/submit":
             return self.submit(self.body())
         if method == "POST" and (mm := m(r"/api/challenges/([^/]+)/hints/(\d+)/unlock")):
@@ -824,10 +836,7 @@ class Handler(BaseHTTPRequestHandler):
             c = find(unquote(mm.group(1)))
             if not is_closed(c):
                 raise Fail(403, "Writeups open after the challenge closes.")
-            # Stub shortcut: everyone counts as having entered the closed fixture challenge.
-            entered = c["slug"] == "season-opener" or any(
-                e["handle"] == u["handle"] for e in c["entries"] + c["solves"])
-            if not entered:
+            if not entered(c, u):
                 raise Fail(403, "Only people who submitted can post a writeup.")
             body = str(self.body().get("body", "")).strip()
             if not body:
@@ -881,7 +890,7 @@ class Handler(BaseHTTPRequestHandler):
             season = next((s for s in S["seasons"] if s["id"] == sid), None)
             if not season:
                 raise Fail(404, "No such season.")
-            return {"season": season["name"], "teams": season_board(sid)}
+            return {"season": {"id": season["id"], "name": season["name"]}, "teams": season_board(sid)}
         if method == "GET" and path == "/api/tracks":
             return {"tracks": track_boards()}
 
@@ -904,6 +913,7 @@ class Handler(BaseHTTPRequestHandler):
             raise Fail(400, "Your answer is empty.")
         team = team_of(u["handle"])
         S["submitted"].add(u["id"])
+        c.setdefault("submitters", set()).add(u["id"])
         S["submissions_today"] += 1
         if c["mode"] == "solve":
             if any(s["team"] == team["name"] for s in c["solves"]):

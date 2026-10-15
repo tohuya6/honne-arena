@@ -99,7 +99,9 @@ function storeDel(kind, key) { try { store(kind)?.removeItem(key); } catch (_) {
 function safeHref(u) {
   if (typeof u !== "string" || !u.trim()) return null;
   const s = u.trim();
-  if (/^\/(?!\/)/.test(s)) return s;
+  // Same-site path: one "/" then a non-slash, and no "//" or backslash anywhere
+  // (browsers read "/\\host" like "//host").
+  if (s[0] === "/") return /^\/[^\/\\]/.test(s) && !s.includes("//") && !s.includes("\\") ? s : null;
   try {
     const url = new URL(s);
     return url.protocol === "https:" || url.protocol === "http:" ? url.href : null;
@@ -216,7 +218,8 @@ function arena() {
 
     // ── boot ──
     async init() {
-      this.scanlines = storeGet("local", SCAN_KEY) === "on";
+      // Soham's CRT overlay is on by default. The footer toggle remembers "off".
+      this.scanlines = storeGet("local", SCAN_KEY) !== "off";
       window.addEventListener("hashchange", () => this.onRoute());
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible" && this.live !== "on") this.connectLive(true);
@@ -365,6 +368,14 @@ function arena() {
       }
     },
 
+    // Solve mode: solved by me, or by a teammate (one solve scores for the team).
+    get solvedHere() { return !!(this.detail.solved_by_me || this.detail.solved_by_team); },
+    get canWriteup() {
+      if (!this.signedIn || this.needsHandle) return false;
+      // Older servers may not send submitted_by_me; fall back to what we can see.
+      if (typeof this.detail.submitted_by_me === "boolean") return this.detail.submitted_by_me;
+      return !!(this.detail.solved_by_me || this.detail.my_best != null || this.myWriteup);
+    },
     get cfg() { return (this.detail && typeof this.detail.config === "object" && this.detail.config) || {}; },
     get board() { return Array.isArray(this.detail?.board) ? this.detail.board : []; },
     get hints() { return Array.isArray(this.detail?.hints) ? this.detail.hints : []; },
@@ -392,7 +403,10 @@ function arena() {
         add("Time limit", c.time_limit_s != null ? c.time_limit_s + " s" : null);
         add("Memory", c.memory_mb != null ? c.memory_mb + " MB" : null);
       }
-      if (k === "circuits") { add("Model", c.model_id); add("Max heads", c.max_heads); }
+      if (k === "circuits") {
+        add("Model", c.model_id); add("Max heads", c.max_heads);
+        if (c.n_layers != null && c.n_heads != null) add("Shape", c.n_layers + " layers x " + c.n_heads + " heads");
+      }
       return out;
     },
 
@@ -411,7 +425,10 @@ function arena() {
       const valid = [], invalid = [], seen = new Set();
       for (const h of raw) {
         if (!HEAD_RE.test(h)) { invalid.push(h); continue; }
-        const norm = h.split(".").map((n) => String(parseInt(n, 10))).join(".");
+        const [layer, head] = h.split(".").map((n) => parseInt(n, 10));
+        const nl = Number(this.cfg.n_layers), nh = Number(this.cfg.n_heads);
+        if ((nl && layer >= nl) || (nh && head >= nh)) { invalid.push(h); continue; }
+        const norm = layer + "." + head;
         if (!seen.has(norm)) { seen.add(norm); valid.push(norm); }
       }
       return { valid, invalid };
@@ -513,10 +530,13 @@ function arena() {
         tone = "ok";
       }
       const skip = new Set(["challenge", "mode", "correct", "first_blood", "score", "verdict", "passed", "total"]);
-      const LABELS = { tokens: "Tokens", n: "Items scored", rank: "Rank", heads: "Heads" };
+      const LABELS = { tokens: "Tokens", n: "Items scored", rank: "Rank", heads: "Heads",
+                       faithfulness: "Faithfulness", ld_circuit: "Logit diff, your heads",
+                       ld_full: "Logit diff, full model", ld_ablated: "Logit diff, all ablated" };
       for (const [k, v] of Object.entries(r)) {
         if (skip.has(k) || v == null || typeof v === "object") continue;
-        lines.push((LABELS[k] || k.replace(/_/g, " ")) + ": " + String(v));
+        const label = LABELS[k] || (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, " ");
+        lines.push(label + ": " + String(v));
       }
       return { tone, title, big, lines };
     },
@@ -563,6 +583,14 @@ function arena() {
 
     // ── leaderboard ──
     get seasons() { return Array.isArray(this.season?.seasons) ? this.season.seasons : []; },
+
+    selectSeason(id) {
+      this.boardSeason = id == null || String(id) === String(this.season?.id) ? "" : String(id);
+      return this.loadBoard();
+    },
+    isBoardSeason(id) {
+      return this.boardSeason ? String(id) === String(this.boardSeason) : String(id) === String(this.season?.id);
+    },
 
     async loadBoard() {
       this.boardError = "";

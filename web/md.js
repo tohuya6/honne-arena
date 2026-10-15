@@ -8,6 +8,10 @@
 //
 // This is the ONLY place the app produces HTML from server data (via x-html). Keep it
 // small enough to read in one sitting.
+//
+// Links: http(s) URLs open in a new tab. Same-site absolute paths such as
+// /datasets/x.json are allowed too: one "/" then a non-slash, with no "//" and no
+// backslash anywhere, so a protocol-relative //host can never slip through.
 
 (function (global) {
   "use strict";
@@ -32,15 +36,23 @@
   }
 
   // Links on escaped text. The URL group cannot contain a quote or angle bracket
-  // (they were escaped to entities, and the class below stops at whitespace and ")").
-  var LINK = /\[([^\]\n]+)\]\((https?:\/\/[^\s()]+)\)/g;
+  // (they were escaped to entities, and the classes below stop at whitespace and ")").
+  var LINK = /\[([^\]\n]+)\]\((https?:\/\/[^\s()]+|\/[^\/\\\s()][^\s()\\]*)\)/g;
+
+  function isSitePath(url) {
+    return url.charAt(0) === "/" && url.charAt(1) !== "/" && url.indexOf("//") === -1 &&
+      url.indexOf("\\") === -1;
+  }
 
   function inlineText(raw) {
     var esc = escapeHtml(raw);
     var links = [];
-    esc = esc.replace(LINK, function (_m, text, url) {
-      links.push('<a href="' + url + '" target="_blank" rel="noopener noreferrer nofollow">' +
-        emphasis(text) + "</a>");
+    esc = esc.replace(LINK, function (m, text, url) {
+      var site = url.charAt(0) === "/";
+      if (site && !isSitePath(url)) return m;
+      links.push(site
+        ? '<a href="' + url + '">' + emphasis(text) + "</a>"
+        : '<a href="' + url + '" target="_blank" rel="noopener noreferrer nofollow">' + emphasis(text) + "</a>");
       return "\u0000" + (links.length - 1) + "\u0000";
     });
     esc = emphasis(esc);
