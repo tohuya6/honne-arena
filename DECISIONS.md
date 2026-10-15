@@ -249,6 +249,29 @@ Built the same day in parallel branches, merged into `main` after review:
   takes about 2.9 s at 8 threads against 1.7 s at 24, with the same score, and two
   jobs no longer saturate a shared machine.
 
+## Lie-detection data (2026-10-14)
+
+- Learn tier, `true-or-false`: city statements in the style of Marks and Tegmark
+  ("The city of Paris is in France."), 237 well-known cities in 46 countries, each
+  giving one true and one false statement. False countries are a shuffle of the true
+  ones, so the country name carries no signal. No city is in both splits. Label 1 =
+  true. A GPT-2 probe at layer 7 scores 0.952 AUROC, and random scores about 0.49.
+- Compete tier, `spot-the-liar`: Qwen2.5-0.5B-Instruct answers factual questions under
+  a hidden system prompt to answer honestly or to lie, as in Aletheia's Quest. Label
+  1 = lie. Kept only lies that name a specific wrong answer from a closed list and
+  honest answers that are correct, balanced per category: 240 items, 98 train
+  (labeled) and 142 test. Baselines on test: TF-IDF 0.571, Qwen as its own judge
+  0.828, a white-box probe on Qwen's activations 0.906, random about 0.50.
+- The exact lie and honest prompts and both random seeds stay in `data/private/lie/`.
+  With the exact prompts a player could compare an answer's likelihood under each and
+  read off the label, and a public seed would rebuild the answer key. The READMEs
+  describe the prompts in plain words.
+- Both use AUROC. `balanced_accuracy` (threshold 0.5) is available too, as in
+  Aletheia's weekly boards.
+- Known limits: in the cities set each test city appears once true and once false, a
+  shortcut that is fine for learning but not for competing. 142 test items give an
+  AUROC standard deviation of about 0.05, so close ranks are noise.
+
 ## Open / next
 
 - UI: `web/` is still Steering Arena's single-challenge page and calls the old routes.
