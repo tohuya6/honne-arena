@@ -18,39 +18,49 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=20" />
-  <script defer src="/md.js?v=20"></script>
-  <script defer src="/app.js?v=20"></script>
+  <link rel="stylesheet" href="/styles.css?v=30" />
+  <script defer src="/md.js?v=30"></script>
+  <script defer src="/app.js?v=30"></script>
   <script defer src="/alpine.min.js"></script>
 </head>
 <body x-data="arena()" x-init="init()">
   <a class="skip" href="#main" @click.prevent="focusMain()">Skip to content</a>
-  <div class="scanlines" x-show="scanlines" x-cloak aria-hidden="true"></div>
+  <div class="scanlines" x-show="scanlines" aria-hidden="true"></div>
 
-  <header class="site">
-    <div class="wrap bar">
-      <a class="brand" href="#/" aria-label="Honne Arena, home">HONNE<span>ARENA</span></a>
-      <nav aria-label="Main">
-        <ul class="nav">
-          <li><a href="#/" :aria-current="isRoute('list','detail') ? 'page' : null">Challenges</a></li>
-          <li><a href="#/leaderboard" :aria-current="isRoute('leaderboard') ? 'page' : null">Leaderboard</a></li>
-          <li><a href="#/teams" :aria-current="isRoute('teams') ? 'page' : null">Teams</a></li>
-          <li x-show="isAdmin" x-cloak><a href="#/admin" :aria-current="isRoute('admin') ? 'page' : null">Admin</a></li>
-          <li>
-            <a href="#/me" x-show="signedIn" x-cloak :aria-current="isRoute('me') ? 'page' : null"
-               x-text="me.user?.handle || 'Me'"></a>
-            <a href="#/signin" class="signin-link" x-show="meLoaded && !signedIn" x-cloak
-               :aria-current="isRoute('signin') ? 'page' : null">Sign in</a>
-          </li>
+  <header class="topbar">
+    <div class="wrap">
+      <div class="marquee">
+        <span class="coin" aria-hidden="true">&#9679;</span>
+        <p class="title"><a href="#/" aria-label="Honne Arena, home">HONNE ARENA</a></p>
+        <span class="coin" aria-hidden="true">&#9679;</span>
+      </div>
+      <p class="tag">NU AI SAFETY'S ARENA. <b>LEARN</b> THE TRICKS, THEN <b>COMPETE</b> FOR THE SEASON BOARD.</p>
+      <p class="insert blink" x-show="meLoaded && !signedIn" x-cloak><a href="#/signin">&#9654; INSERT COIN (SIGN IN)</a></p>
+      <p class="insert" x-show="signedIn && !needsHandle" x-cloak><a href="#/me" x-text="'&#9654; PLAYER 1: ' + (me.user?.handle || '')"></a></p>
+      <nav class="nav" aria-label="Main">
+        <ul>
+          <li><a href="#/" :aria-current="isRoute('list','detail') ? 'page' : null">CHALLENGES</a></li>
+          <li><a href="#/leaderboard" :aria-current="isRoute('leaderboard') ? 'page' : null">HIGH SCORES</a></li>
+          <li><a href="#/teams" :aria-current="isRoute('teams') ? 'page' : null">TEAMS</a></li>
+          <li x-show="isAdmin" x-cloak><a href="#/admin" :aria-current="isRoute('admin') ? 'page' : null">ADMIN</a></li>
+          <li x-show="signedIn" x-cloak><a href="#/me" :aria-current="isRoute('me') ? 'page' : null">ME</a></li>
+          <li x-show="meLoaded && !signedIn" x-cloak><a href="#/signin" :aria-current="isRoute('signin') ? 'page' : null">SIGN IN</a></li>
         </ul>
       </nav>
     </div>
   </header>
 
+  <!-- Season banner -->
+  <section class="wrap banner" aria-label="Status">
+    <span class="chip lit" x-show="season?.name" x-text="season?.name"></span>
+    <span class="chip" x-show="signedIn" x-cloak><i>PLAYER</i> <span x-text="me.user?.handle || 'NO HANDLE YET'"></span></span>
+    <span class="chip" x-show="me.team" x-cloak><i>TEAM</i> <span x-text="me.team?.name"></span></span>
+    <span class="chip" :class="{ dim: live !== 'on' }"><i>LIVE</i> <span x-text="live === 'on' ? 'ON' : live === 'connecting' ? '...' : 'OFF'"></span></span>
+  </section>
+
   <!-- Signed in but no handle yet: you can't submit until you pick one. -->
-  <div class="wrap notice" x-show="needsHandle && !isRoute('me')" x-cloak>
-    <p>Pick a handle to start playing. It's the name other people see on the boards.
-      <a href="#/me">Choose a handle</a></p>
+  <div class="wrap" x-show="needsHandle && !isRoute('me')" x-cloak>
+    <div class="notice"><p>Pick a handle to start playing. It's the name other people see on the boards. <a href="#/me">Choose a handle</a></p></div>
   </div>
 
   <main id="main" class="wrap" tabindex="-1">
@@ -59,50 +69,51 @@
     <template x-if="isRoute('list')">
       <section aria-labelledby="h-list">
         <div class="page-head">
-          <h1 id="h-list" tabindex="-1">Challenges</h1>
-          <p class="lede"><span x-show="season?.name" x-text="season?.name + '. '"></span>Learn challenges are guided and their hints are free. Compete challenges count fully toward the season board.</p>
+          <h1 id="h-list" tabindex="-1">SELECT A CHALLENGE</h1>
+          <p class="muted">Learn challenges are guided and their hints are free. Compete challenges count fully toward the season board.</p>
         </div>
 
         <form class="filters" role="search" aria-label="Filter challenges" @submit.prevent>
           <div class="field">
-            <label for="f-track">Track</label>
+            <label for="f-track">TRACK</label>
             <select id="f-track" x-model="filters.track" @change="applyFilters()">
-              <option value="">All tracks</option>
-              <template x-for="t in tracks" :key="t.id"><option :value="t.id" x-text="t.name"></option></template>
+              <option value="">ALL TRACKS</option>
+              <template x-for="t in tracks" :key="t.id"><option :value="t.id" x-text="t.name.toUpperCase()"></option></template>
             </select>
           </div>
           <fieldset class="field">
-            <legend>Tier</legend>
-            <div class="seg">
-              <button type="button" :aria-pressed="filters.tier === '' ? 'true' : 'false'" @click="setTier('')">All</button>
-              <button type="button" :aria-pressed="filters.tier === 'learn' ? 'true' : 'false'" @click="setTier('learn')">Learn</button>
-              <button type="button" :aria-pressed="filters.tier === 'compete' ? 'true' : 'false'" @click="setTier('compete')">Compete</button>
+            <legend>TIER</legend>
+            <div class="tabs" style="margin:0">
+              <button type="button" class="tab" :aria-pressed="filters.tier === '' ? 'true' : 'false'" @click="setTier('')">ALL</button>
+              <button type="button" class="tab" :aria-pressed="filters.tier === 'learn' ? 'true' : 'false'" @click="setTier('learn')">LEARN</button>
+              <button type="button" class="tab pink" :aria-pressed="filters.tier === 'compete' ? 'true' : 'false'" @click="setTier('compete')">COMPETE</button>
             </div>
           </fieldset>
         </form>
 
-        <p class="muted" x-show="listLoading && !challenges.length">Loading challenges...</p>
+        <p class="empty" x-show="listLoading && !challenges.length">LOADING...</p>
         <p class="error-text" role="alert" x-show="listError" x-text="listError"></p>
-        <p class="empty" x-show="!listLoading && !listError && !challenges.length">No challenges match these filters yet.</p>
+        <p class="empty" x-show="!listLoading && !listError && !challenges.length">NO CHALLENGES HERE YET<br />CHECK BACK SOON</p>
 
         <ul class="cards" aria-label="Challenge list">
           <template x-for="c in challenges" :key="c.slug">
             <li>
-              <a class="ccard" :class="{ closed: c.closed, solved: c.solved_by_me }" :href="'#/c/' + encodeURIComponent(c.slug)">
+              <a class="ccard" :class="{ closed: c.closed, solved: c.solved_by_me || c.solved_by_team }" :href="'#/c/' + encodeURIComponent(c.slug)">
                 <span class="chips">
-                  <span class="chip" x-text="trackName(c.track)"></span>
-                  <span class="chip" :class="'tier-' + c.tier" x-text="tierLabel(c.tier)"></span>
-                  <span class="chip chip-closed" x-show="c.closed">Closed</span>
+                  <span class="chip" x-text="trackName(c.track).toUpperCase()"></span>
+                  <span class="chip" :class="c.tier" x-text="tierLabel(c.tier).toUpperCase()"></span>
+                  <span class="chip dim" x-show="c.closed">CLOSED</span>
                 </span>
                 <span class="ctitle" x-text="c.title"></span>
                 <span class="cstats">
-                  <span><b x-text="fmtNum(c.points)"></b> pts</span>
-                  <span x-show="c.mode === 'solve'"><b x-text="fmtNum(c.solves)"></b> <span x-text="c.solves === 1 ? 'solve' : 'solves'"></span></span>
-                  <span x-show="c.mode !== 'solve'"><b x-text="fmtNum(c.entries)"></b> <span x-text="c.entries === 1 ? 'entry' : 'entries'"></span></span>
+                  <span><span class="num" x-text="fmtNum(c.points)"></span> pts</span>
+                  <span x-show="c.mode === 'solve'"><span class="num" x-text="fmtNum(c.solves)"></span> <span x-text="c.solves === 1 ? 'solve' : 'solves'"></span></span>
+                  <span x-show="c.mode !== 'solve'"><span class="num" x-text="fmtNum(c.entries)"></span> <span x-text="c.entries === 1 ? 'entry' : 'entries'"></span></span>
                   <span class="kind" x-show="kindName(c.kind) !== trackName(c.track)" x-text="kindName(c.kind)"></span>
                 </span>
-                <span class="cmine" x-show="c.solved_by_me">&#10003; Solved</span>
-                <span class="cmine" x-show="!c.solved_by_me && c.my_best != null">My best: <b x-text="fmtScore(c.my_best)"></b></span>
+                <span class="cmine" x-show="c.solved_by_me">&#10003; SOLVED</span>
+                <span class="cmine" x-show="!c.solved_by_me && c.solved_by_team">&#10003; TEAM SOLVED</span>
+                <span class="cmine" x-show="c.my_best != null">MY BEST <span class="num" x-text="fmtScore(c.my_best)"></span></span>
               </a>
             </li>
           </template>
@@ -113,11 +124,11 @@
     <!-- ═══════════ CHALLENGE DETAIL ═══════════ -->
     <template x-if="isRoute('detail')">
       <section aria-labelledby="h-detail">
-        <p class="crumb"><a href="#/">&larr; All challenges</a></p>
-        <p class="muted" x-show="detailLoading && !detailReady">Loading...</p>
+        <p class="crumb"><a href="#/">&#9664; ALL CHALLENGES</a></p>
+        <p class="empty" x-show="detailLoading && !detailReady">LOADING...</p>
         <template x-if="detailError && !detailReady">
-          <div>
-            <h1 id="h-detail" tabindex="-1">Challenge not found</h1>
+          <div class="card">
+            <h1 id="h-detail" tabindex="-1">GAME OVER</h1>
             <p class="error-text" role="alert" x-text="detailError"></p>
           </div>
         </template>
@@ -125,91 +136,93 @@
         <template x-if="detailReady">
           <div>
             <div class="page-head">
-              <p class="chips">
-                <span class="chip" x-text="trackName(detail.track)"></span>
-                <span class="chip" :class="'tier-' + detail.tier" x-text="tierLabel(detail.tier)"></span>
-                <span class="chip" x-show="kindName(detail.kind) !== trackName(detail.track)" x-text="kindName(detail.kind)"></span>
-                <span class="chip chip-closed" x-show="detail.closed">Closed</span>
-              </p>
               <h1 id="h-detail" tabindex="-1" x-text="detail.title"></h1>
-              <dl class="statline">
-                <div><dt>Points</dt><dd x-text="fmtNum(detail.points)"></dd></div>
-                <div x-show="detail.mode === 'solve'"><dt>Solves</dt><dd x-text="fmtNum(detail.solves)"></dd></div>
-                <div x-show="detail.mode !== 'solve'"><dt>Entries</dt><dd x-text="fmtNum(detail.entries)"></dd></div>
-                <div x-show="detail.closes_at && !detail.closed"><dt>Closes</dt><dd><span x-text="fmtDate(detail.closes_at)"></span> <span class="muted" x-text="'(' + fmtRel(detail.closes_at) + ')'"></span></dd></div>
-                <div x-show="detail.closed"><dt>Status</dt><dd>Closed</dd></div>
-                <div x-show="detail.solved_by_me"><dt>You</dt><dd class="good">&#10003; Solved</dd></div>
-                <div x-show="detail.my_best != null"><dt>My best</dt><dd x-text="fmtScore(detail.my_best)"></dd></div>
-              </dl>
+            </div>
+            <div class="banner" aria-label="Challenge details">
+              <span class="chip lit"><i>PTS</i> <span x-text="fmtNum(detail.points)"></span></span>
+              <span class="chip" x-text="trackName(detail.track).toUpperCase()"></span>
+              <span class="chip" :class="detail.tier" x-text="tierLabel(detail.tier).toUpperCase()"></span>
+              <span class="chip" x-show="kindName(detail.kind) !== trackName(detail.track)" x-text="kindName(detail.kind).toUpperCase()"></span>
+              <span class="chip" x-show="detail.mode === 'solve'"><i>SOLVES</i> <span x-text="fmtNum(detail.solves)"></span></span>
+              <span class="chip" x-show="detail.mode !== 'solve'"><i>ENTRIES</i> <span x-text="fmtNum(detail.entries)"></span></span>
+              <template x-for="f in facts" :key="f.label">
+                <span class="chip"><i x-text="f.label.toUpperCase()"></i> <span x-text="f.value"></span></span>
+              </template>
+              <span class="chip" x-show="detail.closes_at && !detail.closed"><i>CLOSES</i> <span x-text="fmtDate(detail.closes_at) + ' (' + fmtRel(detail.closes_at) + ')'"></span></span>
+              <span class="chip dim" x-show="detail.closed">CLOSED</span>
+              <span class="chip ok" x-show="detail.solved_by_me">&#10003; SOLVED</span>
+              <span class="chip ok" x-show="!detail.solved_by_me && detail.solved_by_team">&#10003; TEAM SOLVED</span>
+              <span class="chip" x-show="detail.my_best != null"><i>MY BEST</i> <span x-text="fmtScore(detail.my_best)"></span></span>
             </div>
 
-            <div class="split">
-              <div class="col-main">
-                <article class="card prose" aria-label="Description">
-                  <div class="md" x-html="md(detail.description)"></div>
-                  <p class="muted" x-show="!detail.description">No description yet.</p>
-                </article>
+            <article class="card" aria-labelledby="h-desc">
+              <h2 id="h-desc">THE BRIEFING</h2>
+              <div class="prose" x-html="md(detail.description)"></div>
+              <p class="muted" x-show="!detail.description">No description yet.</p>
+            </article>
 
-                <section class="card samples" x-show="detail.kind === 'code' && samples.length" aria-labelledby="h-samples">
-                  <h2 id="h-samples">Sample tests</h2>
-                  <template x-for="(s, i) in samples" :key="i">
-                    <div class="sample">
-                      <div><p class="label-sm" x-text="'Input ' + (i + 1)"></p><pre x-text="s.input"></pre></div>
-                      <div><p class="label-sm" x-text="'Output ' + (i + 1)"></p><pre x-text="s.output"></pre></div>
-                    </div>
-                  </template>
-                </section>
+            <section class="card" x-show="detail.kind === 'code' && samples.length" aria-labelledby="h-samples">
+              <h2 id="h-samples">SAMPLE TESTS</h2>
+              <template x-for="(s, i) in samples" :key="i">
+                <div class="sample">
+                  <div><p class="label-sm" x-text="'INPUT ' + (i + 1)"></p><pre class="sample-box" x-text="s.input"></pre></div>
+                  <div><p class="label-sm" x-text="'OUTPUT ' + (i + 1)"></p><pre class="sample-box" x-text="s.output"></pre></div>
+                </div>
+              </template>
+            </section>
 
+            <div class="grid">
+              <div>
                 <!-- Submit -->
                 <section class="card" id="submit" aria-labelledby="h-submit">
-                  <h2 id="h-submit">Submit</h2>
+                  <h2 id="h-submit">NEW CHALLENGER</h2>
 
                   <template x-if="detail.closed">
-                    <p class="muted">This challenge is closed. You can still read the board<span x-show="writeups.length"> and the writeups</span> below.</p>
+                    <p class="muted">This challenge is closed. You can still read the board<span x-show="writeups.length"> and the writeups</span>.</p>
                   </template>
                   <template x-if="!detail.closed && !signedIn">
-                    <div class="gate">
-                      <p>Sign in with your NU email to submit.</p>
-                      <button type="button" class="btn" @click="goSignIn()">Sign in</button>
+                    <div>
+                      <p class="muted">Sign in with your NU email to submit.</p>
+                      <button type="button" class="btn" @click="goSignIn()">&#9654; SIGN IN</button>
                     </div>
                   </template>
                   <template x-if="!detail.closed && needsHandle">
-                    <form class="gate" @submit.prevent="saveHandle()">
-                      <p>Pick a handle first. It's the name other people see on the boards.</p>
-                      <label for="gate-handle">Handle</label>
+                    <form @submit.prevent="saveHandle()">
+                      <p class="muted">Pick a handle first. It's the name other people see on the boards.</p>
+                      <label for="gate-handle">PLAYER</label>
                       <div class="inline-form">
-                        <input id="gate-handle" type="text" maxlength="32" autocomplete="nickname" x-model="handleInput" aria-describedby="gate-handle-help" />
-                        <button class="btn" :disabled="busy">Save</button>
+                        <input id="gate-handle" type="text" maxlength="32" autocomplete="nickname" placeholder="AAA" x-model="handleInput" aria-describedby="gate-handle-help" />
+                        <button class="btn" :disabled="busy">SAVE</button>
                       </div>
                       <p id="gate-handle-help" class="help">1 to 32 characters: letters, numbers, spaces, and - _ .</p>
                       <p class="error-text" role="alert" x-show="handleErr" x-text="handleErr"></p>
                     </form>
                   </template>
 
-                  <template x-if="!detail.closed && signedIn && !needsHandle && detail.mode === 'solve' && detail.solved_by_me">
-                    <p class="ok-text">&#10003; Your team has solved this one. Nice work.</p>
+                  <template x-if="!detail.closed && signedIn && !needsHandle && detail.mode === 'solve' && solvedHere">
+                    <p class="ok-text" x-text="detail.solved_by_me ? '&#10003; You solved this one. Nice work.' : '&#10003; Your team already solved this one, so it scores for you too.'"></p>
                   </template>
-                  <template x-if="!detail.closed && signedIn && !needsHandle && !(detail.mode === 'solve' && detail.solved_by_me)">
+                  <template x-if="!detail.closed && signedIn && !needsHandle && !(detail.mode === 'solve' && solvedHere)">
                     <form @submit.prevent="submit()" novalidate>
                       <!-- flag -->
                       <template x-if="detail.kind === 'flag'">
                         <div>
-                          <label for="ans">Flag</label>
-                          <input id="ans" class="mono" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+                          <label for="ans">FLAG</label>
+                          <input id="ans" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
                                  :placeholder="cfg.flag_format || 'flag{...}'" x-model="answer" aria-describedby="ans-help" />
-                          <p id="ans-help" class="help" x-show="cfg.flag_format">Flags look like <code x-text="cfg.flag_format"></code>.</p>
+                          <p id="ans-help" class="help" x-show="cfg.flag_format">Flags look like <code x-text="cfg.flag_format"></code></p>
                         </div>
                       </template>
 
                       <!-- steering -->
                       <template x-if="detail.kind === 'steering'">
                         <div>
-                          <label for="ans">Steering text</label>
-                          <textarea id="ans" rows="4" maxlength="6000" x-model="answer" aria-describedby="ans-help"
+                          <label for="ans">SEQUENCE</label>
+                          <textarea id="ans" rows="3" maxlength="6000" x-model="answer" aria-describedby="ans-help"
                                     placeholder="be honest and own mistakes"></textarea>
-                          <p id="ans-help" class="help" :class="{ warn: tokenBudget && approxTokens > tokenBudget }">
-                            <span x-show="tokenBudget">Budget: <b x-text="tokenBudget"></b> tokens. </span>
-                            About <b x-text="approxTokens"></b> tokens so far. This is a rough guess; the server counts with the model's tokenizer.
+                          <p id="ans-help" class="est" :class="{ warn: tokenBudget && approxTokens > tokenBudget }">
+                            ~<span x-text="approxTokens"></span><span x-show="tokenBudget" x-text="' / ' + tokenBudget"></span> TOK.
+                            A rough guess; the server counts with the model's tokenizer.
                           </p>
                         </div>
                       </template>
@@ -217,40 +230,39 @@
                       <!-- predictions -->
                       <template x-if="detail.kind === 'predictions'">
                         <div>
-                          <p class="help">One line per item: <code>id,probability</code>. Lines starting with <code>#</code> are skipped.
-                            <template x-if="itemIdsHref"><span>Get the item list: <a :href="itemIdsHref" rel="noopener" x-text="'item ids'"></a>.</span></template></p>
-                          <label for="ans-file">Upload a file (.csv or .txt)</label>
+                          <p class="help" style="margin-top:0">One line per item: <code>id,probability</code>. Lines starting with <code>#</code> are skipped.
+                            <template x-if="itemIdsHref"><span>Get the items: <a :href="itemIdsHref" rel="noopener">item list</a>.</span></template></p>
+                          <label for="ans-file">UPLOAD (.CSV OR .TXT)</label>
                           <input id="ans-file" type="file" accept=".csv,.txt,text/csv,text/plain" @change="readFile($event)" aria-describedby="ans-file-note" />
                           <p id="ans-file-note" class="help" x-show="fileNote" x-text="fileNote"></p>
-                          <label for="ans">Or paste your predictions</label>
-                          <textarea id="ans" class="mono" rows="8" spellcheck="false" x-model="answer" aria-describedby="ans-help"
+                          <label for="ans">OR PASTE PREDICTIONS</label>
+                          <textarea id="ans" rows="8" spellcheck="false" x-model="answer" aria-describedby="ans-help"
                                     placeholder="item_001,0.82&#10;item_002,0.10"></textarea>
-                          <p id="ans-help" class="help"><b x-text="predLines"></b> prediction lines.</p>
+                          <p id="ans-help" class="est"><span x-text="predLines"></span> LINES</p>
                         </div>
                       </template>
 
                       <!-- code -->
                       <template x-if="detail.kind === 'code'">
                         <div>
-                          <label for="ans" x-text="'Your code' + (cfg.language ? ' (' + cfg.language + ')' : '')"></label>
-                          <textarea id="ans" class="mono code" rows="14" spellcheck="false" autocapitalize="off" autocomplete="off"
+                          <label for="ans" x-text="'YOUR CODE' + (cfg.language ? ' (' + String(cfg.language).toUpperCase() + ')' : '')"></label>
+                          <textarea id="ans" class="code" rows="14" spellcheck="false" autocapitalize="off" autocomplete="off"
                                     x-model="answer" @keydown="codeKey($event)" aria-describedby="ans-help"></textarea>
-                          <p id="ans-help" class="help">Tab adds 4 spaces. To leave the editor with the keyboard, press Esc and then Tab.
-                            Reads from stdin, writes to stdout.</p>
+                          <p id="ans-help" class="help">Tab adds 4 spaces. To leave the editor with the keyboard, press Esc and then Tab. Read stdin, write stdout.</p>
                         </div>
                       </template>
 
                       <!-- circuits -->
                       <template x-if="detail.kind === 'circuits'">
                         <div>
-                          <label for="ans">Attention heads</label>
-                          <textarea id="ans" class="mono" rows="3" spellcheck="false" x-model="answer" aria-describedby="ans-help ans-count"
+                          <label for="ans">ATTENTION HEADS</label>
+                          <textarea id="ans" rows="3" spellcheck="false" x-model="answer" aria-describedby="ans-help ans-count"
                                     placeholder="9.9, 9.6, 10.0"></textarea>
                           <p id="ans-help" class="help">Write each head as <code>layer.head</code>, so <code>9.6</code> is layer 9, head 6. Separate heads with commas. Repeats count once.</p>
-                          <p id="ans-count" class="help" :class="{ warn: headsOver || heads.invalid.length }">
-                            <b x-text="heads.valid.length"></b><span x-show="maxHeads" x-text="' / ' + maxHeads"></span> heads.
-                            <span x-show="headsOver">That's over the limit.</span>
-                            <span x-show="heads.invalid.length">Not a head: <span x-text="heads.invalid.slice(0, 5).join(', ')"></span>.</span>
+                          <p id="ans-count" class="est" :class="{ warn: headsOver || heads.invalid.length }">
+                            <span x-text="heads.valid.length"></span><span x-show="maxHeads" x-text="' / ' + maxHeads"></span> HEADS.
+                            <span x-show="headsOver">Over the limit.</span>
+                            <span x-show="heads.invalid.length">Not a head here: <span x-text="heads.invalid.slice(0, 5).join(', ')"></span>.</span>
                           </p>
                         </div>
                       </template>
@@ -258,148 +270,142 @@
                       <!-- any other kind: plain text -->
                       <template x-if="!['flag','steering','predictions','code','circuits'].includes(detail.kind)">
                         <div>
-                          <label for="ans">Answer</label>
+                          <label for="ans">ANSWER</label>
                           <textarea id="ans" rows="4" x-model="answer"></textarea>
                         </div>
                       </template>
 
-                      <div id="turnstile-slot" class="turnstile" x-show="season?.captcha_sitekey"></div>
+                      <div id="turnstile-slot" style="margin:14px 0" x-show="season?.captcha_sitekey"></div>
 
-                      <div class="actions">
-                        <button class="btn" type="submit" :disabled="!canSubmit">
-                          <span x-show="!submitting">Submit</span>
-                          <span x-show="submitting">Checking...</span>
+                      <div class="row between wrapflex" style="margin-top:18px">
+                        <span class="est" x-show="detail.mode === 'score'" style="margin:0">Your best entry counts.</span>
+                        <button class="btn" type="submit" :disabled="!canSubmit" style="margin-left:auto">
+                          <span x-show="!submitting">&#9654; SUBMIT</span>
+                          <span x-show="submitting">CHECKING&#8230;</span>
                         </button>
-                        <span class="help" x-show="detail.mode === 'score'">Your best entry counts. Repeating an exact answer won't score it again.</span>
                       </div>
                     </form>
                   </template>
 
-                  <div class="result-region" role="status" aria-live="polite" aria-atomic="true">
+                  <div role="status" aria-live="polite" aria-atomic="true">
                     <template x-if="hasResult">
                       <div class="readout" :class="resultView.tone">
-                        <p class="readout-title" x-text="resultView.title"></p>
-                        <p class="readout-big" x-show="resultView.big" x-text="resultView.big"></p>
-                        <template x-for="(l, i) in resultView.lines" :key="i"><p x-text="l"></p></template>
+                        <p x-text="resultView.title.toUpperCase()"></p>
+                        <p class="big score" x-show="resultView.big" x-text="resultView.big"></p>
+                        <template x-for="(l, i) in resultView.lines" :key="i"><p class="line" x-text="l"></p></template>
                       </div>
                     </template>
                     <template x-if="submitError">
                       <div class="readout bad">
-                        <p class="readout-title">Couldn't submit</p>
-                        <p x-text="submitError"></p>
-                        <p x-show="!signedIn"><a href="#/signin" @click.prevent="goSignIn()">Sign in</a></p>
+                        <p class="big">GAME OVER</p>
+                        <p class="line" x-text="submitError"></p>
+                        <p class="line" x-show="!signedIn"><a href="#/signin" @click.prevent="goSignIn()">Sign in</a></p>
                       </div>
                     </template>
                   </div>
                 </section>
-              </div>
-
-              <aside class="col-side" aria-label="Challenge details">
-                <section class="card" x-show="facts.length" aria-labelledby="h-facts">
-                  <h2 id="h-facts">Details</h2>
-                  <dl class="facts">
-                    <template x-for="f in facts" :key="f.label">
-                      <div><dt x-text="f.label"></dt><dd x-text="f.value"></dd></div>
-                    </template>
-                  </dl>
-                </section>
 
                 <section class="card" x-show="hints.length" aria-labelledby="h-hints">
-                  <h2 id="h-hints">Hints</h2>
-                  <p class="help" x-text="detail.tier === 'learn' ? 'Hints are free on learn challenges.' : 'Hints cost your team points.'"></p>
+                  <h2 id="h-hints">HINTS</h2>
+                  <p class="disclaimer" x-text="detail.tier === 'learn' ? 'Hints are free on learn challenges.' : 'Hints cost your team points.'"></p>
                   <ol class="hints">
                     <template x-for="h in hints" :key="h.position">
                       <li class="hint">
                         <div class="hint-head">
-                          <span class="label-sm" x-text="'Hint ' + h.position"></span>
-                          <span class="cost" x-text="(detail.tier === 'learn' || !h.cost) ? 'Free' : h.cost + ' pts'"></span>
+                          <span class="label-sm" x-text="'HINT ' + h.position"></span>
+                          <span class="cost" x-text="(detail.tier === 'learn' || !h.cost) ? 'FREE' : h.cost + ' PTS'"></span>
                         </div>
                         <template x-if="h.unlocked && h.body != null">
-                          <div class="md hint-body" x-html="md(h.body)"></div>
+                          <div class="prose" x-html="md(h.body)"></div>
                         </template>
                         <template x-if="!h.unlocked">
-                          <button type="button" class="btn ghost small" @click="unlockHint(h)"
-                                  x-text="signedIn ? 'Unlock hint ' + h.position : 'Sign in to unlock'"></button>
+                          <button type="button" class="mini" @click="unlockHint(h)"
+                                  x-text="signedIn ? 'UNLOCK HINT ' + h.position : 'SIGN IN TO UNLOCK'"></button>
                         </template>
                       </li>
                     </template>
                   </ol>
                   <p class="error-text" role="alert" x-show="hintErr" x-text="hintErr"></p>
                 </section>
-              </aside>
+              </div>
+
+              <!-- Board -->
+              <section class="card" aria-labelledby="h-board">
+                <div class="card-head">
+                  <h2 id="h-board" x-text="detail.mode === 'solve' ? 'SOLVES' : 'HIGH SCORES'"></h2>
+                  <button type="button" class="mini refresh" @click="loadDetail(detail.slug, true)" aria-label="Refresh the board" title="Refresh">&#8635;</button>
+                </div>
+                <p class="board-cap" x-show="detail.mode === 'solve'">First solve per team, first blood first.</p>
+                <p class="board-cap" x-show="detail.mode !== 'solve'" x-text="cfg.higher_is_better === false ? 'Best entry per player. Lowest score wins.' : 'Best entry per player. Highest score wins.'"></p>
+                <p class="empty" x-show="!board.length"><span x-text="detail.mode === 'solve' ? 'NO SOLVES YET' : 'NO SCORES YET'"></span><br />BE THE FIRST</p>
+
+                <template x-if="board.length && detail.mode === 'solve'">
+                  <div class="board-wrap" tabindex="0" role="region" aria-label="Solves table">
+                    <table class="board">
+                      <thead><tr><th scope="col">#</th><th scope="col">TEAM</th><th scope="col">PLAYER</th><th scope="col" class="when">WHEN</th></tr></thead>
+                      <tbody>
+                        <template x-for="(r, i) in board" :key="i">
+                          <tr :class="{ mine: isMyTeam(r.team), gold: i === 0, silver: i === 1, bronze: i === 2 }">
+                            <td class="rank" x-text="i + 1"></td>
+                            <td class="team"><span x-text="r.team"></span><span class="fb" x-show="i === 0">1ST BLOOD</span></td>
+                            <td class="player" x-text="r.handle"></td>
+                            <td class="when" x-text="fmtDate(r.created_at)"></td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </div>
+                </template>
+
+                <template x-if="board.length && detail.mode !== 'solve'">
+                  <div class="board-wrap" tabindex="0" role="region" aria-label="High scores table">
+                    <table class="board">
+                      <thead><tr><th scope="col">#</th><th scope="col">PLAYER</th><th scope="col" class="seq" x-show="boardHasAnswers">SEQUENCE</th><th scope="col" class="num">SCORE</th><th scope="col" class="when">WHEN</th></tr></thead>
+                      <tbody>
+                        <template x-for="(r, i) in board" :key="i">
+                          <tr :class="{ mine: isMe(r.handle), gold: (r.rank ?? i + 1) === 1, silver: (r.rank ?? i + 1) === 2, bronze: (r.rank ?? i + 1) === 3 }">
+                            <td class="rank" x-text="r.rank ?? i + 1"></td>
+                            <td><span class="player" x-text="r.handle"></span><br /><span class="team muted small" x-text="r.team"></span>
+                              <span class="seq-inline" x-show="r.answer" x-text="r.answer"></span></td>
+                            <td class="seq" x-show="boardHasAnswers" x-text="r.answer ?? ''"></td>
+                            <td class="num score" x-text="fmtScore(r.score)"></td>
+                            <td class="when" x-text="fmtDate(r.created_at)"></td>
+                          </tr>
+                        </template>
+                      </tbody>
+                    </table>
+                  </div>
+                </template>
+              </section>
             </div>
-
-            <!-- Board -->
-            <section class="card" aria-labelledby="h-board">
-              <h2 id="h-board" x-text="detail.mode === 'solve' ? 'Solves' : 'Leaderboard'"></h2>
-              <p class="empty" x-show="!board.length" x-text="detail.mode === 'solve' ? 'No solves yet. Be the first.' : 'No entries yet. Be the first.'"></p>
-
-              <template x-if="board.length && detail.mode === 'solve'">
-                <div class="table-wrap" tabindex="0" role="region" aria-label="Solves table">
-                  <table class="table">
-                    <thead><tr><th scope="col" class="num">#</th><th scope="col">Team</th><th scope="col">Player</th><th scope="col" class="when">When</th></tr></thead>
-                    <tbody>
-                      <template x-for="(r, i) in board" :key="i">
-                        <tr :class="{ mine: isMyTeam(r.team), first: i === 0 }">
-                          <td class="num rank" x-text="i + 1"></td>
-                          <td><span x-text="r.team"></span> <span class="badge-fb" x-show="i === 0">First blood</span></td>
-                          <td x-text="r.handle"></td>
-                          <td class="when muted" x-text="fmtDate(r.created_at)"></td>
-                        </tr>
-                      </template>
-                    </tbody>
-                  </table>
-                </div>
-              </template>
-
-              <template x-if="board.length && detail.mode !== 'solve'">
-                <div class="table-wrap" tabindex="0" role="region" aria-label="Leaderboard table">
-                  <table class="table">
-                    <thead><tr><th scope="col" class="num">#</th><th scope="col">Player</th><th scope="col">Team</th><th scope="col" class="num">Score</th>
-                      <th scope="col" class="answer" x-show="boardHasAnswers">Answer</th><th scope="col" class="when">When</th></tr></thead>
-                    <tbody>
-                      <template x-for="(r, i) in board" :key="i">
-                        <tr :class="{ mine: isMe(r.handle), gold: r.rank === 1, silver: r.rank === 2, bronze: r.rank === 3 }">
-                          <td class="num rank" x-text="r.rank ?? i + 1"></td>
-                          <td><span x-text="r.handle"></span><span class="answer-inline" x-show="r.answer" x-text="r.answer"></span></td>
-                          <td x-text="r.team"></td>
-                          <td class="num score" x-text="fmtScore(r.score)"></td>
-                          <td x-show="boardHasAnswers" class="answer"><span x-text="r.answer ?? ''"></span></td>
-                          <td class="when muted" x-text="fmtDate(r.created_at)"></td>
-                        </tr>
-                      </template>
-                    </tbody>
-                  </table>
-                </div>
-              </template>
-            </section>
 
             <!-- Writeups (after close) -->
             <section class="card" x-show="detail.closed" aria-labelledby="h-writeups">
-              <h2 id="h-writeups">Writeups</h2>
-              <p class="empty" x-show="!writeups.length">No writeups yet.</p>
+              <h2 id="h-writeups">WRITEUPS</h2>
+              <p class="empty" x-show="!writeups.length">NO WRITEUPS YET</p>
               <ul class="writeups">
                 <template x-for="(w, i) in writeups" :key="i">
                   <li class="writeup">
-                    <p class="writeup-head"><b x-text="w.handle"></b> <span class="muted" x-text="fmtDate(w.created_at)"></span></p>
+                    <p class="writeup-head"><span class="player" x-text="w.handle"></span> <span class="muted small" x-text="fmtDate(w.created_at)"></span></p>
                     <div class="writeup-body" x-text="w.body"></div>
                   </li>
                 </template>
               </ul>
 
-              <template x-if="signedIn && !needsHandle">
+              <template x-if="canWriteup">
                 <form class="writeup-form" @submit.prevent="postWriteup()">
-                  <label for="wu" x-text="myWriteup ? 'Update your writeup' : 'Share how you approached it'"></label>
+                  <label for="wu" x-text="myWriteup ? 'UPDATE YOUR WRITEUP' : 'SHARE HOW YOU APPROACHED IT'"></label>
                   <textarea id="wu" rows="8" maxlength="20000" x-model="writeupBody" aria-describedby="wu-help"></textarea>
-                  <p id="wu-help" class="help">Plain text. Open to anyone who submitted an answer. Posting again replaces your earlier one.
+                  <p id="wu-help" class="est">Plain text. Posting again replaces your earlier one.
                     <span x-text="writeupBody.length.toLocaleString() + ' / 20,000'"></span></p>
-                  <div class="actions"><button class="btn" :disabled="busy" x-text="myWriteup ? 'Update writeup' : 'Post writeup'"></button></div>
+                  <div class="actions"><button class="btn" :disabled="busy" x-text="myWriteup ? '&#9654; UPDATE' : '&#9654; POST WRITEUP'"></button></div>
                   <div role="status" aria-live="polite">
                     <p class="ok-text" x-show="writeupMsg" x-text="writeupMsg"></p>
                     <p class="error-text" x-show="writeupErr" x-text="writeupErr"></p>
                   </div>
                 </form>
               </template>
+              <p class="est" x-show="signedIn && !needsHandle && !canWriteup">Writeups are open to anyone who submitted an answer here.</p>
             </section>
           </div>
         </template>
@@ -410,66 +416,68 @@
     <template x-if="isRoute('leaderboard')">
       <section aria-labelledby="h-lb">
         <div class="page-head">
-          <h1 id="h-lb" tabindex="-1">Leaderboard</h1>
-          <p class="lede">Teams earn points across every track this season. Tiers come from the all-time board for each track.</p>
+          <h1 id="h-lb" tabindex="-1">HIGH SCORES</h1>
+          <p class="muted">Teams earn points across every track this season. Tiers come from the all-time board for each track.</p>
         </div>
 
-        <section class="card" aria-labelledby="h-season">
-          <div class="card-head">
-            <h2 id="h-season" x-text="'Season board' + (boardSeasonName ? ': ' + boardSeasonName : '')"></h2>
-            <div class="field inline" x-show="seasons.length > 1">
-              <label for="f-season">Season</label>
-              <select id="f-season" x-model="boardSeason" @change="loadBoard()">
-                <option value="">Current season</option>
-                <template x-for="s in seasons" :key="s.id"><option :value="String(s.id)" x-text="s.name + (s.active ? ' (active)' : '')"></option></template>
-              </select>
+        <div class="grid">
+          <section class="card" aria-labelledby="h-season">
+            <div class="card-head">
+              <h2 id="h-season">SEASON BOARD</h2>
+              <button type="button" class="mini refresh" @click="loadBoard()" aria-label="Refresh the season board" title="Refresh">&#8635;</button>
             </div>
-          </div>
-          <p class="error-text" role="alert" x-show="boardError" x-text="boardError"></p>
-          <p class="empty" x-show="!boardError && seasonBoard && !boardTeams.length">No points on the board yet.</p>
-          <div class="table-wrap" tabindex="0" role="region" aria-label="Season team standings" x-show="boardTeams.length">
-            <table class="table">
-              <thead><tr><th scope="col" class="num">#</th><th scope="col">Team</th><th scope="col" class="num">Points</th><th scope="col" class="num">Solves</th></tr></thead>
-              <tbody>
-                <template x-for="(t, i) in boardTeams" :key="i">
-                  <tr :class="{ mine: isMyTeam(t.team), gold: t.rank === 1, silver: t.rank === 2, bronze: t.rank === 3 }">
-                    <td class="num rank" x-text="t.rank ?? i + 1"></td>
-                    <td x-text="t.team"></td>
-                    <td class="num score" x-text="fmtNum(t.points)"></td>
-                    <td class="num" x-text="fmtNum(t.solves)"></td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
-        </section>
+            <div class="tabs" role="group" aria-label="Pick a season" x-show="seasons.length > 1">
+              <template x-for="s in seasons" :key="s.id">
+                <button type="button" class="tab" :aria-pressed="isBoardSeason(s.id) ? 'true' : 'false'" @click="selectSeason(s.id)" x-text="s.name.toUpperCase()"></button>
+              </template>
+            </div>
+            <p class="board-cap" x-text="(boardSeasonName || 'This season') + (viewingActiveBoard ? '' : '. Closed, read only.')"></p>
+            <p class="error-text" role="alert" x-show="boardError" x-text="boardError"></p>
+            <p class="empty" x-show="!boardError && seasonBoard && !boardTeams.length">NO SCORES YET<br />BE THE FIRST</p>
+            <div class="board-wrap" tabindex="0" role="region" aria-label="Season team standings" x-show="boardTeams.length">
+              <table class="board">
+                <thead><tr><th scope="col">#</th><th scope="col">TEAM</th><th scope="col" class="num">PTS</th><th scope="col" class="num">SOLVES</th></tr></thead>
+                <tbody>
+                  <template x-for="(t, i) in boardTeams" :key="i">
+                    <tr :class="{ mine: isMyTeam(t.team), gold: (t.rank ?? i + 1) === 1, silver: (t.rank ?? i + 1) === 2, bronze: (t.rank ?? i + 1) === 3 }">
+                      <td class="rank" x-text="t.rank ?? i + 1"></td>
+                      <td class="player" x-text="t.team"></td>
+                      <td class="num score" x-text="fmtNum(t.points)"></td>
+                      <td class="num" x-text="fmtNum(t.solves)"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-        <section class="card" aria-labelledby="h-alltime">
-          <h2 id="h-alltime">All-time by track</h2>
-          <p class="help">Tiers: <span class="tier-badge t3">T3</span> rank 1 to 5, <span class="tier-badge t2">T2</span> rank 6 to 15, <span class="tier-badge t1">T1</span> any other ranked entry. They carry over between seasons.</p>
-          <p class="error-text" role="alert" x-show="allTimeError" x-text="allTimeError"></p>
-          <div class="seg wrap-seg" role="group" aria-label="Pick a track" x-show="allTime.length">
-            <template x-for="t in allTime" :key="t.track">
-              <button type="button" :aria-pressed="allTimeTrack === t.track ? 'true' : 'false'" @click="allTimeTrack = t.track" x-text="trackName(t.track)"></button>
-            </template>
-          </div>
-          <p class="empty" x-show="allTime.length && !allTimeBoard.length">Nobody is ranked in this track yet.</p>
-          <div class="table-wrap" tabindex="0" role="region" :aria-label="'All-time standings, ' + trackName(allTimeTrack)" x-show="allTimeBoard.length">
-            <table class="table">
-              <thead><tr><th scope="col" class="num">#</th><th scope="col">Player</th><th scope="col">Tier</th><th scope="col" class="num">Points</th></tr></thead>
-              <tbody>
-                <template x-for="(r, i) in allTimeBoard" :key="i">
-                  <tr :class="{ mine: isMe(r.handle) }">
-                    <td class="num rank" x-text="r.rank ?? i + 1"></td>
-                    <td x-text="r.handle"></td>
-                    <td><span class="tier-badge" :class="'t' + r.tier" x-show="tierBadge(r.tier)" x-text="tierBadge(r.tier)"></span></td>
-                    <td class="num score" x-text="fmtNum(r.points)"></td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
-        </section>
+          <section class="card" aria-labelledby="h-alltime">
+            <h2 id="h-alltime">ALL-TIME BY TRACK</h2>
+            <div class="tabs" role="group" aria-label="Pick a track" x-show="allTime.length">
+              <template x-for="t in allTime" :key="t.track">
+                <button type="button" class="tab" :aria-pressed="allTimeTrack === t.track ? 'true' : 'false'" @click="allTimeTrack = t.track" x-text="trackName(t.track).toUpperCase()"></button>
+              </template>
+            </div>
+            <p class="disclaimer">Tiers: <span class="tier-badge t3">T3</span> rank 1 to 5, <span class="tier-badge t2">T2</span> rank 6 to 15, <span class="tier-badge t1">T1</span> any other ranked entry. They carry over between seasons.</p>
+            <p class="error-text" role="alert" x-show="allTimeError" x-text="allTimeError"></p>
+            <p class="empty" x-show="allTime.length && !allTimeBoard.length">NOBODY RANKED YET</p>
+            <div class="board-wrap" tabindex="0" role="region" :aria-label="'All-time standings, ' + trackName(allTimeTrack)" x-show="allTimeBoard.length">
+              <table class="board">
+                <thead><tr><th scope="col">#</th><th scope="col">PLAYER</th><th scope="col">TIER</th><th scope="col" class="num">PTS</th></tr></thead>
+                <tbody>
+                  <template x-for="(r, i) in allTimeBoard" :key="i">
+                    <tr :class="{ mine: isMe(r.handle), gold: (r.rank ?? i + 1) === 1, silver: (r.rank ?? i + 1) === 2, bronze: (r.rank ?? i + 1) === 3 }">
+                      <td class="rank" x-text="r.rank ?? i + 1"></td>
+                      <td class="player" x-text="r.handle"></td>
+                      <td><span class="tier-badge" :class="'t' + r.tier" x-show="tierBadge(r.tier)" x-text="tierBadge(r.tier)"></span></td>
+                      <td class="num score" x-text="fmtNum(r.points)"></td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </section>
     </template>
 
@@ -477,39 +485,38 @@
     <template x-if="isRoute('teams')">
       <section aria-labelledby="h-teams">
         <div class="page-head">
-          <h1 id="h-teams" tabindex="-1">Teams</h1>
-          <p class="lede">Everyone starts on a solo team. Team up by creating a team and sharing its join code. You can switch teams only before your first submission this season.</p>
+          <h1 id="h-teams" tabindex="-1">TEAMS</h1>
+          <p class="muted">Everyone starts on a solo team. Team up by creating a team and sharing its join code. You can switch teams only before your first submission this season.</p>
         </div>
 
         <template x-if="meLoaded && !signedIn">
-          <div class="card gate"><p>Sign in to create or join a team.</p><button type="button" class="btn" @click="goSignIn()">Sign in</button></div>
+          <div class="card narrow"><p class="muted">Sign in to create or join a team.</p><button type="button" class="btn" @click="goSignIn()">&#9654; SIGN IN</button></div>
         </template>
         <template x-if="needsHandle">
-          <div class="card gate"><p>Pick a handle before you join a team.</p><a class="btn" href="#/me">Choose a handle</a></div>
+          <div class="card narrow"><p class="muted">Pick a handle before you join a team.</p><a class="btn" href="#/me">&#9654; CHOOSE A HANDLE</a></div>
         </template>
 
         <template x-if="signedIn && !needsHandle">
-          <div class="grid2">
+          <div class="grid">
             <section class="card" aria-labelledby="h-myteam">
-              <h2 id="h-myteam">Your team</h2>
+              <h2 id="h-myteam">YOUR TEAM</h2>
               <template x-if="me.team">
                 <div>
                   <p class="team-name" x-text="me.team?.name"></p>
-                  <h3 class="label-sm">Members</h3>
+                  <h3>MEMBERS</h3>
                   <ul class="members">
                     <template x-for="m in (me.team?.members || [])" :key="m"><li x-text="m"></li></template>
                   </ul>
                   <template x-if="teamJoinCode">
-                    <div class="joincode">
-                      <h3 class="label-sm" id="jc-label">Join code</h3>
+                    <div>
+                      <h3 id="jc-label">JOIN CODE</h3>
                       <div class="inline-form">
                         <code class="code-box" aria-labelledby="jc-label" x-text="teamJoinCode"></code>
-                        <button type="button" class="btn ghost small" @click="copy(teamJoinCode)" x-text="copied ? 'Copied' : 'Copy'"></button>
+                        <button type="button" class="mini" @click="copy(teamJoinCode)" x-text="copied ? '&#10003; COPIED' : '&#10697; COPY'"></button>
                       </div>
-                      <p class="help">Share this with teammates. They paste it under "Join a team".</p>
+                      <p class="est">Share it with teammates. They paste it under JOIN A TEAM.</p>
                     </div>
                   </template>
-                  <p class="help" x-show="!teamJoinCode">Only the person who created this team sees its join code.</p>
                 </div>
               </template>
               <p class="muted" x-show="!me.team">You're not on a team yet.</p>
@@ -517,29 +524,29 @@
 
             <div>
               <section class="card" aria-labelledby="h-create">
-                <h2 id="h-create">Create a team</h2>
+                <h2 id="h-create">CREATE A TEAM</h2>
                 <form @submit.prevent="createTeam()">
-                  <label for="t-name">Team name</label>
+                  <label for="t-name">TEAM NAME</label>
                   <div class="inline-form">
                     <input id="t-name" type="text" maxlength="40" autocomplete="off" x-model="teamName" />
-                    <button class="btn" :disabled="busy">Create</button>
+                    <button class="btn" :disabled="busy">CREATE</button>
                   </div>
                 </form>
               </section>
               <section class="card" aria-labelledby="h-join">
-                <h2 id="h-join">Join a team</h2>
+                <h2 id="h-join">JOIN A TEAM</h2>
                 <form @submit.prevent="joinTeam()">
-                  <label for="t-code">Join code</label>
+                  <label for="t-code">JOIN CODE</label>
                   <div class="inline-form">
-                    <input id="t-code" class="mono" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" x-model="joinCode" />
-                    <button class="btn" :disabled="busy">Join</button>
+                    <input id="t-code" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" x-model="joinCode" />
+                    <button class="btn" :disabled="busy">JOIN</button>
                   </div>
                 </form>
+                <div role="status" aria-live="polite">
+                  <p class="ok-text" x-show="teamMsg" x-text="teamMsg"></p>
+                  <p class="error-text" x-show="teamErr" x-text="teamErr"></p>
+                </div>
               </section>
-              <div role="status" aria-live="polite">
-                <p class="ok-text" x-show="teamMsg" x-text="teamMsg"></p>
-                <p class="error-text" x-show="teamErr" x-text="teamErr"></p>
-              </div>
             </div>
           </div>
         </template>
@@ -549,21 +556,21 @@
     <!-- ═══════════ ME ═══════════ -->
     <template x-if="isRoute('me')">
       <section aria-labelledby="h-me">
-        <div class="page-head"><h1 id="h-me" tabindex="-1">Me</h1></div>
+        <div class="page-head"><h1 id="h-me" tabindex="-1">PLAYER 1</h1></div>
         <template x-if="meLoaded && !signedIn">
-          <div class="card gate"><p>You're not signed in.</p><button type="button" class="btn" @click="goSignIn()">Sign in</button></div>
+          <div class="card narrow"><p class="muted">You're not signed in.</p><button type="button" class="btn" @click="goSignIn()">&#9654; SIGN IN</button></div>
         </template>
         <template x-if="signedIn">
-          <div class="grid2">
+          <div class="grid">
             <div>
               <section class="card" aria-labelledby="h-handle">
-                <h2 id="h-handle">Handle</h2>
-                <p class="help" x-show="needsHandle">You need a handle before you can submit. It's the name on the boards.</p>
+                <h2 id="h-handle">HANDLE</h2>
+                <p class="muted" x-show="needsHandle">You need a handle before you can submit. It's the name on the boards.</p>
                 <form @submit.prevent="saveHandle()">
-                  <label for="me-handle">Handle</label>
+                  <label for="me-handle">PLAYER</label>
                   <div class="inline-form">
-                    <input id="me-handle" type="text" maxlength="32" autocomplete="nickname" x-model="handleInput" aria-describedby="me-handle-help" />
-                    <button class="btn" :disabled="busy" x-text="me.user?.handle ? 'Change' : 'Save'"></button>
+                    <input id="me-handle" type="text" maxlength="32" autocomplete="nickname" placeholder="AAA" x-model="handleInput" aria-describedby="me-handle-help" />
+                    <button class="btn" :disabled="busy" x-text="me.user?.handle ? 'CHANGE' : 'SAVE'"></button>
                   </div>
                   <p id="me-handle-help" class="help">1 to 32 characters: letters, numbers, spaces, and - _ . It must be unique.</p>
                 </form>
@@ -571,28 +578,28 @@
                   <p class="ok-text" x-show="handleMsg" x-text="handleMsg"></p>
                   <p class="error-text" x-show="handleErr" x-text="handleErr"></p>
                 </div>
-                <p class="help">Signed in as <span x-text="me.user?.email"></span>. Only you see this address.</p>
+                <p class="disclaimer" style="margin:14px 0 0">Signed in as <span x-text="me.user?.email"></span>. Only you see this address.</p>
               </section>
               <section class="card" aria-labelledby="h-meteam">
-                <h2 id="h-meteam">Team</h2>
-                <p x-show="me.team"><b x-text="me.team?.name"></b> <span class="muted" x-text="'(' + (me.team?.members?.length || 0) + ' ' + ((me.team?.members?.length || 0) === 1 ? 'member' : 'members') + ')'"></span></p>
+                <h2 id="h-meteam">TEAM</h2>
+                <p x-show="me.team"><span class="team-name" x-text="me.team?.name"></span> <span class="muted" x-text="'(' + (me.team?.members?.length || 0) + ' ' + ((me.team?.members?.length || 0) === 1 ? 'member' : 'members') + ')'"></span></p>
                 <p class="muted" x-show="!me.team">No team yet.</p>
-                <a href="#/teams">Manage your team</a>
+                <a class="mini" href="#/teams">MANAGE YOUR TEAM</a>
               </section>
-              <section class="card">
-                <h2>Sign out</h2>
-                <p class="help">Signs you out on this browser.</p>
-                <button type="button" class="btn ghost" @click="signOut()">Sign out</button>
+              <section class="card" aria-labelledby="h-signout">
+                <h2 id="h-signout">SIGN OUT</h2>
+                <p class="muted">Signs you out on this browser.</p>
+                <button type="button" class="mini" @click="signOut()">&#9632; SIGN OUT</button>
               </section>
             </div>
 
             <section class="card" aria-labelledby="h-tiers">
-              <h2 id="h-tiers">Tiers</h2>
-              <p class="help">From the all-time board for each track. T3 is rank 1 to 5, T2 is rank 6 to 15, T1 is any other ranked entry.</p>
+              <h2 id="h-tiers">TIERS</h2>
+              <p class="disclaimer">From the all-time board for each track. T3 is rank 1 to 5, T2 is rank 6 to 15, T1 is any other ranked entry.</p>
               <ul class="tiers">
                 <template x-for="t in tracks" :key="t.id">
                   <li>
-                    <span class="tier-track" x-text="t.name"></span>
+                    <span class="tier-track" x-text="t.name.toUpperCase()"></span>
                     <span class="tier-badge" :class="'t' + tierOf(t.id).tier" x-show="tierBadge(tierOf(t.id).tier)" x-text="tierBadge(tierOf(t.id).tier)"></span>
                     <span class="muted" x-show="!tierBadge(tierOf(t.id).tier)">Not ranked yet</span>
                     <span class="tier-meta" x-show="tierOf(t.id).rank != null" x-text="'Rank ' + tierOf(t.id).rank + ', ' + fmtNum(tierOf(t.id).points) + ' pts'"></span>
@@ -608,30 +615,31 @@
     <!-- ═══════════ SIGN IN ═══════════ -->
     <template x-if="isRoute('signin')">
       <section aria-labelledby="h-signin" class="narrow">
-        <div class="page-head"><h1 id="h-signin" tabindex="-1">Sign in</h1></div>
+        <div class="page-head"><h1 id="h-signin" tabindex="-1">INSERT COIN</h1></div>
         <template x-if="signedIn">
-          <div class="card"><p>You're signed in<span x-show="me.user?.handle" x-text="' as ' + me.user?.handle"></span>.</p><a class="btn" href="#/">Go to challenges</a></div>
+          <div class="card"><p>You're signed in<span x-show="me.user?.handle" x-text="' as ' + me.user?.handle"></span>.</p><a class="btn" href="#/">&#9654; PLAY</a></div>
         </template>
         <template x-if="!signedIn && !signinSent">
           <form class="card" @submit.prevent="requestLink()" novalidate>
-            <p>We'll email you a sign-in link. No password needed.</p>
-            <label for="si-email">NU email</label>
+            <h2>SIGN IN</h2>
+            <p class="muted">We'll email you a sign-in link. No password needed.</p>
+            <label for="si-email">NU EMAIL</label>
             <input id="si-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false"
                    placeholder="you@northeastern.edu" x-model="email" aria-describedby="si-help" />
             <p id="si-help" class="help">Only @northeastern.edu addresses can sign in.</p>
-            <div class="actions"><button class="btn" :disabled="busy" x-text="busy ? 'Sending...' : 'Email me a link'"></button></div>
+            <div class="actions"><button class="btn" :disabled="busy" x-text="busy ? 'SENDING&#8230;' : '&#9654; EMAIL ME A LINK'"></button></div>
             <p class="error-text" role="alert" x-show="signinErr" x-text="signinErr"></p>
           </form>
         </template>
         <template x-if="!signedIn && signinSent">
           <div class="card" role="status" aria-live="polite">
-            <h2>Check your inbox</h2>
-            <p>We sent a link to your NU inbox at <b x-text="email"></b>. It works once and expires in 15 minutes.</p>
-            <p class="help">Not there? Check Junk or Quarantine, then try again.</p>
+            <h2>CHECK YOUR INBOX</h2>
+            <p>We sent a link to your NU inbox at <span class="ok-text" style="font-size:inherit" x-text="email"></span>. It works once and expires in 15 minutes.</p>
+            <p class="muted">Not there? Check Junk or Quarantine, then try again.</p>
             <template x-if="devLink">
               <p class="devlink">Dev mode: <a :href="devLink">open the sign-in link</a></p>
             </template>
-            <div class="actions"><button type="button" class="btn ghost" @click="signinSent = false">Use a different email</button></div>
+            <div class="actions"><button type="button" class="mini" @click="signinSent = false">USE A DIFFERENT EMAIL</button></div>
           </div>
         </template>
       </section>
@@ -640,9 +648,9 @@
     <!-- ═══════════ ADMIN ═══════════ -->
     <template x-if="isRoute('admin')">
       <section aria-labelledby="h-admin">
-        <div class="page-head"><h1 id="h-admin" tabindex="-1">Admin</h1></div>
+        <div class="page-head"><h1 id="h-admin" tabindex="-1">OPERATOR CONSOLE</h1></div>
         <template x-if="!isAdmin">
-          <div class="card"><p>This page is for organizers.</p></div>
+          <div class="card narrow"><p class="muted">This page is for organizers.</p></div>
         </template>
         <template x-if="isAdmin">
           <div>
@@ -650,150 +658,150 @@
 
             <section class="card" aria-labelledby="h-usage">
               <div class="card-head">
-                <h2 id="h-usage">Usage today</h2>
-                <button type="button" class="btn ghost small" @click="loadAdmin()">Refresh</button>
+                <h2 id="h-usage">USAGE TODAY</h2>
+                <button type="button" class="mini refresh" @click="loadAdmin()" aria-label="Refresh admin data" title="Refresh">&#8635;</button>
               </div>
               <p class="muted" x-show="!admin.usage">Usage isn't available.</p>
               <dl class="tiles" x-show="admin.usage">
-                <div><dt>NDIF</dt><dd x-text="admin.usage?.ndif?.enabled ? 'On' : 'Off'"></dd></div>
-                <div><dt>NDIF calls</dt><dd><span x-text="fmtNum(admin.usage?.ndif?.calls_today)"></span><small x-text="' / ' + fmtNum(admin.usage?.ndif?.cap_per_day)"></small></dd>
+                <div><dt>NDIF</dt><dd x-text="admin.usage?.ndif?.enabled ? 'ON' : 'OFF'"></dd></div>
+                <div><dt>NDIF CALLS</dt><dd><span x-text="fmtNum(admin.usage?.ndif?.calls_today)"></span><small x-text="' / ' + fmtNum(admin.usage?.ndif?.cap_per_day)"></small></dd>
                   <meter min="0" :max="admin.usage?.ndif?.cap_per_day || 1" :value="admin.usage?.ndif?.calls_today || 0" aria-label="NDIF calls used today"></meter></div>
-                <div><dt>Per player cap</dt><dd x-text="fmtNum(admin.usage?.ndif?.cap_per_player_day)"></dd></div>
-                <div><dt>Submissions</dt><dd x-text="fmtNum(admin.usage?.submissions_today)"></dd></div>
-                <div><dt>Users</dt><dd x-text="fmtNum(admin.usage?.users)"></dd></div>
-                <div><dt>Local jobs running</dt><dd x-text="fmtNum(admin.usage?.local_jobs_in_flight)"></dd></div>
+                <div><dt>PER PLAYER CAP</dt><dd x-text="fmtNum(admin.usage?.ndif?.cap_per_player_day)"></dd></div>
+                <div><dt>SUBMISSIONS</dt><dd x-text="fmtNum(admin.usage?.submissions_today)"></dd></div>
+                <div><dt>USERS</dt><dd x-text="fmtNum(admin.usage?.users)"></dd></div>
+                <div><dt>LOCAL JOBS</dt><dd x-text="fmtNum(admin.usage?.local_jobs_in_flight)"></dd></div>
               </dl>
             </section>
 
             <section class="card" aria-labelledby="h-achal">
-              <h2 id="h-achal">Challenges</h2>
-              <div class="table-wrap" tabindex="0" role="region" aria-label="All challenges, including hidden">
-                <table class="table admin-table">
-                  <thead><tr><th scope="col">Challenge</th><th scope="col">Track</th><th scope="col">State</th><th scope="col" class="num">Points</th><th scope="col">Actions</th></tr></thead>
+              <h2 id="h-achal">CHALLENGES</h2>
+              <div class="board-wrap" tabindex="0" role="region" aria-label="All challenges, including hidden">
+                <table class="board">
+                  <thead><tr><th scope="col">CHALLENGE</th><th scope="col">TRACK</th><th scope="col">STATE</th><th scope="col" class="num">PTS</th><th scope="col">ACTIONS</th></tr></thead>
                   <tbody>
                     <template x-for="c in admin.challenges" :key="c.slug">
                       <tr>
-                        <td><a :href="'#/c/' + encodeURIComponent(c.slug)" x-text="c.title"></a><br /><span class="muted mono small" x-text="c.slug + ' · ' + kindName(c.kind)"></span></td>
+                        <td><a :href="'#/c/' + encodeURIComponent(c.slug)" x-text="c.title"></a><br /><span class="muted small" x-text="c.slug + ' · ' + kindName(c.kind)"></span></td>
                         <td><span x-text="trackName(c.track)"></span><br /><span class="muted small" x-text="tierLabel(c.tier)"></span></td>
                         <td>
-                          <span class="chip" :class="c.hidden ? 'chip-closed' : 'tier-learn'" x-text="c.hidden ? 'Hidden' : 'Visible'"></span>
-                          <span class="chip chip-closed" x-show="c.closed">Closed</span>
+                          <span class="chip" :class="c.hidden ? 'dim' : 'learn'" x-text="c.hidden ? 'HIDDEN' : 'VISIBLE'"></span>
+                          <span class="chip dim" x-show="c.closed">CLOSED</span>
                           <br /><span class="muted small" x-show="c.closes_at && !c.closed" x-text="'Closes ' + fmtDate(c.closes_at)"></span>
                         </td>
                         <td class="num"><span x-text="fmtNum(c.points)"></span><br /><span class="muted small" x-show="c.points_initial != null" x-text="c.points_initial + ' down to ' + c.points_min + ', decay ' + c.points_decay"></span></td>
-                        <td class="row-actions">
-                          <button type="button" class="btn ghost small" @click="toggleHidden(c)" x-text="c.hidden ? 'Unhide' : 'Hide'" :aria-label="(c.hidden ? 'Unhide ' : 'Hide ') + c.title"></button>
-                          <button type="button" class="btn ghost small" x-show="!c.closed" @click="closeNow(c)" :aria-label="'Close ' + c.title">Close</button>
-                          <button type="button" class="btn ghost small" x-show="c.closed" @click="reopen(c)" :aria-label="'Reopen ' + c.title">Reopen</button>
-                        </td>
+                        <td><div class="row-actions">
+                          <button type="button" class="mini" @click="toggleHidden(c)" x-text="c.hidden ? 'UNHIDE' : 'HIDE'" :aria-label="(c.hidden ? 'Unhide ' : 'Hide ') + c.title"></button>
+                          <button type="button" class="mini danger" x-show="!c.closed" @click="closeNow(c)" :aria-label="'Close ' + c.title">CLOSE</button>
+                          <button type="button" class="mini" x-show="c.closed" @click="reopen(c)" :aria-label="'Reopen ' + c.title">REOPEN</button>
+                        </div></td>
                       </tr>
                     </template>
                   </tbody>
                 </table>
               </div>
-              <p class="empty" x-show="!admin.challenges.length">No challenges yet.</p>
+              <p class="empty" x-show="!admin.challenges.length">NO CHALLENGES YET</p>
 
               <details class="sub">
-                <summary>Add a hint to an existing challenge</summary>
+                <summary>&#9656; ADD A HINT TO A CHALLENGE</summary>
                 <form class="form-grid" @submit.prevent="addHintTo()">
-                  <div class="field"><label for="ah-slug">Challenge</label>
-                    <select id="ah-slug" x-model="admin.hintFor"><option value="">Pick one</option>
+                  <div class="field"><label for="ah-slug">CHALLENGE</label>
+                    <select id="ah-slug" x-model="admin.hintFor"><option value="">PICK ONE</option>
                       <template x-for="c in admin.challenges" :key="c.slug"><option :value="c.slug" x-text="c.title"></option></template></select></div>
-                  <div class="field"><label for="ah-cost">Cost (points)</label><input id="ah-cost" type="number" min="0" step="1" x-model.number="admin.hintCost" /></div>
-                  <div class="field span2"><label for="ah-body">Hint (markdown)</label><textarea id="ah-body" rows="3" x-model="admin.hintBody"></textarea></div>
-                  <div class="actions span2"><button class="btn">Add hint</button><span role="status" class="help" x-text="admin.hintMsg"></span></div>
+                  <div class="field"><label for="ah-cost">COST (PTS)</label><input id="ah-cost" type="number" min="0" step="1" x-model.number="admin.hintCost" /></div>
+                  <div class="field span2"><label for="ah-body">HINT (MARKDOWN)</label><textarea id="ah-body" rows="3" x-model="admin.hintBody"></textarea></div>
+                  <div class="actions span2"><button class="btn">ADD HINT</button><span role="status" class="est" style="margin:0" x-text="admin.hintMsg"></span></div>
                 </form>
               </details>
             </section>
 
             <section class="card" aria-labelledby="h-newchal">
-              <h2 id="h-newchal">New challenge</h2>
+              <h2 id="h-newchal">NEW CHALLENGE</h2>
               <form class="form-grid" @submit.prevent="createChallenge()" novalidate>
-                <div class="field"><label for="nc-title">Title</label><input id="nc-title" type="text" x-model="admin.form.title" required /></div>
-                <div class="field"><label for="nc-slug">Slug</label><input id="nc-slug" class="mono" type="text" x-model="admin.form.slug" pattern="[a-z0-9][a-z0-9-]{0,63}" aria-describedby="nc-slug-help" required />
+                <div class="field"><label for="nc-title">TITLE</label><input id="nc-title" type="text" x-model="admin.form.title" required /></div>
+                <div class="field"><label for="nc-slug">SLUG</label><input id="nc-slug" type="text" x-model="admin.form.slug" pattern="[a-z0-9][a-z0-9-]{0,63}" aria-describedby="nc-slug-help" required />
                   <p id="nc-slug-help" class="help">Lowercase letters, digits and dashes. Shows in the URL.</p></div>
-                <div class="field"><label for="nc-kind">Kind</label>
+                <div class="field"><label for="nc-kind">KIND</label>
                   <select id="nc-kind" :value="admin.form.kind" @change="setKind($event.target.value)" aria-describedby="nc-kind-help">
-                    <template x-for="k in kinds" :key="k"><option :value="k" :selected="k === admin.form.kind" x-text="kindName(k)"></option></template></select>
+                    <template x-for="k in kinds" :key="k"><option :value="k" :selected="k === admin.form.kind" x-text="kindName(k).toUpperCase()"></option></template></select>
                   <p id="nc-kind-help" class="help">Changing the kind resets the JSON config to a template.</p></div>
-                <div class="field"><label for="nc-track">Track</label>
-                  <select id="nc-track" x-model="admin.form.track"><template x-for="t in tracks" :key="t.id"><option :value="t.id" x-text="t.name"></option></template></select></div>
-                <div class="field"><label for="nc-tier">Tier</label>
-                  <select id="nc-tier" x-model="admin.form.tier"><option value="learn">Learn</option><option value="compete">Compete</option></select></div>
-                <div class="field"><label for="nc-close">Closes at (your local time)</label><input id="nc-close" type="datetime-local" x-model="admin.form.closes_at" aria-describedby="nc-close-help" />
+                <div class="field"><label for="nc-track">TRACK</label>
+                  <select id="nc-track" x-model="admin.form.track"><template x-for="t in tracks" :key="t.id"><option :value="t.id" x-text="t.name.toUpperCase()"></option></template></select></div>
+                <div class="field"><label for="nc-tier">TIER</label>
+                  <select id="nc-tier" x-model="admin.form.tier"><option value="learn">LEARN</option><option value="compete">COMPETE</option></select></div>
+                <div class="field"><label for="nc-close">CLOSES AT (LOCAL TIME)</label><input id="nc-close" type="datetime-local" x-model="admin.form.closes_at" aria-describedby="nc-close-help" />
                   <p id="nc-close-help" class="help">Leave empty to keep it open.</p></div>
-                <div class="field"><label for="nc-pi">Points at start</label><input id="nc-pi" type="number" min="0" step="1" x-model.number="admin.form.points_initial" /></div>
-                <div class="field"><label for="nc-pm">Minimum points</label><input id="nc-pm" type="number" min="0" step="1" x-model.number="admin.form.points_min" /></div>
-                <div class="field"><label for="nc-pd">Solves to reach minimum</label><input id="nc-pd" type="number" min="1" step="1" x-model.number="admin.form.points_decay" /></div>
-                <div class="field check"><input id="nc-hidden" type="checkbox" x-model="admin.form.hidden" /><label for="nc-hidden">Start hidden</label></div>
+                <div class="field"><label for="nc-pi">POINTS AT START</label><input id="nc-pi" type="number" min="0" step="1" x-model.number="admin.form.points_initial" /></div>
+                <div class="field"><label for="nc-pm">MINIMUM POINTS</label><input id="nc-pm" type="number" min="0" step="1" x-model.number="admin.form.points_min" /></div>
+                <div class="field"><label for="nc-pd">SOLVES TO MINIMUM</label><input id="nc-pd" type="number" min="1" step="1" x-model.number="admin.form.points_decay" /></div>
+                <div class="field check"><input id="nc-hidden" type="checkbox" x-model="admin.form.hidden" /><label for="nc-hidden">START HIDDEN</label></div>
 
-                <fieldset class="span2 kindbox">
-                  <legend x-text="kindName(admin.form.kind) + ' settings'"></legend>
+                <fieldset class="span2 box">
+                  <legend x-text="kindName(admin.form.kind).toUpperCase() + ' SETTINGS'"></legend>
                   <div class="form-grid">
                     <template x-if="admin.form.kind === 'flag'">
                       <div class="field span2 form-grid">
-                        <div class="field"><label for="nc-flag">Flag (stored only as a hash)</label><input id="nc-flag" class="mono" type="text" autocomplete="off" spellcheck="false" x-model="admin.form.flag" /></div>
-                        <div class="field"><label for="nc-ff">Flag format shown to players</label><input id="nc-ff" class="mono" type="text" placeholder="nuais{...}" x-model="admin.form.k.flag_format" /></div>
-                        <div class="field check"><input id="nc-cs" type="checkbox" x-model="admin.form.k.case_sensitive" /><label for="nc-cs">Case sensitive</label></div>
+                        <div class="field"><label for="nc-flag">FLAG (STORED AS A HASH)</label><input id="nc-flag" type="text" autocomplete="off" spellcheck="false" x-model="admin.form.flag" /></div>
+                        <div class="field"><label for="nc-ff">FLAG FORMAT SHOWN</label><input id="nc-ff" type="text" placeholder="nuais{...}" x-model="admin.form.k.flag_format" /></div>
+                        <div class="field check"><input id="nc-cs" type="checkbox" x-model="admin.form.k.case_sensitive" /><label for="nc-cs">CASE SENSITIVE</label></div>
                       </div>
                     </template>
                     <template x-if="admin.form.kind === 'predictions'">
-                      <div class="field"><label for="nc-metric">Metric</label><select id="nc-metric" x-model="admin.form.k.metric"><option value="auroc">AUROC</option><option value="accuracy">Accuracy</option></select></div>
+                      <div class="field"><label for="nc-metric">METRIC</label><select id="nc-metric" x-model="admin.form.k.metric"><option value="auroc">AUROC</option><option value="accuracy">ACCURACY</option></select></div>
                     </template>
                     <template x-if="admin.form.kind === 'steering'">
                       <div class="field span2 form-grid">
-                        <div class="field"><label for="nc-model">Model id</label><input id="nc-model" class="mono" type="text" x-model="admin.form.k.model_id" /></div>
-                        <div class="field"><label for="nc-layer">Layer</label><input id="nc-layer" type="number" min="0" step="1" x-model="admin.form.k.layer" /></div>
-                        <div class="field"><label for="nc-tb">Token budget</label><input id="nc-tb" type="number" min="1" step="1" x-model="admin.form.k.token_budget" /></div>
-                        <div class="field check"><input id="nc-hib" type="checkbox" x-model="admin.form.k.higher_is_better" /><label for="nc-hib">Higher score wins</label></div>
+                        <div class="field"><label for="nc-model">MODEL ID</label><input id="nc-model" type="text" x-model="admin.form.k.model_id" /></div>
+                        <div class="field"><label for="nc-layer">LAYER</label><input id="nc-layer" type="number" min="0" step="1" x-model="admin.form.k.layer" /></div>
+                        <div class="field"><label for="nc-tb">TOKEN BUDGET</label><input id="nc-tb" type="number" min="1" step="1" x-model="admin.form.k.token_budget" /></div>
+                        <div class="field check"><input id="nc-hib" type="checkbox" x-model="admin.form.k.higher_is_better" /><label for="nc-hib">HIGHER SCORE WINS</label></div>
                       </div>
                     </template>
                     <template x-if="admin.form.kind === 'code'">
                       <div class="field span2 form-grid">
-                        <div class="field"><label for="nc-lang">Language</label><input id="nc-lang" class="mono" type="text" x-model="admin.form.k.language" /></div>
-                        <div class="field"><label for="nc-tl">Time limit (seconds)</label><input id="nc-tl" type="number" min="0.1" step="0.1" x-model="admin.form.k.time_limit_s" /></div>
-                        <div class="field"><label for="nc-mem">Memory (MB)</label><input id="nc-mem" type="number" min="16" step="1" x-model="admin.form.k.memory_mb" /></div>
+                        <div class="field"><label for="nc-lang">LANGUAGE</label><input id="nc-lang" type="text" x-model="admin.form.k.language" /></div>
+                        <div class="field"><label for="nc-tl">TIME LIMIT (S)</label><input id="nc-tl" type="number" min="0.1" step="0.1" x-model="admin.form.k.time_limit_s" /></div>
+                        <div class="field"><label for="nc-mem">MEMORY (MB)</label><input id="nc-mem" type="number" min="16" step="1" x-model="admin.form.k.memory_mb" /></div>
                         <p class="help span2">Put sample tests in the JSON below as <code>samples: [{input, output}]</code>. Hidden tests stay in data/private/.</p>
                       </div>
                     </template>
                     <template x-if="admin.form.kind === 'circuits'">
-                      <div class="field"><label for="nc-mh">Max heads</label><input id="nc-mh" type="number" min="1" step="1" x-model="admin.form.k.max_heads" /></div>
+                      <div class="field"><label for="nc-mh">MAX HEADS</label><input id="nc-mh" type="number" min="1" step="1" x-model="admin.form.k.max_heads" /></div>
                     </template>
                     <div class="field span2">
-                      <label for="nc-config">Config (JSON)</label>
-                      <textarea id="nc-config" class="mono" rows="8" spellcheck="false" x-model="admin.form.configText" aria-describedby="nc-config-help"
+                      <label for="nc-config">CONFIG (JSON)</label>
+                      <textarea id="nc-config" rows="8" spellcheck="false" x-model="admin.form.configText" aria-describedby="nc-config-help"
                                 :aria-invalid="configParse.ok ? 'false' : 'true'"></textarea>
                       <p id="nc-config-help" class="help" :class="{ warn: !configParse.ok }" x-text="configParse.ok ? 'Valid JSON. The fields above are laid over it.' : configParse.error"></p>
-                      <details class="sub"><summary>Config that will be sent</summary><pre class="code-pre" x-text="mergedConfig ? JSON.stringify(mergedConfig, null, 2) : 'Fix the JSON first.'"></pre></details>
+                      <details class="sub"><summary>&#9656; CONFIG THAT WILL BE SENT</summary><pre class="code-pre" x-text="mergedConfig ? JSON.stringify(mergedConfig, null, 2) : 'Fix the JSON first.'"></pre></details>
                     </div>
                   </div>
                 </fieldset>
 
                 <div class="field span2">
-                  <label for="nc-desc">Description (markdown)</label>
+                  <label for="nc-desc">DESCRIPTION (MARKDOWN)</label>
                   <textarea id="nc-desc" rows="8" x-model="admin.form.description" aria-describedby="nc-desc-help"></textarea>
-                  <p id="nc-desc-help" class="help">Headings, lists, code blocks, <code>`code`</code>, **bold**, *italic*, and http(s) links.
+                  <p id="nc-desc-help" class="help">Headings, lists, code blocks, inline code, **bold**, *italic*, and http(s) or /site links.
                     <button type="button" class="linkish" @click="admin.form.preview = !admin.form.preview" :aria-expanded="admin.form.preview ? 'true' : 'false'" x-text="admin.form.preview ? 'Hide preview' : 'Show preview'"></button></p>
-                  <div class="card prose preview" x-show="admin.form.preview"><div class="md" x-html="md(admin.form.description)"></div></div>
+                  <div class="box prose" style="padding-top:14px" x-show="admin.form.preview" x-html="md(admin.form.description)"></div>
                 </div>
 
-                <fieldset class="span2 kindbox">
-                  <legend>Hints</legend>
+                <fieldset class="span2 box">
+                  <legend>HINTS</legend>
                   <p class="help" x-show="!admin.form.hints.length">No hints yet.</p>
                   <ol class="hint-rows">
                     <template x-for="(h, i) in admin.form.hints" :key="i">
                       <li class="form-grid">
-                        <div class="field span2"><label :for="'nh-b' + i" x-text="'Hint ' + (i + 1)"></label><textarea :id="'nh-b' + i" rows="2" x-model="h.body"></textarea></div>
-                        <div class="field"><label :for="'nh-c' + i">Cost (points)</label><input :id="'nh-c' + i" type="number" min="0" step="1" x-model.number="h.cost" /></div>
-                        <div class="field end"><button type="button" class="btn ghost small" @click="removeHintRow(i)" :aria-label="'Remove hint ' + (i + 1)">Remove</button></div>
+                        <div class="field span2"><label :for="'nh-b' + i" x-text="'HINT ' + (i + 1)"></label><textarea :id="'nh-b' + i" rows="2" x-model="h.body"></textarea></div>
+                        <div class="field"><label :for="'nh-c' + i">COST (PTS)</label><input :id="'nh-c' + i" type="number" min="0" step="1" x-model.number="h.cost" /></div>
+                        <div class="field end"><button type="button" class="mini danger" @click="removeHintRow(i)" :aria-label="'Remove hint ' + (i + 1)">REMOVE</button></div>
                       </li>
                     </template>
                   </ol>
-                  <button type="button" class="btn ghost small" @click="addHintRow()">Add a hint</button>
+                  <button type="button" class="mini" @click="addHintRow()">+ ADD A HINT</button>
                 </fieldset>
 
                 <div class="actions span2">
-                  <button class="btn" :disabled="busy || !configParse.ok">Create challenge</button>
+                  <button class="btn" :disabled="busy || !configParse.ok">&#9654; CREATE CHALLENGE</button>
                 </div>
                 <div class="span2" role="status" aria-live="polite">
                   <p class="ok-text" x-show="admin.formMsg" x-text="admin.formMsg"></p>
@@ -803,17 +811,17 @@
             </section>
 
             <section class="card" aria-labelledby="h-seasons">
-              <h2 id="h-seasons">Seasons</h2>
-              <ul class="plain">
-                <template x-for="s in seasons" :key="s.id"><li><span x-text="s.name"></span> <span class="chip tier-learn" x-show="s.active">Active</span></li></template>
-              </ul>
+              <h2 id="h-seasons">SEASONS</h2>
+              <div class="banner" style="justify-content:flex-start;margin:0 0 6px">
+                <template x-for="s in seasons" :key="s.id"><span class="chip" :class="{ lit: s.active }" x-text="s.name + (s.active ? ' (ACTIVE)' : '')"></span></template>
+              </div>
               <form @submit.prevent="createSeason()">
-                <label for="ns-name">New season name</label>
+                <label for="ns-name">NEW SEASON NAME</label>
                 <div class="inline-form">
                   <input id="ns-name" type="text" maxlength="60" x-model="admin.season.name" placeholder="Spring 2027" />
-                  <button class="btn" :disabled="busy">Create</button>
+                  <button class="btn" :disabled="busy">CREATE</button>
                 </div>
-                <div class="check"><input id="ns-active" type="checkbox" x-model="admin.season.active" /><label for="ns-active">Make it the active season</label></div>
+                <div class="check"><input id="ns-active" type="checkbox" x-model="admin.season.active" /><label for="ns-active">MAKE IT THE ACTIVE SEASON</label></div>
               </form>
               <div role="status" aria-live="polite">
                 <p class="ok-text" x-show="admin.season.msg" x-text="admin.season.msg"></p>
@@ -826,29 +834,28 @@
     </template>
 
     <template x-if="isRoute('notfound')">
-      <section class="narrow">
-        <h1 tabindex="-1">Page not found</h1>
-        <p><a href="#/">Back to challenges</a></p>
+      <section class="card narrow">
+        <h1 tabindex="-1">GAME OVER</h1>
+        <p class="muted">That page doesn't exist.</p>
+        <p><a href="#/">&#9654; BACK TO CHALLENGES</a></p>
       </section>
     </template>
   </main>
 
-  <footer class="site-foot">
-    <div class="wrap foot">
-      <p>UI design by <a href="https://sohampadianeu-steering-arena.hf.space/" rel="noopener">Soham Padia (Steering Arena)</a>.
-        Honne Arena is open source on <a href="https://github.com/tohuya6/honne-arena" rel="noopener">GitHub</a>.</p>
-      <p class="foot-tools">
-        <span class="live" :class="live" role="status" x-text="live === 'on' ? 'Live updates on' : live === 'connecting' ? 'Connecting...' : 'Live updates off'"></span>
-        <button type="button" class="linkish" @click="toggleScanlines()" :aria-pressed="scanlines ? 'true' : 'false'">Scanlines</button>
-      </p>
-    </div>
+  <footer class="wrap muted">
+    <p>HONNE ARENA &middot; UI design by <a href="https://sohampadianeu-steering-arena.hf.space/" rel="noopener">Soham Padia (Steering Arena)</a>
+      &middot; <a href="https://github.com/tohuya6/honne-arena" rel="noopener">SOURCE ON GITHUB</a></p>
+    <p>
+      <span class="live" :class="live" role="status" x-text="live === 'on' ? 'LIVE UPDATES ON' : live === 'connecting' ? 'CONNECTING...' : 'LIVE UPDATES OFF'"></span>
+      &middot; <button type="button" class="linkish" @click="toggleScanlines()" :aria-pressed="scanlines ? 'true' : 'false'" x-text="scanlines ? 'SCANLINES: ON' : 'SCANLINES: OFF'"></button>
+    </p>
   </footer>
 
   <div class="toasts" aria-live="polite" aria-relevant="additions">
     <template x-for="t in toasts" :key="t.id">
       <div class="toast" :class="t.tone">
         <p x-text="t.text"></p>
-        <button type="button" class="toast-x" @click="dismissToast(t.id)" aria-label="Dismiss">&times;</button>
+        <button type="button" class="toast-x" @click="dismissToast(t.id)" aria-label="Dismiss">X</button>
       </div>
     </template>
   </div>
@@ -858,7 +865,7 @@
     <p id="dlg-body" x-text="dialog.body"></p>
     <div class="actions">
       <button type="button" class="btn" @click="closeDialog(true)" x-text="dialog.ok"></button>
-      <button type="button" class="btn ghost" @click="closeDialog(false)" autofocus>Cancel</button>
+      <button type="button" class="mini" @click="closeDialog(false)" autofocus>CANCEL</button>
     </div>
   </dialog>
 </body>

@@ -42,6 +42,9 @@
     return "/" + back;
   }
 
+  // Match the main page: scanlines on unless the player turned them off there.
+  try { if (localStorage.getItem("honne_scanlines") === "off") document.getElementById("scanlines").hidden = true; } catch (_) { /* private mode */ }
+
   const token = readToken();
   if (!token) {
     intro.textContent = "This sign-in link is missing its code. Ask for a new link and open it straight from the email.";
@@ -53,7 +56,7 @@
     ev.preventDefault();
     if (!token || btn.disabled) return;
     btn.disabled = true;
-    btn.textContent = "Signing in...";
+    btn.textContent = "SIGNING IN...";
     let res, data = null;
     try {
       res = await fetch("/api/auth/verify", {
@@ -66,7 +69,7 @@
     } catch (_) {
       say("Can't reach the server. Check your connection and try again.", "bad");
       btn.disabled = false;
-      btn.textContent = "Sign in";
+      btn.textContent = "\u25b6 SIGN IN";
       return;
     }
     if (!res.ok) {

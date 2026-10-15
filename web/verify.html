@@ -12,36 +12,41 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=20" />
-  <script defer src="/verify.js?v=20"></script>
+  <link rel="stylesheet" href="/styles.css?v=30" />
+  <script defer src="/verify.js?v=30"></script>
 </head>
 <body>
-  <header class="site">
-    <div class="wrap bar">
-      <a class="brand" href="/" aria-label="Honne Arena, home">HONNE<span>ARENA</span></a>
+  <div class="scanlines" id="scanlines" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="wrap">
+      <div class="marquee">
+        <span class="coin" aria-hidden="true">&#9679;</span>
+        <p class="title"><a href="/" aria-label="Honne Arena, home">HONNE ARENA</a></p>
+        <span class="coin" aria-hidden="true">&#9679;</span>
+      </div>
+      <p class="tag">NU AI SAFETY'S ARENA. <b>LEARN</b> THE TRICKS, THEN <b>COMPETE</b> FOR THE SEASON BOARD.</p>
     </div>
   </header>
 
   <main id="main" class="wrap">
     <div class="narrow">
-    <div class="page-head"><h1>Sign in</h1></div>
-    <!-- Email link scanners (Outlook Safe Links) open every link before you do. This
-         page therefore does nothing on load. Only the button press uses the token. -->
-    <form class="card" id="verify-form">
-      <p id="verify-intro">Press the button to finish signing in to Honne Arena.</p>
-      <div class="actions">
-        <button class="btn" id="verify-btn" type="submit">Sign in</button>
-      </div>
-      <div id="verify-status" role="status" aria-live="polite"></div>
-    </form>
+      <!-- Email link scanners (Outlook Safe Links) open every link before you do. This
+           page therefore does nothing on load. Only the button press uses the token. -->
+      <form class="card" id="verify-form">
+        <h1>INSERT COIN</h1>
+        <p id="verify-intro">Press the button to finish signing in to Honne Arena.</p>
+        <div class="actions">
+          <button class="btn" id="verify-btn" type="submit">&#9654; SIGN IN</button>
+        </div>
+        <div id="verify-status" role="status" aria-live="polite"></div>
+      </form>
     </div>
   </main>
 
-  <footer class="site-foot">
-    <div class="wrap foot">
-      <p>UI design by <a href="https://sohampadianeu-steering-arena.hf.space/" rel="noopener">Soham Padia (Steering Arena)</a>.
-        Honne Arena is open source on <a href="https://github.com/tohuya6/honne-arena" rel="noopener">GitHub</a>.</p>
-    </div>
+  <footer class="wrap muted">
+    <p>HONNE ARENA &middot; UI design by <a href="https://sohampadianeu-steering-arena.hf.space/" rel="noopener">Soham Padia (Steering Arena)</a>
+      &middot; <a href="https://github.com/tohuya6/honne-arena" rel="noopener">SOURCE ON GITHUB</a></p>
   </footer>
 </body>
 </html>
