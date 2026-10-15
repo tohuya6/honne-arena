@@ -1,0 +1,237 @@
+id,statement
+cities-test-0001,The city of Mombasa is in Kenya.
+cities-test-0002,The city of Mexico City is in the United States.
+cities-test-0003,The city of Ghent is in Belgium.
+cities-test-0004,The city of Vienna is in Austria.
+cities-test-0005,The city of Nairobi is in Kenya.
+cities-test-0006,The city of Ibadan is in Nigeria.
+cities-test-0007,The city of Tampere is in Chile.
+cities-test-0008,The city of Giza is in Australia.
+cities-test-0009,The city of Sao Paulo is in Brazil.
+cities-test-0010,The city of Bergen is in Norway.
+cities-test-0011,The city of Eindhoven is in Russia.
+cities-test-0012,The city of Mombasa is in China.
+cities-test-0013,The city of Cusco is in Colombia.
+cities-test-0014,The city of Szeged is in Hungary.
+cities-test-0015,The city of Paris is in Greece.
+cities-test-0016,The city of Puebla is in Mexico.
+cities-test-0017,The city of Sapporo is in Germany.
+cities-test-0018,The city of Abuja is in Sweden.
+cities-test-0019,The city of Ho Chi Minh City is in France.
+cities-test-0020,The city of Casablanca is in the United Kingdom.
+cities-test-0021,The city of San Francisco is in the United States.
+cities-test-0022,The city of Mendoza is in Argentina.
+cities-test-0023,The city of Gdansk is in Poland.
+cities-test-0024,The city of Odense is in Brazil.
+cities-test-0025,The city of Graz is in Austria.
+cities-test-0026,The city of Porto is in Portugal.
+cities-test-0027,The city of Vienna is in Poland.
+cities-test-0028,The city of Jaipur is in Hungary.
+cities-test-0029,The city of Novosibirsk is in Russia.
+cities-test-0030,The city of Kobe is in Japan.
+cities-test-0031,The city of Casablanca is in Morocco.
+cities-test-0032,The city of Nagoya is in Japan.
+cities-test-0033,The city of Giza is in Egypt.
+cities-test-0034,The city of Fukuoka is in Japan.
+cities-test-0035,The city of Frankfurt is in the Philippines.
+cities-test-0036,The city of Bristol is in Belgium.
+cities-test-0037,The city of Shanghai is in Russia.
+cities-test-0038,The city of Warsaw is in Mexico.
+cities-test-0039,The city of Strasbourg is in Indonesia.
+cities-test-0040,The city of Utrecht is in the Netherlands.
+cities-test-0041,The city of Guangzhou is in Pakistan.
+cities-test-0042,The city of Barcelona is in Ireland.
+cities-test-0043,The city of Galway is in Brazil.
+cities-test-0044,The city of Riyadh is in Saudi Arabia.
+cities-test-0045,The city of Thessaloniki is in Greece.
+cities-test-0046,The city of Uppsala is in Norway.
+cities-test-0047,The city of Antwerp is in Belgium.
+cities-test-0048,The city of Dresden is in Germany.
+cities-test-0049,The city of Athens is in Japan.
+cities-test-0050,The city of Lausanne is in Switzerland.
+cities-test-0051,The city of Nagoya is in India.
+cities-test-0052,The city of Adelaide is in China.
+cities-test-0053,The city of Eindhoven is in the Netherlands.
+cities-test-0054,The city of Shiraz is in Italy.
+cities-test-0055,The city of Antalya is in Switzerland.
+cities-test-0056,The city of Novosibirsk is in Germany.
+cities-test-0057,The city of Wellington is in New Zealand.
+cities-test-0058,The city of Malmo is in Australia.
+cities-test-0059,The city of Pattaya is in Thailand.
+cities-test-0060,The city of Edinburgh is in the United Kingdom.
+cities-test-0061,The city of Mendoza is in Thailand.
+cities-test-0062,The city of Luxor is in Egypt.
+cities-test-0063,The city of Galway is in Ireland.
+cities-test-0064,The city of Stuttgart is in Germany.
+cities-test-0065,The city of Tampere is in Finland.
+cities-test-0066,The city of Johannesburg is in South Africa.
+cities-test-0067,The city of Brisbane is in Australia.
+cities-test-0068,The city of Nuremberg is in Saudi Arabia.
+cities-test-0069,The city of Moscow is in India.
+cities-test-0070,The city of Graz is in Pakistan.
+cities-test-0071,The city of Athens is in Greece.
+cities-test-0072,The city of Winnipeg is in Colombia.
+cities-test-0073,The city of Warsaw is in Poland.
+cities-test-0074,The city of Shanghai is in China.
+cities-test-0075,The city of Lucknow is in India.
+cities-test-0076,The city of Cusco is in Peru.
+cities-test-0077,The city of Wellington is in Australia.
+cities-test-0078,The city of Buenos Aires is in Vietnam.
+cities-test-0079,The city of Lucknow is in Spain.
+cities-test-0080,The city of Riyadh is in Peru.
+cities-test-0081,The city of Porto Alegre is in Brazil.
+cities-test-0082,The city of Vancouver is in Canada.
+cities-test-0083,The city of Detroit is in the United States.
+cities-test-0084,The city of Peshawar is in Hungary.
+cities-test-0085,The city of Incheon is in South Korea.
+cities-test-0086,The city of Pretoria is in Vietnam.
+cities-test-0087,The city of Hamburg is in Germany.
+cities-test-0088,The city of Braga is in Canada.
+cities-test-0089,The city of Sapporo is in Japan.
+cities-test-0090,The city of Seattle is in South Korea.
+cities-test-0091,The city of Brisbane is in Nigeria.
+cities-test-0092,The city of Luxor is in Nigeria.
+cities-test-0093,The city of Liverpool is in Italy.
+cities-test-0094,The city of Debrecen is in Germany.
+cities-test-0095,The city of Zaragoza is in Spain.
+cities-test-0096,The city of Tianjin is in Japan.
+cities-test-0097,The city of Incheon is in France.
+cities-test-0098,The city of San Francisco is in South Korea.
+cities-test-0099,The city of Valparaiso is in Chile.
+cities-test-0100,The city of Phuket is in New Zealand.
+cities-test-0101,The city of Shenzhen is in China.
+cities-test-0102,The city of Edinburgh is in the United States.
+cities-test-0103,The city of Zaragoza is in the United States.
+cities-test-0104,The city of Belo Horizonte is in Greece.
+cities-test-0105,The city of Buenos Aires is in Argentina.
+cities-test-0106,The city of Valparaiso is in Spain.
+cities-test-0107,The city of Winnipeg is in Canada.
+cities-test-0108,The city of Hamburg is in Italy.
+cities-test-0109,The city of Houston is in the United States.
+cities-test-0110,The city of Kolkata is in Peru.
+cities-test-0111,The city of Madrid is in Japan.
+cities-test-0112,The city of Braga is in Portugal.
+cities-test-0113,The city of Rome is in Portugal.
+cities-test-0114,The city of Aarhus is in Denmark.
+cities-test-0115,The city of New Orleans is in the United States.
+cities-test-0116,The city of Bordeaux is in France.
+cities-test-0117,The city of Szeged is in South Africa.
+cities-test-0118,The city of Nuremberg is in Germany.
+cities-test-0119,The city of Pretoria is in South Africa.
+cities-test-0120,The city of Mashhad is in Iran.
+cities-test-0121,The city of Debrecen is in Hungary.
+cities-test-0122,The city of Barranquilla is in Japan.
+cities-test-0123,The city of Lahore is in Pakistan.
+cities-test-0124,The city of Ankara is in Egypt.
+cities-test-0125,The city of Helsinki is in Finland.
+cities-test-0126,The city of Cali is in Colombia.
+cities-test-0127,The city of Mecca is in Finland.
+cities-test-0128,The city of Quebec City is in Canada.
+cities-test-0129,The city of Chongqing is in China.
+cities-test-0130,The city of Davao is in Pakistan.
+cities-test-0131,The city of Jakarta is in Indonesia.
+cities-test-0132,The city of Phuket is in Thailand.
+cities-test-0133,The city of Glasgow is in Austria.
+cities-test-0134,The city of Miami is in the United States.
+cities-test-0135,The city of Mecca is in Saudi Arabia.
+cities-test-0136,The city of Ho Chi Minh City is in Vietnam.
+cities-test-0137,The city of Aarhus is in Spain.
+cities-test-0138,The city of Belo Horizonte is in Brazil.
+cities-test-0139,The city of Shenzhen is in Belgium.
+cities-test-0140,The city of Liverpool is in the United Kingdom.
+cities-test-0141,The city of Cancun is in Mexico.
+cities-test-0142,The city of Paris is in France.
+cities-test-0143,The city of Islamabad is in Argentina.
+cities-test-0144,The city of Florence is in Egypt.
+cities-test-0145,The city of Delhi is in the Philippines.
+cities-test-0146,The city of Tianjin is in China.
+cities-test-0147,The city of Johannesburg is in India.
+cities-test-0148,The city of Davao is in the Philippines.
+cities-test-0149,The city of Kobe is in India.
+cities-test-0150,The city of Ankara is in Turkey.
+cities-test-0151,The city of Seattle is in the United States.
+cities-test-0152,The city of Fortaleza is in Denmark.
+cities-test-0153,The city of Oslo is in Portugal.
+cities-test-0154,The city of New Orleans is in Saudi Arabia.
+cities-test-0155,The city of Thessaloniki is in China.
+cities-test-0156,The city of Turin is in Italy.
+cities-test-0157,The city of Venice is in Canada.
+cities-test-0158,The city of Da Nang is in Finland.
+cities-test-0159,The city of Stuttgart is in South Africa.
+cities-test-0160,The city of Cali is in Poland.
+cities-test-0161,The city of Canberra is in Iran.
+cities-test-0162,The city of Puebla is in the United Kingdom.
+cities-test-0163,The city of Guangzhou is in China.
+cities-test-0164,The city of Montreal is in Canada.
+cities-test-0165,The city of Fortaleza is in Brazil.
+cities-test-0166,The city of Montreal is in the United Kingdom.
+cities-test-0167,The city of Strasbourg is in France.
+cities-test-0168,The city of Malmo is in Sweden.
+cities-test-0169,The city of Pattaya is in Turkey.
+cities-test-0170,The city of Madrid is in Spain.
+cities-test-0171,The city of Lyon is in the United States.
+cities-test-0172,The city of Cebu is in Ireland.
+cities-test-0173,The city of Surabaya is in Indonesia.
+cities-test-0174,The city of Peshawar is in Pakistan.
+cities-test-0175,The city of Detroit is in France.
+cities-test-0176,The city of Glasgow is in the United Kingdom.
+cities-test-0177,The city of Vancouver is in China.
+cities-test-0178,The city of Odense is in Denmark.
+cities-test-0179,The city of Venice is in Italy.
+cities-test-0180,The city of Da Nang is in Vietnam.
+cities-test-0181,The city of Adelaide is in Australia.
+cities-test-0182,The city of Uppsala is in Sweden.
+cities-test-0183,The city of Antalya is in Turkey.
+cities-test-0184,The city of Ibadan is in France.
+cities-test-0185,The city of Lausanne is in Thailand.
+cities-test-0186,The city of Lahore is in Iran.
+cities-test-0187,The city of Marrakesh is in Morocco.
+cities-test-0188,The city of Barranquilla is in Colombia.
+cities-test-0189,The city of Mexico City is in Mexico.
+cities-test-0190,The city of Shiraz is in Iran.
+cities-test-0191,The city of Bergen is in the Netherlands.
+cities-test-0192,The city of Surabaya is in Switzerland.
+cities-test-0193,The city of Arequipa is in Indonesia.
+cities-test-0194,The city of Houston is in Morocco.
+cities-test-0195,The city of Miami is in Canada.
+cities-test-0196,The city of Islamabad is in Pakistan.
+cities-test-0197,The city of Porto is in Argentina.
+cities-test-0198,The city of Lyon is in France.
+cities-test-0199,The city of Barcelona is in Spain.
+cities-test-0200,The city of Limerick is in the United States.
+cities-test-0201,The city of Limerick is in Ireland.
+cities-test-0202,The city of Chongqing is in the Netherlands.
+cities-test-0203,The city of Canberra is in Australia.
+cities-test-0204,The city of Moscow is in Russia.
+cities-test-0205,The city of Zurich is in Morocco.
+cities-test-0206,The city of Jakarta is in Austria.
+cities-test-0207,The city of Quebec City is in the United Kingdom.
+cities-test-0208,The city of Seoul is in Denmark.
+cities-test-0209,The city of Cebu is in the Philippines.
+cities-test-0210,The city of Bristol is in the United Kingdom.
+cities-test-0211,The city of Fukuoka is in Germany.
+cities-test-0212,The city of Porto Alegre is in Turkey.
+cities-test-0213,The city of Zurich is in Switzerland.
+cities-test-0214,The city of Arequipa is in Peru.
+cities-test-0215,The city of Helsinki is in Norway.
+cities-test-0216,The city of Antwerp is in Mexico.
+cities-test-0217,The city of Cancun is in Sweden.
+cities-test-0218,The city of Florence is in Italy.
+cities-test-0219,The city of Sao Paulo is in Kenya.
+cities-test-0220,The city of Dresden is in Brazil.
+cities-test-0221,The city of Oslo is in Norway.
+cities-test-0222,The city of Utrecht is in Canada.
+cities-test-0223,The city of Frankfurt is in Germany.
+cities-test-0224,The city of Marrakesh is in Mexico.
+cities-test-0225,The city of Abuja is in Nigeria.
+cities-test-0226,The city of Turin is in Brazil.
+cities-test-0227,The city of Rome is in Italy.
+cities-test-0228,The city of Ghent is in Kenya.
+cities-test-0229,The city of Kolkata is in India.
+cities-test-0230,The city of Jaipur is in India.
+cities-test-0231,The city of Gdansk is in the United States.
+cities-test-0232,The city of Nairobi is in Italy.
+cities-test-0233,The city of Bordeaux is in Germany.
+cities-test-0234,The city of Mashhad is in China.
+cities-test-0235,The city of Seoul is in South Korea.
+cities-test-0236,The city of Delhi is in India.
