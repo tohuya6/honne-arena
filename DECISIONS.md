@@ -53,7 +53,8 @@ accessible replicas of three existing contests, plus classic CTF flags:
 
 ## Identity and teams (2026-10-14)
 
-- Handles per season, no accounts. A new handle gets a solo team named after it.
+- Superseded 2026-10-14 by NU email sign-in (see "Sign-in and accounts"). Originally:
+  handles per season, no accounts. A new handle gets a solo team named after it.
 - Teams have a join code that only the creator sees. Players may change team only
   before their first submission, so one player's solves cannot count for two teams.
 - Open: handles can be impersonated. Fine among club members. Before opening to other
@@ -67,6 +68,8 @@ accessible replicas of three existing contests, plus classic CTF flags:
 - Scored challenges (steering, predictions) rank teams by best entry and pay linearly
   from `points_initial` (rank 1) to `points_min` (last).
 - One flag solve per team. One scored row per distinct answer, ever (dedup).
+  Changed 2026-10-14: every player can solve a flag themselves (personal tiers need
+  it), the team earns it once, and decay counts distinct solving teams.
 
 ## NDIF use (2026-10-14)
 
@@ -108,7 +111,6 @@ by accident.
   GitHub would let anyone, or any bot, farm the boards. Handles become display names on
   a verified account.
 - Tiers are not tied to club membership. That may change later; it is not official.
-- Open: the email sender for magic links.
 
 ## Compute modes (2026-10-14)
 
@@ -202,14 +204,54 @@ Built the same day in parallel branches, merged into `main` after review:
   about +0.026 and opposite ones about -0.024. The vector is in the public repo, like
   Steering Arena's. The compete steering challenge keeps Steering Arena's OLMo-3-32B
   setup on NDIF and stays hidden while NDIF is off.
-- Open: each local job uses up to 24 torch threads. Add a thread cap before two jobs
-  can saturate a shared machine.
+- Torch threads are now capped, see "Local compute share".
+
+## Sign-in and accounts (2026-10-14)
+
+- Magic link to an `@northeastern.edu` address. The domain must match exactly, so
+  subdomains are rejected, and addresses are lowercased. Only sha256 hashes of link and
+  session tokens are stored. A link works once for 15 minutes. A session lasts 30 days.
+- Only a POST consumes a link. The emailed page shows a "Sign in" button, because
+  Outlook Safe Links fetches every link in an email before the person clicks it.
+- Session cookie `honne_session`: HttpOnly, SameSite=Lax, and Secure when
+  `COOKIE_SECURE=true` (required in production). Every POST body is JSON, which with
+  SameSite=Lax blocks cross-site form posts.
+- Rate limits on links: 3 per email per 15 minutes, 10 per connection per hour. The
+  response never says whether an account exists.
+- Email goes through `EMAIL_BACKEND=console` (dev, logs the link) or `smtp`.
+  `DEV_EXPOSE_LINKS` returns the link in the response, console backend only.
+- Handles are display names, unique ignoring case, changeable, and required before
+  submitting. Players are per (season, user). A user gets a solo team on their first
+  action in a season. Joining a team is allowed only before your first submission.
+
+## Hints, writeups, tiers, live feed (2026-10-14)
+
+- Hints: each player pays for the hints they unlock. A team pays each distinct hint
+  once. Hints on learn challenges are free.
+- A challenge can close (`closes_at`). After close, submissions get 403 and anyone who
+  submitted may post one plain-text writeup, shown to everyone.
+- Track boards are all-time across seasons. Tie-break: more points, then whoever
+  reached their total first, then lower user id. A solve or a scored entry puts you on
+  the board, and wrong answers don't. Hidden challenges count on no board.
+- `/ws` broadcasts solves and scored entries, never wrong answers. Each connection
+  has a bounded queue and slow clients are dropped.
+- Admin is a signed-in user listed in `ADMIN_EMAILS`, or the `X-Admin-Token` header.
+  The admin listing strips secret-looking config keys and keeps `*_file` paths.
+- `scripts/seed.py` loads `seeds/*.json` idempotently through the same validation as
+  the admin API.
+- Known limits at club scale: track boards are recomputed per request, and there is
+  one SQLite connection without multi-statement transactions (unique indexes catch
+  the races).
+
+## Local compute share (2026-10-14)
+
+- Torch uses at most `LOCAL_THREADS=8` CPU threads by default. A circuits submission
+  takes about 2.9 s at 8 threads against 1.7 s at 24, with the same score, and two
+  jobs no longer saturate a shared machine.
 
 ## Open / next
 
 - UI: `web/` is still Steering Arena's single-challenge page and calls the old routes.
   Rework it for the challenge list, teams, and season board. Style direction: plainer
   and more readable (simple white text), keeping the arcade feel.
-- Hints that cost points, writeups unlocked after a challenge closes.
-- Live leaderboard over WebSockets.
 - Admin page for writing and scheduling challenges (today: the admin API).
